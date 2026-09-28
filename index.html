@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Friends Cup · Counter-Strike</title>
+  <meta name="description" content="Eight teams. One champion. Follow the Friends Cup Counter-Strike tournament.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23d5ff62'/%3E%3Cpath d='M8 8h16v5H13v4h9v5h-9v4H8z' fill='%23141618'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="tournament.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="./"><span class="mark">F/</span> FRIENDS CUP</a><span class="game">COUNTER-STRIKE / CUSTOM GAMES</span></header>
+  <main>
+    <div class="intro"><div><p class="eyebrow">THE TOURNAMENT</p><h1 id="title">Friends Cup<span>.</span></h1><p class="subtitle">Eight teams. One champion. Settle it on the server.</p></div><div class="edition">01<span>EDITION</span></div></div>
+    <section class="overview" aria-label="Tournament summary"><div><span class="label">FORMAT</span><strong>Groups → playoffs</strong></div><div><span class="label">TEAMS</span><strong>08 <small>teams entered</small></strong></div><div><span class="label">PROGRESS</span><strong id="progress">0 / 15 <small>matches complete</small></strong></div><div><span class="label">STATUS</span><strong id="status" class="accent">Awaiting first match</strong></div></section>
+    <section aria-labelledby="groups-heading"><div class="section-heading"><h2 id="groups-heading">Group stage</h2><span>ROUND ROBIN / TOP 2 ADVANCE</span></div><div id="groups" class="groups"></div><p class="rules">Ranked by wins, then round difference (RD). Remaining ties need a tiebreak decision. Playoff places are confirmed after all six group matches.</p></section><section aria-labelledby="bracket-heading"><div class="section-heading"><h2 id="bracket-heading">Road to the final</h2><span>WIN AND ADVANCE</span></div><div id="bracket" class="bracket"></div></section>
+    <section class="champion" aria-label="Tournament champion"><span class="champion-icon" aria-hidden="true">★</span><div><span class="eyebrow">THE CHAMPION</span><h2 id="champion">A title waiting to be claimed.</h2></div><span class="champion-note" id="champion-note">Decided in the grand final</span></section>
+    <section aria-labelledby="teams-heading"><div class="section-heading"><h2 id="teams-heading">The contenders</h2><span>8 TEAMS / 1 TROPHY</span></div><div id="teams" class="teams"></div></section>
+    <p id="error" role="alert" hidden></p>
+    <noscript><p>Please enable JavaScript to view the tournament bracket and results.</p></noscript>
+  </main>
+  <footer><span>FRIENDS CUP <span class="muted">/ Built for game night.</span></span><span>Results updated after each match</span></footer>
+</body>
+</html>
+
