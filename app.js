@@ -96,7 +96,9 @@ function renderTournament(data) {
   document.getElementById('champion').textContent = 'One team takes it all.';
   document.getElementById('champion-note').textContent = 'Decided in the grand final';
   const headers=data.headers || {brand:data.name,banner:data.name};
-  document.title = `${headers.brand} · Counter-Strike`;
+  document.title = headers.brand;
+  document.querySelectorAll('meta[property="og:title"],meta[name="twitter:title"]').forEach(meta=>{meta.content=headers.brand;});
+  document.querySelectorAll('meta[name="description"],meta[property="og:description"],meta[name="twitter:description"]').forEach(meta=>{meta.content=headers.banner;});
   document.getElementById('brand-title').textContent=headers.brand;
   document.getElementById('footer-brand').textContent=headers.brand;
   document.getElementById('broadcast-caption').textContent='COUNTER-STRIKE / '+headers.brand;

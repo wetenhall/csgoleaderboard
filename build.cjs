@@ -10,6 +10,12 @@ const repository = process.env.GITHUB_REPOSITORY || '';
 const branch = process.env.GITHUB_REF_NAME || 'main';
 if (repository && !/^[a-z0-9_.-]+\/[a-z0-9_.-]+$/i.test(repository)) throw Error('Invalid GITHUB_REPOSITORY: use owner/repository.');
 const escapeAttribute = value => value.replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+const tournament = JSON.parse(fs.readFileSync(path.join(__dirname, 'tournament.json'), 'utf8'));
+const pageTitle = escapeAttribute(tournament.headers?.brand || tournament.name);
+const pageDescription = escapeAttribute(tournament.headers?.banner || tournament.name);
+html = html.replace(/<title>[^<]*<\/title>/, () => '<title>'+pageTitle+'</title>');
+html = html.replace(/(<meta (?:name|property)="(?:description|og:title|og:description|twitter:title|twitter:description)" content=")[^"]*(">)/g,
+  (tag, before, after) => before + (before.includes(':title') ? pageTitle : pageDescription) + after);
 html = html.replace('</head>', '<meta name="dashboard-repository" content="'+escapeAttribute(repository)+'">\n<meta name="dashboard-branch" content="'+escapeAttribute(branch)+'">\n</head>');
 for (const filename of ['styles.css', 'app.js', 'tournament.js', 'manager.js']) {
   const content = filename === 'tournament.js' ? Buffer.from('const TOURNAMENT = ' + fs.readFileSync(path.join(__dirname, 'tournament.json'), 'utf8') + ';') : fs.readFileSync(path.join(__dirname, filename));
