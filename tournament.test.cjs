@@ -148,3 +148,16 @@ test('map selection rejects empty, duplicate and wrong-mode pools; single map co
  assert.ok(data.matches.every(m=>m.map==='Nuke'));validateData(data,resolveTournament);
  data.matches[0].map='Dust2';assert.throws(()=>validateData(data,resolveTournament),/maps/);
 });
+
+test('clearing a tournament removes all match and player data and supports a new draw',()=>{
+ const {emptyTournament}=require('./manager.js');
+ const original=JSON.parse(fs.readFileSync('tournament.json','utf8'));
+ const snapshot=JSON.stringify(original); const empty=emptyTournament(original);
+ assert.deepEqual(empty,{name:original.name,teams:[],groups:[],matches:[]});
+ assert.equal(JSON.stringify(original),snapshot);validateData(empty,resolveTournament);
+ assert.equal(resolveTournament(empty).matches.length,0);assert.deepEqual(playerTotals(empty),[]);
+ const players=Array.from({length:4},(_,i)=>({id:'p'+i,name:'Player '+i}));
+ validateData(makeTournament(players,2,empty,undefined,0,['Nuke']),resolveTournament);
+ assert.throws(()=>validateData({...empty,groups:[{id:'A',teams:['t1']}]},resolveTournament));
+ assert.throws(()=>validateData({...empty,matches:[{id:'f1'}]},resolveTournament));
+});

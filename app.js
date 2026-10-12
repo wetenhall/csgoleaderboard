@@ -96,6 +96,16 @@ function renderTournament(data) {
   document.getElementById('group-rules').textContent = 'Ranked by wins, then round difference (RD). Remaining ties need a tiebreak decision. Playoff places are confirmed when each team has played every other team in its group.';
   document.getElementById('schedule-rules').textContent = (groups.length ? 'Play group games in numbered order. The top two from each group advance to the knockout stages.' : 'Straight knockout: winners advance. Teams with a first-round bye enter in the following round.') + ' Connect in Set up to enter or correct results in Fixtures.';
   document.getElementById('status').textContent = completed === matches.length ? 'Tournament complete' : completed ? 'Tournament underway' : 'Awaiting first match';
+  if (!data.teams.length) {
+    document.getElementById('format-name').textContent='Not configured';
+    document.getElementById('status').textContent='Ready for a new tournament';
+    document.getElementById('champion').textContent='Start a new tournament.';
+    document.getElementById('champion-note').textContent='Create teams in Team setup';
+    document.getElementById('schedule-rules').textContent='Fixtures appear after you publish a new tournament.';
+    document.getElementById('bracket').append(element('p','rules','No tournament yet. Open Team setup to draw teams and publish fixtures.'));
+    document.getElementById('teams').append(element('p','rules','No teams entered yet.'));
+    return;
+  }
   function matchCard(match) {
     const card = element('article', 'match');
     card.setAttribute('aria-label', `Match ${match.id.toUpperCase()}`);

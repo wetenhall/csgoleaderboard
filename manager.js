@@ -91,7 +91,9 @@ function playerTotals(data) {
   return [...totals.values()].sort((a,b) => b.kills-a.kills || a.deaths-b.deaths || a.name.localeCompare(b.name));
 }
 function validateData(data, resolve) {
-  if (!data || typeof data.name !== 'string' || data.name.length > 100 || !Array.isArray(data.teams) || data.teams.length < 2 || !Array.isArray(data.groups) || data.groups.length > 4 || !Array.isArray(data.matches)) throw Error('Invalid tournament structure.');
+  if (!data || typeof data.name !== 'string' || data.name.length > 100 || !Array.isArray(data.teams) || !Array.isArray(data.groups) || data.groups.length > 4 || !Array.isArray(data.matches)) throw Error('Invalid tournament structure.');
+  if (!data.teams.length && !data.groups.length && !data.matches.length && data.mapPool === undefined) return data;
+  if (data.teams.length < 2) throw Error('Invalid tournament structure.');
   const teamIds = data.teams.map(t => t.id);
   if (data.mapPool !== undefined && (!Array.isArray(data.mapPool) || !data.mapPool.length || new Set(data.mapPool).size !== data.mapPool.length || data.mapPool.some(map => !MAP_POOLS[data.teamSize]?.includes(map)) || data.matches.some(match => !data.mapPool.includes(match.map)))) throw Error('Fixtures must use maps from the selected tournament map pool.');
   if (data.mapPool === undefined && data.matches.some(match => match.map !== undefined)) throw Error('A selected map pool is required for fixture maps.');
@@ -132,7 +134,8 @@ function applyResult(data, id, result, resolve) {
   validateData(next, resolve);
   return { next, cleared };
 }
-if (typeof module !== 'undefined') module.exports = { makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps };
+function emptyTournament(data) { return {name:data.name,teams:[],groups:[],matches:[]}; }
+if (typeof module !== 'undefined') module.exports = { makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament };
 if (typeof document !== 'undefined') (() => {
   const $ = id => document.getElementById(id);
   const api = 'https://api.github.com/repos/wetenhall/csgoleaderboard/contents/tournament.json';
@@ -156,6 +159,8 @@ if (typeof document !== 'undefined') (() => {
     $('disconnect').hidden = !token;
     $('connect-form').querySelector('button').disabled = busy || !!token;
     $('refresh-data').disabled = busy;
+    $('clear-tournament').disabled = busy || spinning || !token;
+    $('spin').disabled = busy || spinning || !remaining.length;
     $('disconnect').disabled = busy;
     $('remember-token').disabled = busy;
     $('publish-draw').disabled = busy || !draw || !token || draw.groups.length !== Number($('group-count').value) || !selectedMaps().length;
@@ -217,12 +222,27 @@ if (typeof document !== 'undefined') (() => {
   function renderAll() {
     renderTournament(current); renderSchedule(); renderStats(); renderTies(); controls();
   }
+  $('clear-tournament').onclick = async () => {
+    if (busy || spinning || !token) return;
+    if (!confirm('Clear the published tournament for everyone? This removes all teams, groups, fixtures, results, player stats and map assignments, and discards this tab’s unfinished draw. Your organiser connection will stay active.')) return;
+    try {
+      await publish(emptyTournament(current),'Clear tournament ready for a new draw');
+      pool=[];remaining=[];selected=[];draw=null;drawOrder=[];lock(false);
+      $('pool-input').value='';$('pool-list').replaceChildren();$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();
+      $('group-count').value='1';renderMapOptions();
+      $('format-preview').textContent='Choose the format before publishing. Each group needs at least two teams.';
+      $('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();
+      announce('Tournament cleared. Load players to start a new draw.');
+      say('Tournament cleared and saved to GitHub. The public page updates after deployment. Your organiser connection is still active.');
+    } catch(error) { say(error.message); }
+  };
   function numeric(label, value, max=999) {
     const wrap = element('label','',label); const input = element('input');
     input.type='number'; input.min='0'; input.max=String(max); input.step='1'; input.value=value ?? ''; input.inputMode='numeric'; wrap.append(input); return {wrap,input};
   }
   function renderSchedule() {
     $('schedule').replaceChildren(); const state = resolveTournament(current);
+    if (!state.matches.length) { $('schedule').append(element('p','rules','No fixtures yet. Create and publish a tournament in Team setup.')); return; }
     const matches = orderedMatches(state.matches); let markedNext = false;
     const sections = {};
     for (const [key, title] of [['upcoming','Upcoming games'],['played','Played games']]) {
@@ -306,7 +326,7 @@ if (typeof document !== 'undefined') (() => {
   function updateMapCount() { const count=selectedMaps().length; $('map-count').textContent=count ? count+' maps selected' : 'Select at least one map before publishing.'; }
   $('team-size').onchange=()=>{selectionCount();renderMapOptions();};
   $('load-pool').onclick=()=>{
-    if(locked)return;
+    if(locked || busy)return;
     const names=$('pool-input').value.split(/\r?\n/).map(n=>n.trim()).filter(Boolean);
     if(!names.length || names.some(n=>n.length>40) || new Set(names.map(n=>n.toLowerCase())).size!==names.length){announce('Use distinct names, one per line, up to 40 characters each.');return;}
     pool=names.map((name,i)=>({id:`p${i+1}`,name}));$('pool-list').replaceChildren();
@@ -323,9 +343,9 @@ if (typeof document !== 'undefined') (() => {
     for(let i=0;i<(selected.length+remaining.length)/size;i++){const card=element('div','draw-team');const label=element('label','',`Team ${i+1}`);const name=element('input');name.value=draw?.teams[i].name || `Team ${String(i+1).padStart(2,'0')}`;name.maxLength=60;name.disabled=!draw;name.oninput=()=>{draw.teams[i].name=name.value.trim();};label.append(name);card.append(label);selected.slice(i*size,(i+1)*size).forEach(p=>card.append(element('p','',p.name)));if(draw)card.append(element('p','accent',draw.groups.length ? `Group ${draw.groups.find(g=>g.teams.includes(draw.teams[i].id)).id}` : 'Knockout'));$('draw-teams').append(card);}
   }
   function lock(value){locked=value;['team-size','pool-input','load-pool','start-draw'].forEach(id=>{$(id).disabled=value;});$('pool-list').querySelectorAll('input').forEach(i=>{i.disabled=value;});}
-  $('start-draw').onclick=()=>{const ids=[...$('pool-list').querySelectorAll('input:checked')].map(i=>i.value);const size=Number($('team-size').value);if(ids.length<size*2 || ids.length%size)return;remaining=pool.filter(p=>ids.includes(p.id));selected=[];draw=null;lock(true);showDrawTeams();paintWheel(remaining);$('spin').disabled=false;announce('Drawing Team 01. Spin to select its first player.');};
+  $('start-draw').onclick=()=>{if(busy)return;const ids=[...$('pool-list').querySelectorAll('input:checked')].map(i=>i.value);const size=Number($('team-size').value);if(ids.length<size*2 || ids.length%size)return;remaining=pool.filter(p=>ids.includes(p.id));selected=[];draw=null;lock(true);showDrawTeams();paintWheel(remaining);$('spin').disabled=false;announce('Drawing Team 01. Spin to select its first player.');};
   $('spin').onclick=async()=>{
-    if(spinning || !remaining.length)return;spinning=true;$('spin').disabled=true;$('reset-draw').disabled=true;
+    if(busy || spinning || !remaining.length)return;spinning=true;$('spin').disabled=true;$('reset-draw').disabled=true;
     const index=randomIndex(remaining.length),picked=remaining[index],canvas=$('wheel');canvas.style.transition='none';canvas.style.transform='rotate(0deg)';paintWheel(remaining);void canvas.offsetWidth;
     const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:2400;
     canvas.style.transition=`transform ${duration}ms cubic-bezier(.12,.6,.12,1)`;canvas.style.transform=`rotate(${1800+360-(index+.5)*360/remaining.length}deg)`;
