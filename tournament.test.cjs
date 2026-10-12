@@ -533,3 +533,19 @@ test('removing archived cups keeps the active tournament intact and recalculates
  assert.deepEqual(savedPlayers(cleared.history),[]);assert.deepEqual(careerRecords(cleared.history,'1v1',resolveTournament,playerTotals),[]);
  assert.throws(()=>removeCupHistory(next,'missing'),/no longer exists/);
 });
+
+test('squad wheel assigns one player to each team in rotation and preserves rosters in every format',()=>{
+ const {drawTeamMembers,makeTournament}=require('./manager.js');
+ for(const count of [2,3,4]){
+  const players=Array.from({length:count*5},(_,i)=>({id:'p'+i,name:'Player '+i}));
+  assert.deepEqual(drawTeamMembers(players.slice(0,count+1),5,players.length).map(t=>t.map(p=>p.id)),Array.from({length:count},(_,i)=>i===0?['p0','p'+count]:['p'+i]));
+  const expected=Array.from({length:count},(_,i)=>Array.from({length:5},(_,slot)=>'p'+(i+slot*count)));
+  for(const format of ['groups','double']){
+   const cup=makeTournament(players,5,{name:'Cup'},undefined,format==='groups'?1:0,['Nuke'],2,format);
+   assert.deepEqual(cup.teams.map(t=>t.players.map(p=>p.id)),expected);
+   validateData(cup,resolveTournament);
+  }
+ }
+ const duos=Array.from({length:6},(_,i)=>({id:'p'+i,name:'P'+i}));
+ assert.deepEqual(drawTeamMembers(duos,2).map(t=>t.map(p=>p.id)),[['p0','p1'],['p2','p3'],['p4','p5']]);
+});
