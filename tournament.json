@@ -396,7 +396,28 @@
         "t11",
         "t3"
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t11",
+          "t3"
+        ],
+        "scores": [
+          6,
+          7
+        ],
+        "players": {
+          "p6": {
+            "kills": 6,
+            "deaths": 7,
+            "assists": 0
+          },
+          "p2": {
+            "kills": 7,
+            "deaths": 6,
+            "assists": 0
+          }
+        }
+      }
     },
     {
       "id": "a10",
