@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Friends Cup · Counter-Strike</title>
-  <meta name="description" content="Eight teams. One champion. Follow the Friends Cup Counter-Strike tournament.">
+  <meta name="description" content="Your teams. One champion. Follow the Friends Cup Counter-Strike tournament.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23f5a623'/%3E%3Cpath d='M8 8h16v5H13v4h9v5h-9v4H8z' fill='%23141618'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
   <script defer src="tournament.js"></script>
@@ -22,11 +22,11 @@
         <p id="connection-status" role="status">Viewing the published tournament. Connect to publish changes.</p>
         <button id="refresh-data" type="button" class="secondary">Reload latest saved tournament</button>
         <details id="draw-panel"><summary>Create a new tournament · Wheel draw</summary>
-          <p>Eight teams, two groups. The new draw replaces the current tournament and its results only when you publish it.</p>
+          <p>Choose Duos or Squads. Any number of complete teams is supported (minimum two). Up to five teams play one group then a final; six or more split into two balanced groups then playoffs. The new draw replaces the current tournament and its results only when you publish it.</p>
           <div class="draw-layout"><div>
-            <label>Team size <select id="team-size"><option value="2">2 players · 16 selected players</option><option value="5">5 players · 40 selected players</option></select></label>
+            <label>Tournament type <select id="team-size"><option value="2">Duos · 2 players per team</option><option value="5">Squads · 5 players per team</option></select></label>
             <label>Player pool · one name per line<textarea id="pool-input" rows="7" maxlength="6000" placeholder="Player name&#10;Another player"></textarea></label>
-            <button id="load-pool" type="button">Load player pool</button><p id="pool-count">Select exactly 16 players.</p><div id="pool-list" class="pool-list"></div>
+            <button id="load-pool" type="button">Load player pool</button><p id="pool-count">Select at least 4 players for Duos, or 10 for Squads. Full teams only.</p><div id="pool-list" class="pool-list"></div>
             <button id="start-draw" type="button" disabled>Lock players & start draw</button><button id="reset-draw" type="button" class="secondary">Reset draw</button>
           </div><div class="wheel-panel"><div class="wheel-wrap"><span class="wheel-pointer" aria-hidden="true">▼</span><canvas id="wheel" width="640" height="640" role="img" aria-label="Player selection wheel"></canvas></div><p id="draw-announcement" role="status" aria-live="polite">Load your players to begin.</p><button id="spin" type="button" disabled>Spin for next player</button></div></div>
           <div id="draw-teams" class="teams"></div><button id="publish-draw" type="button" disabled>Publish teams & groups</button>
@@ -34,11 +34,11 @@
       </div>
     </details>
     <div class="intro"><div><p class="eyebrow">COUNTER-STRIKE <span class="slash"> / </span> FRIENDS TOURNAMENT</p><h1 id="title">Friends Cup<span>.</span></h1><p class="subtitle">Buy in. Lock in. Let the scoreboard do the talking.</p></div><div class="edition" aria-hidden="true"><span class="edition-top">COMPETITIVE</span><strong>CS<span class="edition-slash">/</span></strong><span>FRIENDS CUP · 01</span></div></div>
-    <section class="overview" aria-label="Tournament summary"><div><span class="label">FORMAT</span><strong>Groups → playoffs</strong></div><div><span class="label">TEAMS</span><strong>08 <small>teams entered</small></strong></div><div><span class="label">PROGRESS</span><strong id="progress">0 / 15 <small>matches complete</small></strong></div><div><span class="label">STATUS</span><strong id="status" class="accent">Awaiting first match</strong></div></section>
-    <section aria-labelledby="groups-heading"><div class="section-heading"><h2 id="groups-heading">Group stage</h2><span>ROUND ROBIN / TOP 2 ADVANCE</span></div><div id="groups" class="groups"></div><p class="rules">Ranked by wins, then round difference (RD). Remaining ties need a tiebreak decision. Playoff places are confirmed after all six group matches.</p></section><section aria-labelledby="bracket-heading"><div class="section-heading"><h2 id="bracket-heading">Playoffs</h2><span>WIN AND ADVANCE</span></div><div id="bracket" class="bracket"></div></section>
+    <section class="overview" aria-label="Tournament summary"><div><span class="label">FORMAT</span><strong id="format-name">Groups → playoffs</strong></div><div><span class="label">TEAMS</span><strong id="team-count">8 teams entered</strong></div><div><span class="label">PROGRESS</span><strong id="progress">0 / 15 <small>matches complete</small></strong></div><div><span class="label">STATUS</span><strong id="status" class="accent">Awaiting first match</strong></div></section>
+    <section aria-labelledby="groups-heading"><div class="section-heading"><h2 id="groups-heading">Group stage</h2><span>ROUND ROBIN / TOP 2 ADVANCE</span></div><div id="groups" class="groups"></div><p class="rules" id="group-rules">Ranked by wins, then round difference (RD). Remaining ties need a tiebreak decision. Playoff places are confirmed after all six group matches.</p></section><section aria-labelledby="bracket-heading"><div class="section-heading"><h2 id="bracket-heading">Playoffs</h2><span>WIN AND ADVANCE</span></div><div id="bracket" class="bracket"></div></section>
     <section class="champion" aria-label="Tournament champion"><span class="champion-icon" aria-hidden="true">★</span><div><span class="eyebrow">VICTORY</span><h2 id="champion">One team takes it all.</h2></div><span class="champion-note" id="champion-note">Decided in the grand final</span></section>
-    <section aria-labelledby="teams-heading"><div class="section-heading"><h2 id="teams-heading">Team roster</h2><span>8 TEAMS / 1 TROPHY</span></div><div id="teams" class="teams"></div></section>
-    <section class="schedule-section" aria-labelledby="schedule-heading"><div class="section-heading"><h2 id="schedule-heading">Match order</h2><span>PLAY IN NUMBERED ORDER</span></div><p class="rules">Group games alternate between A and B, followed by semi-finals and the final. Connect as organiser to enter or correct results.</p><div id="tie-controls"></div><div id="schedule"></div></section>
+    <section aria-labelledby="teams-heading"><div class="section-heading"><h2 id="teams-heading">Team roster</h2><span id="roster-count">8 TEAMS / 1 TROPHY</span></div><div id="teams" class="teams"></div></section>
+    <section class="schedule-section" aria-labelledby="schedule-heading"><div class="section-heading"><h2 id="schedule-heading">Match order</h2><span>PLAY IN NUMBERED ORDER</span></div><p class="rules" id="schedule-rules">Group games alternate between A and B, followed by semi-finals and the final. Connect as organiser to enter or correct results.</p><div id="tie-controls"></div><div id="schedule"></div></section>
     <section class="stats-section" aria-labelledby="stats-heading"><div class="section-heading"><h2 id="stats-heading">Player stats</h2><span>KILLS / DEATHS / ASSISTS</span></div><div id="player-stats" class="table-scroll"></div></section>
     <p id="error" role="alert" hidden></p>
     <noscript><p>Please enable JavaScript to view the tournament bracket and results.</p></noscript>

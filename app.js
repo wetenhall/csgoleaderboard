@@ -27,7 +27,7 @@ function resolveTournament(data) {
     if (new Set(order).size !== order.length || order.some(id => !group.teams.includes(id))) throw new Error('Invalid tiebreak order');
     const tie = (a,b) => a.wins === b.wins && a.difference === b.difference;
     group.rows.sort((a,b) => b.wins-a.wins || b.difference-a.difference || ((order.includes(a.id) && order.includes(b.id)) ? order.indexOf(a.id)-order.indexOf(b.id) : group.teams.indexOf(a.id)-group.teams.indexOf(b.id)));
-    group.complete = group.rows.every(row => row.played === 3);
+    group.complete = group.rows.every(row => row.played === group.teams.length - 1);
     group.tied = group.complete && group.rows.slice(0,2).some(row => {
       const peers = group.rows.filter(other => tie(row,other));
       return peers.length > 1 && !peers.every(peer => order.includes(peer.id));
@@ -54,8 +54,13 @@ function renderTournament(data) {
   document.title = `${data.name} · Counter-Strike`;
   document.getElementById('title').replaceChildren(document.createTextNode(data.name), element('span', '', '.'));
   const completed = matches.filter(match => match.winner).length;
-  document.getElementById('progress').replaceChildren(document.createTextNode(`${completed} / 15 `), element('small', '', 'matches complete'));
-  document.getElementById('status').textContent = completed === 15 ? 'Tournament complete' : completed ? 'Tournament underway' : 'Awaiting first match';
+  document.getElementById('progress').replaceChildren(document.createTextNode(`${completed} / ${matches.length} `), element('small', '', 'matches complete'));
+  document.getElementById('team-count').textContent = `${data.teams.length} teams entered`;
+  document.getElementById('format-name').textContent = `${data.teamSize === 2 ? 'Duos' : data.teamSize === 5 ? 'Squads' : 'Teams'} · ${groups.length === 1 ? 'Group → final' : 'Groups → playoffs'}`;
+  document.getElementById('roster-count').textContent = `${data.teams.length} TEAMS / 1 TROPHY`;
+  document.getElementById('group-rules').textContent = 'Ranked by wins, then round difference (RD). Remaining ties need a tiebreak decision. Playoff places are confirmed when each team has played every other team in its group.';
+  document.getElementById('schedule-rules').textContent = groups.length === 1 ? 'Play each group match in order, then the top two teams meet in the final. Connect as organiser to enter or correct results.' : 'Group games alternate between A and B, followed by semi-finals and the final. Connect as organiser to enter or correct results.';
+  document.getElementById('status').textContent = completed === matches.length ? 'Tournament complete' : completed ? 'Tournament underway' : 'Awaiting first match';
   function matchCard(match) {
     const card = element('article', 'match');
     card.setAttribute('aria-label', `Match ${match.id.toUpperCase()}`);
@@ -96,6 +101,7 @@ function renderTournament(data) {
     document.getElementById('groups').append(section);
   }
   ['Semi-finals', 'Grand final'].forEach((name, round) => {
+    if (!matches.some(match => match.round === round)) return;
     const column = element('div', `round round-${round}`);
     const heading = element('h3', 'round-heading', name);
     heading.append(element('span', '', `0${round+1}`));

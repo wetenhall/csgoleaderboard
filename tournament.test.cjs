@@ -68,3 +68,33 @@ test('foreign player stats and partial stats cannot publish',()=>{
   const data=fixture();data.matches[0].result={teams:['t1','t2'],scores:[13,9],players:{unknown:{kills:3,deaths:2,assists:1}}};
   assert.throws(()=>validateData(data,resolveTournament),/Player stats/);
 });
+for (const [count,size] of [[2,2],[3,5],[5,2],[7,2],[10,5]]) test(`${count} teams of ${size}: complete schedule and progression`,()=>{
+  const players=Array.from({length:count*size},(_,i)=>({id:`p${i}`,name:`Player ${i}`}));
+  const ids=Array.from({length:count},(_,i)=>`t${i+1}`);
+  const data=makeTournament(players,size,fixture(),ids);
+  validateData(data,resolveTournament);
+  assert.equal(data.teams.length,count);
+  assert.equal(data.groups.length,count<6?1:2);
+  assert.equal(data.mode,size===2?'duos':'squads');
+  for(const group of data.groups){
+    group.tiebreakOrder=[...group.teams];
+    const games=data.matches.filter(m=>m.group===group.id);
+    assert.equal(games.length,group.teams.length*(group.teams.length-1)/2);
+    for(const id of group.teams)assert.equal(games.filter(m=>m.teams.includes(id)).length,group.teams.length-1);
+  }
+  assert.equal(new Set(orderedMatches(data.matches).map(m=>m.id)).size,data.matches.length);
+  for(const game of orderedMatches(data.matches)){
+    const resolved=resolveTournament(data).matches.find(m=>m.id===game.id);
+    assert.ok(resolved.ids.every(Boolean));
+    game.result={teams:resolved.ids,scores:[13,7]};
+  }
+  validateData(data,resolveTournament);
+  assert.ok(resolveTournament(data).matches.find(m=>m.id==='f1').winner);
+  if(count===3)assert.equal(data.matches.length,4);
+});
+test('draw rejects incomplete teams and too few players',()=>{
+  for(const [count,size] of [[3,2],[11,5],[5,5],[17,2]]){
+    const players=Array.from({length:count},(_,i)=>({id:`p${i}`,name:`P${i}`}));
+    assert.throws(()=>makeTournament(players,size,fixture()),/complete teams/);
+  }
+});
