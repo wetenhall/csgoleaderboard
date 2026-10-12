@@ -98,7 +98,38 @@
         "t2",
         "t1"
       ],
-      "result": null,
+      "result": {
+        "teams": [
+          "t2",
+          "t1"
+        ],
+        "scores": [
+          5,
+          7
+        ],
+        "players": {
+          "p5": {
+            "kills": 5,
+            "deaths": 4,
+            "assists": 3
+          },
+          "p3": {
+            "kills": 2,
+            "deaths": 4,
+            "assists": 4
+          },
+          "p4": {
+            "kills": 2,
+            "deaths": 3,
+            "assists": 4
+          },
+          "p2": {
+            "kills": 4,
+            "deaths": 3,
+            "assists": 2
+          }
+        }
+      },
       "map": "Vertigo"
     },
     {
