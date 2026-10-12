@@ -428,7 +428,17 @@
         "t7",
         "t9"
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t7",
+          "t9"
+        ],
+        "scores": [
+          4,
+          5
+        ],
+        "players": {}
+      }
     },
     {
       "id": "b1",
