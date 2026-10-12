@@ -592,3 +592,10 @@ test('server connection accepts addresses but rejects command injection and inva
 test('Discord details include captains and avoid mentions or formatting from names',()=>{
   const {discordMatchText}=require('./game-night.js'),{makeTournament}=require('./manager.js');const data=makeTournament(Array.from({length:10},(_,i)=>({id:'p'+i,name:i?'Player '+i:'@everyone'})),5,{name:'Friends'},undefined,0,['Cache'],2,'single');data.teams[0].captainId=data.teams[0].players[0].id;const text=discordMatchText(data,resolveTournament);assert.ok(text.includes('Map: Cache'));assert.ok(text.includes('(Captain)'));assert.ok(!text.includes('@everyone'));
 });
+
+test('manual squads preserve chosen rosters and reject duplicate or missing players',()=>{
+  const {manualRosters}=require('./game-night.js');const players=Array.from({length:10},(_,i)=>({id:'p'+i,name:'Player '+i}));const order=['p9','p8','p7','p6','p5','p4','p3','p2','p1','p0'];const rosters=manualRosters(players,order,5);assert.deepEqual(rosters.map(r=>r.map(p=>p.id)),[order.slice(0,5),order.slice(5)]);rosters[0][0].name='Changed';assert.equal(players[9].name,'Player 9');assert.throws(()=>manualRosters(players,[...order.slice(0,9),'p9'],5));assert.throws(()=>manualRosters(players,[...order.slice(0,9),''],5));assert.throws(()=>manualRosters(players,order.slice(1),5));
+});
+test('manual duos support arbitrary complete teams',()=>{
+  const {manualRosters}=require('./game-night.js');const players=Array.from({length:6},(_,i)=>({id:'p'+i,name:'Player '+i}));const rosters=manualRosters(players,players.map(p=>p.id),2);assert.equal(rosters.length,3);assert.ok(rosters.every(r=>r.length===2));assert.throws(()=>manualRosters(players.slice(1),players.slice(1).map(p=>p.id),2));
+});

@@ -45,24 +45,23 @@ function advanceMapVeto(maps,teams,bans,map){
   const next=[...bans,{teamId:teams[bans.length%2].id,map}],left=remaining.filter(name=>name!==map);
   return {bans:next,selected:left.length===1?left[0]:null};
 }
-if(typeof module!=='undefined')module.exports={validServerAddress,balanceRosters,swapDraftPlayers,discordMatchText,advanceMapVeto};
+function manualRosters(players,assignments,size){
+  if(![2,5].includes(size) || players.length<size*2 || players.length%size || assignments.length!==players.length)throw Error('Select enough players for complete teams.');
+  const byId=new Map(players.map(p=>[p.id,p]));
+  if(byId.size!==players.length || new Set(assignments).size!==players.length || assignments.some(id=>!byId.has(id)))throw Error('Assign every selected player once, with no empty slots.');
+  return Array.from({length:players.length/size},(_,i)=>assignments.slice(i*size,(i+1)*size).map(id=>structuredClone(byId.get(id))));
+}
+if(typeof module!=='undefined')module.exports={validServerAddress,balanceRosters,swapDraftPlayers,discordMatchText,advanceMapVeto,manualRosters};
 
-function createGameNightTools({getData,getDraft,isOrganiser,isBusy,refreshDraft,setMap,getMaps,beginRematch,notify}) {
+function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMaps,beginRematch,notify}) {
   const $=id=>document.getElementById(id);
-  const draftRoot=element('section','draft-review'),publicRoot=element('section','match-tools');
-  draftRoot.hidden=true;draftRoot.id='draft-review';publicRoot.id='match-tools';$('publish-draw').before(draftRoot);$('panel-leaderboard').append(publicRoot);
+  const draftRoot=element('section','map-draw-options'),publicRoot=element('section','match-tools');
+  draftRoot.hidden=true;draftRoot.id='map-draw-options';publicRoot.id='match-tools';$('publish-draw').before(draftRoot);$('panel-leaderboard').append(publicRoot);
   const makeButton=(label,action)=>{const b=element('button','secondary',label);b.type='button';b.onclick=async()=>{try{await action();}catch(e){notify(e.message);}};return b;};
   async function copy(text){try{await navigator.clipboard.writeText(text);notify('Copied to clipboard.');}catch{const dialog=element('dialog','options-dialog'),field=element('textarea');field.value=text;field.rows=12;field.readOnly=true;dialog.append(element('h2','','Copy match details'),field,makeButton('Close',()=>{dialog.close();dialog.remove();}));document.body.append(dialog);dialog.showModal();field.select();}}
   function controls(){draftRoot.querySelectorAll('input,select,button').forEach(el=>el.disabled=isBusy() || !isOrganiser());publicRoot.querySelectorAll('[data-rematch]').forEach(el=>{el.hidden=!isOrganiser();el.disabled=isBusy();});}
   function renderDraft(){
-    draftRoot.replaceChildren();const draft=getDraft();draftRoot.hidden=!draft || draft.teamSize===1;if(draftRoot.hidden)return;
-    draftRoot.append(element('h3','','Review teams before publishing'),element('p','rules','Swap players, pick captains, or optionally rate players from 1 (new) to 5 (experienced) and balance teams. Ratings default to 3. Balancing clears captain picks; pick captains afterward.'));
-    const ratings=element('div','rating-grid');
-    draft.teams.forEach(team=>{const block=element('div');block.append(element('h4','',team.name+' · Skill total '+team.players.reduce((sum,p)=>sum+(p.rating??3),0)));for(const player of team.players){const label=element('label','rating-row',player.name),input=element('input');input.type='number';input.min='1';input.max='5';input.step='1';input.value=player.rating??3;input.onchange=()=>{if(!input.checkValidity() || !input.value){input.reportValidity();return;}player.rating=Number(input.value);block.querySelector('h4').textContent=team.name+' · Skill total '+team.players.reduce((sum,p)=>sum+(p.rating??3),0);};label.append(input);block.append(label);}ratings.append(block);});draftRoot.append(ratings);
-    const actions=element('div','game-actions');
-    actions.append(makeButton('Balance teams by skill',()=>{if(!isOrganiser() || isBusy())return;for(const input of draftRoot.querySelectorAll('input')){if(!input.value || !input.checkValidity()){input.reportValidity();return;}}draft.teams=balanceRosters(draft.teams);refreshDraft();notify('Teams balanced using your skill ratings. Review before publishing.');}),makeButton('Pick random captains',()=>{if(!isOrganiser() || isBusy())return;draft.teams.forEach(team=>{team.captainId=team.players[randomIndex(team.players.length)].id;});refreshDraft();}));
-    const picks=[0,1].map(i=>{const label=element('label','','Swap player '+(i+1)),select=element('select');draft.teams.forEach(team=>team.players.forEach(player=>{const option=element('option','',team.name+' · '+player.name);option.value=player.id;select.append(option);}));select.value=draft.teams[i].players[0].id;label.append(select);actions.append(label);return select;});
-    actions.append(makeButton('Swap selected players',()=>{if(!isOrganiser() || isBusy())return;draft.teams=swapDraftPlayers(draft.teams,picks[0].value,picks[1].value);refreshDraft();}));draftRoot.append(actions);
+    draftRoot.replaceChildren();const draft=getDraft();draftRoot.hidden=!draft || draft.format!=='single';if(draftRoot.hidden)return;
     if(draft.format==='single'){
       const maps=getMaps(),section=element('section','veto-panel'),methodLabel=element('label','','Map selection'),method=element('select');
       for(const [value,label] of [['wheel','Spin the wheel'],['veto','Teams ban maps']]){const option=element('option','',label);option.value=value;method.append(option);}method.value=draft.mapMethod || 'wheel';method.onchange=()=>{draft.mapMethod=method.value;draft.mapVeto=[];setMap(null);};methodLabel.append(method);section.append(methodLabel);
