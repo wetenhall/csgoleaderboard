@@ -5,6 +5,11 @@ const MAP_POOLS = {
   5: ['Mirage','Dust2','Inferno','Nuke','Ancient','Anubis','Vertigo','Cache','Train','Overpass','Office','Italy']
 };
 function assignMaps(data, maps) {
+  if (data.teamSize === 1) {
+    delete data.mapPool;
+    data.matches.forEach(match => { delete match.map; });
+    return data;
+  }
   if (!Array.isArray(maps) || !maps.length || new Set(maps).size !== maps.length || maps.some(map => !MAP_POOLS[data.teamSize]?.includes(map))) throw Error('Select at least one available map for this tournament type.');
   data.mapPool = [...maps];
   let bag = [], previous;
@@ -219,7 +224,7 @@ if (typeof document !== 'undefined') (() => {
     $('spin').disabled = busy || spinning || !remaining.length;
     $('disconnect').disabled = busy;
     $('remember-token').disabled = busy;
-    $('publish-draw').disabled = busy || !draw || !token || draw.groups.length !== Number($('group-count').value) || !selectedMaps().length;
+    $('publish-draw').disabled = busy || !draw || !token || draw.groups.length !== Number($('group-count').value) || (Number($('team-size').value)!==1 && !selectedMaps().length);
     document.querySelectorAll('.result-form button, .tie-form button').forEach(b => { b.disabled = busy || !token; });
   }
   async function request(method, body, credential = token) {
@@ -344,7 +349,7 @@ if (typeof document !== 'undefined') (() => {
       const names = match.ids.map((id,i) => state.teams.has(id) ? teamDisplayLabel(state.teams.get(id)) : matchPlaceholder(match,i));
       const summary=element('summary','fixture-summary');
       const meta=element('span','fixture-topline');
-      meta.append(element('span','fixture-number','MATCH '+String(index+1).padStart(2,'0')),element('span','fixture-map',match.map || 'Map not assigned'),element('span','fixture-status',match.result?'PLAYED':next?'UP NEXT':ready?'SCHEDULED':'AWAITING TEAMS'));
+      meta.append(element('span','fixture-number','MATCH '+String(index+1).padStart(2,'0')),element('span','fixture-map',match.map || (current.teamSize===1?'Choose map in server':'Map not assigned')),element('span','fixture-status',match.result?'PLAYED':next?'UP NEXT':ready?'SCHEDULED':'AWAITING TEAMS'));
       const versus=element('span','fixture-versus');
       match.ids.forEach((id,i)=>{
         if(i===1)versus.append(element('span','fixture-score',match.result?match.result.scores.join(' : '):'VS'));
@@ -435,6 +440,10 @@ if (typeof document !== 'undefined') (() => {
   function selectedMaps() { return [...$('map-options').querySelectorAll('input:checked')].map(input=>input.value); }
   function renderMapOptions() {
     $('map-options').replaceChildren();
+    const solo = Number($('team-size').value) === 1;
+    $('map-selection').hidden = solo;
+    $('solo-map-note').hidden = !solo;
+    if (solo) return;
     for (const map of MAP_POOLS[Number($('team-size').value)]) {
       const label=element('label'),input=element('input'); input.type='checkbox'; input.value=map; input.checked=true;
       input.onchange=()=>{updateMapCount();configureDraw();controls();}; label.append(input,document.createTextNode(map)); $('map-options').append(label);
@@ -543,16 +552,16 @@ if (typeof document !== 'undefined') (() => {
       next.teams.forEach((team,i)=>{team.name=draw.teams[i].name;}); draw=next;
       $('format-preview').textContent = draw.groups.length ? draw.groups.map(g=>'Group '+g.id+': '+g.teams.length+' teams').join(' · ') + ' · Top 2 advance from each group.' + (draw.groups.length === 3 ? ' Group A and B winners receive playoff byes.' : '') : 'Straight knockout · '+draw.matches.length+' game'+(draw.matches.length === 1 ? '' : 's')+' · Byes advance automatically.';
       showDrawTeams();
-      $('draw-fixtures').replaceChildren(element('h3','fixture-heading','Fixture map preview'));
+      $('draw-fixtures').replaceChildren(element('h3','fixture-heading',draw.teamSize===1?'Fixtures · choose maps in server':'Fixture map preview'));
       const list=element('ol','map-preview');
-      orderedMatches(draw.matches).forEach(match=>list.append(element('li','',match.id.toUpperCase()+' · '+match.map)));
+      orderedMatches(draw.matches).forEach(match=>list.append(element('li','',match.id.toUpperCase()+' · '+(match.map || 'Choose map in server'))));
       $('draw-fixtures').append(list);
     } catch(error) { $('format-preview').textContent = error.message; $('draw-fixtures').replaceChildren(); }
     controls();
   }
   $('group-count').onchange = configureDraw;
   $('reset-draw').onclick=()=>{if(spinning || busy)return;if(selected.length && !confirm('Discard this unpublished draw?'))return;selected=[];remaining=[];draw=null;lock(false);$('spin').disabled=true;$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();$('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();announce('Select your players to start a new draw.');};
-  $('publish-draw').onclick=async()=>{if(!draw || !token || busy || draw.groups.length !== Number($('group-count').value) || !selectedMaps().length)return;if(!confirm(`Publish these ${draw.teams.length} ${draw.teamSize===1?'solo':draw.teamSize===2?'duo':'squad'} teams and replace the current tournament, including all existing results and player stats?`))return;try{await publish(structuredClone(draw),'Publish new player draw and tournament groups');draw=null;selected=[];$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();announce('Teams and groups saved. Open Fixtures to run the tournament.');}catch(error){announce(error.message);}};
+  $('publish-draw').onclick=async()=>{if(!draw || !token || busy || draw.groups.length !== Number($('group-count').value) || (Number($('team-size').value)!==1 && !selectedMaps().length))return;if(!confirm(`Publish these ${draw.teams.length} ${draw.teamSize===1?'solo':draw.teamSize===2?'duo':'squad'} teams and replace the current tournament, including all existing results and player stats?`))return;try{await publish(structuredClone(draw),'Publish new player draw and tournament groups');draw=null;selected=[];$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();announce('Teams and groups saved. Open Fixtures to run the tournament.');}catch(error){announce(error.message);}};
   const drawStage=$('draw-stage'),fullscreenButton=$('fullscreen-draw');
   let expandedDraw=false;
   function setExpandedDraw(active) {

@@ -128,7 +128,7 @@ test('group counts require two teams per group',()=>{
  for(const count of [-1,3,4,5,1.5])assert.throws(()=>makeTournament(players,2,fixture(),undefined,count),/groups/);
 });
 
-for(const size of [1,2,5]) test('selected maps rotate across all '+size+' player fixtures and survive score updates',()=>{
+for(const size of [2,5]) test('selected maps rotate across all '+size+' player fixtures and survive score updates',()=>{
  const players=Array.from({length:size*8},(_,i)=>({id:'p'+i,name:'Player '+i}));
  const maps=size===1?['Pool Day','AWP Lego 2','AIM Puma']:size===2?['Poseidon','Debris','Eldorado']:['Mirage','Dust2','Cache'];
  const data=makeTournament(players,size,fixture(),undefined,4,maps);
@@ -218,4 +218,19 @@ test('repository configuration uses deployed owner and branch, with safe Pages f
  assert.equal(repositorySettings('','','localhost','/'),null);
  assert.equal(repositorySettings('https://not-a-repo','main'),null);
  validateData(JSON.parse(fs.readFileSync('tournament.example.json','utf8')),resolveTournament);
+});
+
+test('1v1 publishes without maps and clears maps inherited from a previous tournament',()=>{
+ const players=Array.from({length:3},(_,i)=>({id:'solo'+i,name:'Solo '+i}));
+ const template=makeTournament(Array.from({length:4},(_,i)=>({id:'p'+i,name:'P'+i})),2,fixture());
+ for(const groups of [0,1]){
+  let data=makeTournament(players,1,template,undefined,groups,[]);
+  assert.equal(data.mapPool,undefined);
+  assert.ok(data.matches.every(match=>match.map===undefined));
+  validateData(data,resolveTournament);
+  const match=resolveTournament(data).matches.find(match=>match.ids.every(Boolean));
+  data=applyResult(data,match.id,{teams:match.ids,scores:[10,6],players:{}},resolveTournament).next;
+  validateData(data,resolveTournament);
+  assert.equal(data.mapPool,undefined);
+ }
 });

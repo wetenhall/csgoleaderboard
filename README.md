@@ -39,4 +39,4 @@ The production bootstrap is generated from tournament.json. tournament.js is a l
 
 Standard owner.github.io/project hosting can also infer its repository from the URL when build metadata is absent, defaulting to main. Use the workflow or explicit build variables for custom domains, non-main branches or nonstandard hosting paths.
 
-The 1v1 map pool includes Pool Day, AWP Lego 2, AWP Orange, AWP India, AIM Crash Dust 1on1, AIM Puma, AIM Map Classic and AIM Long Dust. Select any subset in Team setup; each player occupies their own team slot and is shown by name in standings and fixtures.
+1v1 fixtures have no assigned map: choose maps when you join the server. Each player occupies their own team slot and is shown by name in standings and fixtures. Duos and Squads retain selectable map pools.
