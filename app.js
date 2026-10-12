@@ -77,6 +77,12 @@ function teamDisplayLabel(team) {
   const display = teamDisplayName(team);
   return display === team.name ? display : `${display} (${team.name})`;
 }
+function teamEmblem(team) {
+  const badge=element('span','team-emblem',team.tag || team.id.replace(/[^0-9]/g,'').padStart(2,'0'));
+  const colours=['#eeb453','#80b2d4','#b6a0ee','#73d1a9','#f18e97','#e1cf80'];
+  const number=Number(team.id.replace(/[^0-9]/g,'')) || 1;badge.style.setProperty('--emblem-colour',colours[(number-1)%colours.length]);
+  badge.setAttribute('aria-hidden','true');return badge;
+}
 function teamNameNode(team) {
   const node = element('span', 'team-name');
   const display = teamDisplayName(team);
@@ -92,6 +98,8 @@ function renderTournament(data) {
   document.title = `${data.name} · Counter-Strike`;
   document.getElementById('title').replaceChildren(document.createTextNode(data.name), element('span', '', '.'));
   const completed = matches.filter(match => match.result).length;
+  document.getElementById('broadcast-status').textContent=matches.length && completed===matches.length?'COMPLETE':completed?'LIVE':'READY';
+  document.getElementById('broadcast-status').dataset.state=completed && completed<matches.length?'live':'ready';
   document.getElementById('progress').replaceChildren(document.createTextNode(`${completed} / ${matches.length} `), element('small', '', 'matches complete'));
   document.getElementById('team-count').textContent = `${data.teams.length} teams entered`;
   document.getElementById('format-name').textContent = `${data.teamSize === 2 ? 'Duos' : data.teamSize === 5 ? 'Squads' : 'Teams'} · ${groups.length === 0 ? 'Knockout' : groups.length === 1 ? 'Group → final' : `${groups.length} groups → playoffs`}`;
@@ -140,7 +148,7 @@ function renderTournament(data) {
       const tr = element('tr', group.qualified && i < 2 ? 'qualified' : '');
       [group.complete && !group.tied ? i+1 : '—', teams.get(row.id).name, row.played, row.wins, row.draws, row.losses, row.difference > 0 ? `+${row.difference}` : row.difference].forEach((value, index) => {
         const cell = element('td');
-        if (index === 1) cell.append(teamNameNode(teams.get(row.id)));
+        if (index === 1) { const identity=element('span','scoreboard-identity');identity.append(teamEmblem(teams.get(row.id)),teamNameNode(teams.get(row.id)));cell.append(identity); }
         else cell.textContent = String(value);
         tr.append(cell);
       });
@@ -178,7 +186,7 @@ function renderTournament(data) {
     if (teamDisplayName(team) !== team.name) details.append(element('small', 'team-identifier', team.name));
     details.append(element('p', '', final.winner === team.id ? 'Champion' : eliminated.has(team.id) ? 'Eliminated' : group ? `Group ${group.id}` : 'Knockout'));
     if (team.players && team.players.length !== 2) details.append(element('p', 'players-list', team.players.map(player => player.name).join(' · ')));
-    card.append(element('span', 'roster-tag', team.tag), details); document.getElementById('teams').append(card);
+    card.append(teamEmblem(team), details); document.getElementById('teams').append(card);
   });
 }
 if (typeof document !== 'undefined') {

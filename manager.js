@@ -220,6 +220,7 @@ if (typeof document !== 'undefined') (() => {
     try {
       const saved = await request('PUT',{message,content:encode(next),sha:fileSha,branch:'main'});
       fileSha = saved.content.sha; current = next; renderAll();
+      document.querySelector('main').classList.remove('result-saved');void document.querySelector('main').offsetWidth;document.querySelector('main').classList.add('result-saved');
       say('Saved to GitHub. Your stats are updated here; the public site updates after deployment, usually within a minute.');
     } catch(error) { say(error.message); throw error; }
     finally { busy = false; controls(); }
@@ -296,7 +297,20 @@ if (typeof document !== 'undefined') (() => {
       const ready = match.ids.every(Boolean); const next = !markedNext && !match.result && ready;
       if (next) { markedNext = true; details.classList.add('next-match'); }
       const names = match.ids.map((id,i) => state.teams.has(id) ? teamDisplayLabel(state.teams.get(id)) : matchPlaceholder(match,i));
-      details.append(element('summary','',`${String(index+1).padStart(2,'0')} · ${names.join(' vs ')} · ${match.map || 'Map not assigned'} · ${match.result ? match.result.scores.join(' – ') + (match.result.tiebreakWinner ? ' · Tiebreak: '+teamDisplayLabel(state.teams.get(match.result.tiebreakWinner)) : match.result.scores[0]===match.result.scores[1] ? ' · DRAW' : '') : next ? 'UP NEXT' : ready ? 'Scheduled' : 'Awaiting qualifiers'}`));
+      const summary=element('summary','fixture-summary');
+      const meta=element('span','fixture-topline');
+      meta.append(element('span','fixture-number','MATCH '+String(index+1).padStart(2,'0')),element('span','fixture-map',match.map || 'Map not assigned'),element('span','fixture-status',match.result?'PLAYED':next?'UP NEXT':ready?'SCHEDULED':'AWAITING TEAMS'));
+      const versus=element('span','fixture-versus');
+      match.ids.forEach((id,i)=>{
+        if(i===1)versus.append(element('span','fixture-score',match.result?match.result.scores.join(' : '):'VS'));
+        const identity=element('span','fixture-side'),team=state.teams.get(id);
+        if(team)identity.append(teamEmblem(team));
+        identity.append(element('span','fixture-team',names[i]));versus.append(identity);
+      });
+      summary.append(meta,versus);
+      if(match.result?.tiebreakWinner)summary.append(element('span','fixture-decision','Tiebreak winner: '+teamDisplayLabel(state.teams.get(match.result.tiebreakWinner))));
+      else if(match.result && match.result.scores[0]===match.result.scores[1])summary.append(element('span','fixture-decision','DRAW'));
+      details.append(summary);
       const body = element('div','result-body');
       body.append(element('p','rules',`${match.id.toUpperCase()} · ${match.group ? `Group ${match.group}` : knockoutRoundName(match,state.matches)}`));
       if (!ready) { body.append(element('p','','Teams will appear once qualification is confirmed.')); details.append(body); container.append(details); return; }
@@ -351,7 +365,7 @@ if (typeof document !== 'undefined') (() => {
       const container=$(type==='teams'?'team-awards':'player-awards');container.replaceChildren();
       for(const award of awards[type]) {
         const card=element('article','award-card'+(!award.winners.length?' award-pending':''));
-        const heading=element('h3','award-title');const icon=element('span','award-icon',award.icon);icon.setAttribute('aria-hidden','true');heading.append(icon,document.createTextNode(award.title));card.append(heading);
+        const heading=element('h3','award-title');const icon=element('span','award-icon',({'Top Dogs':'01','On a Roll':'↑','Round Bullies':'+','Wooden Spoon':'↓','MVP':'★','Top Fragger':'⌖','Wingman':'Ⅱ','Respawn Regular':'↺'})[award.title]);icon.setAttribute('aria-hidden','true');heading.append(icon,document.createTextNode(award.title));card.append(heading);
         card.append(element('p','award-winner',award.winners.length?award.winners.map(row=>type==='teams'?teamDisplayLabel(row):row.name+' ('+row.team+')').join(' / '):'Still up for grabs'));
         card.append(element('p','award-metric',(award.winners.length>1?'Joint award · ':'')+award.metric),element('p','award-rule',award.rule));container.append(card);
       }
