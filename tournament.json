@@ -517,7 +517,17 @@
           "winner": "k1-2"
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t1",
+          "t7"
+        ],
+        "scores": [
+          4,
+          5
+        ],
+        "players": {}
+      }
     },
     {
       "id": "k2-2",
