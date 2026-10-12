@@ -390,7 +390,17 @@
         "t1",
         "t3"
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t1",
+          "t3"
+        ],
+        "scores": [
+          4,
+          5
+        ],
+        "players": {}
+      }
     },
     {
       "id": "a14",
