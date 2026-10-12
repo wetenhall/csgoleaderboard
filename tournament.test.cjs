@@ -209,3 +209,13 @@ test('header options validate text and persist through clear and new draws',()=>
  const players=Array.from({length:4},(_,i)=>({id:'p'+i,name:'Player '+i}));assert.deepEqual(makeTournament(players,2,updated).headers,updated.headers);
  for(const [brand,banner] of [['','Test'],['Test',' '],['x'.repeat(81),'Test'],['Test','x'.repeat(121)]])assert.throws(()=>updateHeaders(data,brand,banner),/headings/);
 });
+
+test('repository configuration uses deployed owner and branch, with safe Pages fallback',()=>{
+ const {repositorySettings}=require('./manager.js');
+ assert.deepEqual(repositorySettings('example-owner/friends-event','release','custom.example','/'),{owner:'example-owner',repo:'friends-event',branch:'release',api:'https://api.github.com/repos/example-owner/friends-event/contents/tournament.json'});
+ assert.equal(repositorySettings('','','someone.github.io','/cup/').repo,'cup');
+ assert.equal(repositorySettings('','','someone.github.io','/').repo,'someone.github.io');
+ assert.equal(repositorySettings('','','localhost','/'),null);
+ assert.equal(repositorySettings('https://not-a-repo','main'),null);
+ validateData(JSON.parse(fs.readFileSync('tournament.example.json','utf8')),resolveTournament);
+});

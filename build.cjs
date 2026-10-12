@@ -5,6 +5,11 @@ const path = require('node:path');
 const output = path.join(__dirname, '_site');
 fs.mkdirSync(output, { recursive: true });
 let html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+const repository = process.env.GITHUB_REPOSITORY || '';
+const branch = process.env.GITHUB_REF_NAME || 'main';
+if (repository && !/^[a-z0-9_.-]+\/[a-z0-9_.-]+$/i.test(repository)) throw Error('Invalid GITHUB_REPOSITORY: use owner/repository.');
+const escapeAttribute = value => value.replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+html = html.replace('</head>', '<meta name="dashboard-repository" content="'+escapeAttribute(repository)+'">\n<meta name="dashboard-branch" content="'+escapeAttribute(branch)+'">\n</head>');
 for (const filename of ['styles.css', 'app.js', 'tournament.js', 'manager.js']) {
   const content = filename === 'tournament.js' ? Buffer.from('const TOURNAMENT = ' + fs.readFileSync(path.join(__dirname, 'tournament.json'), 'utf8') + ';') : fs.readFileSync(path.join(__dirname, filename));
   const hash = crypto.createHash('sha256').update(content).digest('hex').slice(0, 12);

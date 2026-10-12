@@ -12,9 +12,9 @@
   <script defer src="manager.js"></script>
 </head>
 <body>
-  <header class="topbar"><a class="brand" href="./"><span class="mark" aria-hidden="true">⌖</span><span id="brand-title">Pull up gang cup</span></a><span class="game">COUNTER-STRIKE <b> // </b> PRIVATE TOURNAMENT</span></header>
+  <header class="topbar"><a class="brand" href="./"><span class="mark" aria-hidden="true">⌖</span><span id="brand-title">Friends Cup</span></a><span class="game">COUNTER-STRIKE <b> // </b> PRIVATE TOURNAMENT</span></header>
   <main>
-    <div class="intro"><div><p class="eyebrow">COUNTER-STRIKE <span class="slash"> / </span> PRIVATE MATCH CENTRE</p><h1 id="title">Friends Cup<span>.</span></h1><p class="subtitle">Your squad. Your server. Your tournament.</p></div><div class="broadcast-state"><span class="label">TOURNAMENT SIGNAL</span><strong id="broadcast-status">READY</strong><span id="broadcast-caption">COUNTER-STRIKE / PULL UP GANG CUP</span></div></div>
+    <div class="intro"><div><p class="eyebrow">COUNTER-STRIKE <span class="slash"> / </span> PRIVATE MATCH CENTRE</p><h1 id="title">Friends Cup<span>.</span></h1><p class="subtitle">Your squad. Your server. Your tournament.</p></div><div class="broadcast-state"><span class="label">TOURNAMENT SIGNAL</span><strong id="broadcast-status">READY</strong><span id="broadcast-caption">COUNTER-STRIKE / FRIENDS CUP</span></div></div>
     <section class="overview" aria-label="Tournament summary"><div><span class="label">FORMAT</span><strong id="format-name">Groups → playoffs</strong></div><div><span class="label">TEAMS</span><strong id="team-count">8 teams entered</strong></div><div><span class="label">PROGRESS</span><strong id="progress">0 / 15 <small>matches complete</small></strong></div><div><span class="label">STATUS</span><strong id="status" class="accent">Awaiting first match</strong></div></section>
     <div class="page-tabs" role="tablist" aria-label="Tournament sections">
 <button type="button" id="tab-setup" aria-label="Set up" role="tab" aria-controls="panel-setup" aria-selected="false" tabindex="-1">Set up</button>
@@ -33,12 +33,12 @@
         <label class="remember-token"><input id="remember-token" type="checkbox" checked> Remember for this tab</label>
         <section class="token-help" aria-labelledby="token-help-heading">
           <h3 id="token-help-heading">Create a dashboard access key</h3>
-          <p>This dashboard uses a fine-grained GitHub personal access token to save teams, results and options to <strong>wetenhall/csgoleaderboard</strong>.</p>
+          <p>This dashboard uses a fine-grained GitHub personal access token to save teams, results and options to <strong>the repository hosting this dashboard</strong>.</p>
           <ol>
-            <li>Sign in to GitHub as <strong>wetenhall</strong>, the repository owner, then open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">Create a fine-grained token</a>.</li>
-            <li>Give it a name such as <strong>Pull up gang dashboard</strong> and choose an expiration date.</li>
-            <li>Set <strong>Resource owner</strong> to <strong>wetenhall</strong>.</li>
-            <li>Under <strong>Repository access</strong>, choose <strong>Only select repositories</strong>, then select <strong>csgoleaderboard</strong>.</li>
+            <li>Sign in to GitHub as <strong>your repository’s owner</strong>, then open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">Create a fine-grained token</a>.</li>
+            <li>Give it a name such as <strong>Tournament dashboard</strong> and choose an expiration date.</li>
+            <li>Set <strong>Resource owner</strong> to <strong>your account or organisation that owns the repository</strong>.</li>
+            <li>Under <strong>Repository access</strong>, choose <strong>Only select repositories</strong>, then select <strong>your dashboard repository</strong>.</li>
             <li>Under <strong>Repository permissions</strong>, set <strong>Contents</strong> to <strong>Read and write</strong>. Leave Metadata at its required read access; no other permissions are needed.</li>
             <li>Click <strong>Generate token</strong>, copy it, paste it into the GitHub token field above, then click <strong>Connect organiser</strong>.</li>
           </ol>
@@ -87,6 +87,6 @@
     <p id="error" role="alert" hidden></p>
     <noscript><p>Please enable JavaScript to view the tournament bracket and results.</p></noscript>
   </main>
-  <footer><span><span id="footer-brand">Pull up gang cup</span> <span class="muted">/ Built for game night.</span></span><span>Results updated after each match</span></footer>
+  <footer><span><span id="footer-brand">Friends Cup</span> <span class="muted">/ Built for game night.</span></span><span>Results updated after each match</span></footer>
 </body>
 </html>

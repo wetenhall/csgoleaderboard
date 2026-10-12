@@ -16,6 +16,15 @@ function assignMaps(data, maps) {
   }
   return data;
 }
+function repositorySettings(repository, branch, hostname='', pathname='/') {
+  if (!repository && /^[a-z0-9-]+\.github\.io$/i.test(hostname)) {
+    const owner=hostname.split('.')[0],project=pathname.split('/').filter(Boolean)[0];
+    repository=owner+'/'+(project || hostname);
+  }
+  if (!repository || !/^[a-z0-9_.-]+\/[a-z0-9_.-]+$/i.test(repository)) return null;
+  const [owner,repo]=repository.split('/');
+  return {owner,repo,branch:branch || 'main',api:'https://api.github.com/repos/'+encodeURIComponent(owner)+'/'+encodeURIComponent(repo)+'/contents/tournament.json'};
+}
 function randomIndex(length) {
   const range = 4294967296, limit = range - range % length;
   const value = new Uint32Array(1);
@@ -174,13 +183,14 @@ function applyResult(data, id, result, resolve) {
   return { next, cleared };
 }
 function emptyTournament(data) { return {name:data.name,teams:[],groups:[],matches:[],...(data.headers?{headers:structuredClone(data.headers)}:{})}; }
-if (typeof module !== 'undefined') module.exports = { makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament, tournamentAwards, updateHeaders };
+if (typeof module !== 'undefined') module.exports = { makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament, tournamentAwards, updateHeaders, repositorySettings };
 if (typeof document !== 'undefined') (() => {
   const $ = id => document.getElementById(id);
-  const api = 'https://api.github.com/repos/wetenhall/csgoleaderboard/contents/tournament.json';
+  const repository=repositorySettings(document.querySelector('meta[name=dashboard-repository]')?.content,document.querySelector('meta[name=dashboard-branch]')?.content,location.hostname,location.pathname);
+  const api=repository?.api;
   let current = structuredClone(TOURNAMENT), token = '', fileSha = '', busy = false;
   let pool = [], remaining = [], selected = [], draw = null, spinning = false, locked = false, drawOrder = [];
-  const tokenStorageKey = 'friends-cup.organiser-token';
+  const tokenStorageKey = 'friends-cup.organiser-token.'+(repository?repository.owner+'/'+repository.repo:'unconfigured');
   function storeToken(value) {
     try {
       if (value) sessionStorage.setItem(tokenStorageKey,value);
@@ -201,7 +211,7 @@ if (typeof document !== 'undefined') (() => {
     $('group-count').disabled = busy || spinning;
     $('map-options').querySelectorAll('input').forEach(input=>{input.disabled=busy || spinning;});
     $('disconnect').hidden = !token;
-    $('connect-form').querySelector('button').disabled = busy || !!token;
+    $('connect-form').querySelector('button').disabled = busy || !!token || !repository;
     $('refresh-data').disabled = busy;
     $('clear-tournament').disabled = busy || spinning || !token;
     $('spin').disabled = busy || spinning || !remaining.length;
@@ -211,7 +221,8 @@ if (typeof document !== 'undefined') (() => {
     document.querySelectorAll('.result-form button, .tie-form button').forEach(b => { b.disabled = busy || !token; });
   }
   async function request(method, body, credential = token) {
-    const response = await fetch(api + (method === 'GET' ? '?ref=main' : ''), { method, cache:'no-store', headers: {Accept:'application/vnd.github+json',Authorization:`Bearer ${credential}`,'Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'}, ...(body ? {body:JSON.stringify(body)} : {}) });
+    if(!repository)throw Error('Repository not configured. Deploy with the included GitHub Actions workflow, or set GITHUB_REPOSITORY and GITHUB_REF_NAME when building.');
+    const response = await fetch(api + (method === 'GET' ? '?ref='+encodeURIComponent(repository.branch) : ''), { method, cache:'no-store', headers: {Accept:'application/vnd.github+json',Authorization:`Bearer ${credential}`,'Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'}, ...(body ? {body:JSON.stringify(body)} : {}) });
     if (!response.ok) {
       if (response.status === 409 || response.status === 422) throw Error('The repository changed. Reload the latest saved tournament before editing again; your current inputs have not been published.');
       if ([401,403,404].includes(response.status)) throw Error('GitHub denied access. Check token expiry, repository access and Contents: Read and write permission.');
@@ -226,7 +237,7 @@ if (typeof document !== 'undefined') (() => {
     validateData(next, resolveTournament);
     busy = true; controls(); say('Saving to GitHub…');
     try {
-      const saved = await request('PUT',{message,content:encode(next),sha:fileSha,branch:'main'});
+      const saved = await request('PUT',{message,content:encode(next),sha:fileSha,branch:repository.branch});
       fileSha = saved.content.sha; current = next; renderAll();
       document.querySelector('main').classList.remove('result-saved');void document.querySelector('main').offsetWidth;document.querySelector('main').classList.add('result-saved');
       say('Saved to GitHub. Your stats are updated here; the public site updates after deployment, usually within a minute.');
@@ -555,6 +566,7 @@ if (typeof document !== 'undefined') (() => {
     });
   });
   renderMapOptions();paintWheel([]);renderAll();
+  if(!repository)say('Read-only preview. Deploy with GitHub Actions to enable organiser connection for your repository.');
   let rememberedToken = '';
   try { rememberedToken = sessionStorage.getItem(tokenStorageKey) || ''; } catch { /* Storage may be disabled by browser settings. */ }
   if (rememberedToken) { $('remember-token').checked = true; void connect(rememberedToken); }

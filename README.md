@@ -1,25 +1,38 @@
-# Friends Cup
+# Counter-Strike friends tournament dashboard
 
-GitHub Pages tournament manager: Duos (two players per team) or Squads (five players per team), with any number of complete teams (minimum two). Two to five teams play one round-robin group and a top-two final. Six or more teams split into two balanced groups with cross-group semi-finals and a final. Odd group sizes get rotating byes in the round-robin schedule.
+A static GitHub Pages dashboard for Duos (2 players) and Squads (5 players). Draw teams with a wheel, choose maps and 0–4 groups, run fixtures, record scores and player stats, and display standings and awards.
 
-## Run a tournament from the website
+## Publish your own copy
 
-1. Open Organiser tools. Connect using a GitHub fine-grained personal access token owned by an account with write access to `wetenhall/csgoleaderboard`, restricted to this repository with **Contents: Read and write**. The token is kept only in tab memory; disconnect or close the tab to clear it. Never commit it or send it in chat.
-2. Open Create a new tournament. Enter one unique player name per line, load the pool, choose Duos or Squads, and tick the players taking part. The selected count must divide evenly by two or five; the page shows missing players before you can start. For example, 15 selected players in Squads makes three teams.
-3. Lock the pool and spin once per player. Selected players are removed from the pool. Teams fill sequentially; once complete, teams are shuffled into the group stage. Group sizes, fixtures, progress totals and tiebreak forms adapt to the number of teams. Team names can then be edited.
-4. Publish teams & groups. This replaces the current tournament and its results after confirmation.
-5. Follow Match order: group games (alternating groups when there are two), semi-finals if applicable, then the final. Open a game and enter both round scores. Optionally enter kills, deaths and assists for each player. Click Update & publish result.
+1. Fork this repository, or copy its files (including .github/workflows) into a repository you own. If cloning locally, push to your own repository.
+2. For a fresh tournament, replace tournament.json with tournament.example.json (copy its contents, keeping the filename tournament.json). This removes the example/copy’s players, results and branding from your new site.
+3. Enable GitHub Actions if prompted. In Settings → Pages, set the source to GitHub Actions.
+4. Push to your default branch, or run the Publish tournament workflow manually on that branch.
+5. Open the URL shown by the Pages deployment. The build reads GITHUB_REPOSITORY and GITHUB_REF_NAME automatically, so saves target your own repository and deployed branch. Custom domains work with this workflow too.
 
-Scores cannot be tied. Player stats must be all three values or all blank per player. Player totals include only games with recorded individual stats. Correcting an earlier result replaces its stats; if playoff opponents change, the site asks before clearing affected playoff results. Unresolved qualification ties expose a finishing-order form.
+Only the default branch deploys. No repository owner or API token needs to be placed in source code or Actions secrets.
 
-`Update` commits `tournament.json` to the main branch using GitHub's Contents API. It does not upload credentials. The organiser sees the new state immediately after GitHub confirms the save; other viewers see it after Pages deploys and they reload. Concurrent changes are rejected using the file SHA. Reload latest saved tournament before retrying a conflicting edit. Failed saves retain form entries. A new draw remains unpublished until confirmed; refreshing during a draw loses it.
+## Connect as organiser
 
-## Data and deployment
+In Set up, follow the token instructions. Create a fine-grained token as the repository owner, select only your dashboard repository and grant Contents: Read and write. Organisation policies may require approval. A token cannot grant access your account does not already have.
 
-`tournament.json` is the canonical shared data file. `tournament.js` is the original blank tournament fixture for regression tests and local fallback; production builds generate the bootstrap from JSON. Do not edit the fixture to update live results.
+Paste it into the dashboard and connect. Team setup and Options appear after connection. Remember for this tab uses session storage, scoped to the repository; disconnect clears it. Browser session restoration may retain it. Never commit tokens or include them in URLs.
 
-Run `node --test tournament.test.cjs` and `node build.cjs`. The build produces content-versioned assets in `_site/`. The Pages workflow validates and deploys on every main-branch push, including in-site result updates. GitHub Settings → Pages uses GitHub Actions.
+## Run a tournament
 
-Public site: https://wetenhall.github.io/csgoleaderboard/
+- In Team setup, select Duos or Squads, pick maps and load one unique player name per line.
+- Lock the player pool and spin to fill teams. Expand draw fills the browser page; Escape exits.
+- Choose 0 groups for straight knockout or 1–4 balanced groups with at least two teams per group. The top two advance. Byes fill uneven brackets; with three groups, Group A and B winners receive playoff byes.
+- Review team names and map assignments, then publish. Publishing a draw replaces the current tournament after confirmation.
+- In Fixtures, enter rounds and optional kills/deaths/assists. Group ties count as draws; tied knockout games require a tiebreak winner. Correcting results can clear affected later results after confirmation.
+- Options edits the top header and banner. Clear tournament removes tournament data while preserving headers and the organiser connection.
 
-GitHub tokens need only Contents access; no Actions or Workflows write permission is required to update tournament data. GitHub branch protection or token policies may independently restrict direct updates. All published player names and stats are public.
+Saves update tournament.json through GitHub’s Contents API. Other viewers see changes after deployment and refresh. File-SHA checks reject concurrent edits: reload saved data before retrying. Published names and stats are public.
+
+## Local development
+
+Run node --test tournament.test.cjs and node build.cjs. Serve _site with a local static server. Local builds are read-only unless you set GITHUB_REPOSITORY to owner/repository and GITHUB_REF_NAME to the target branch before building. Never put a token in these variables.
+
+The production bootstrap is generated from tournament.json. tournament.js is a legacy regression fixture and local fallback. Builds version asset filenames to avoid stale caches.
+
+Standard owner.github.io/project hosting can also infer its repository from the URL when build metadata is absent, defaulting to main. Use the workflow or explicit build variables for custom domains, non-main branches or nonstandard hosting paths.
