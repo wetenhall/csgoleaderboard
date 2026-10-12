@@ -12,7 +12,7 @@
   <script defer src="manager.js"></script>
 </head>
 <body>
-  <header class="topbar"><a class="brand" href="./"><span class="mark" aria-hidden="true">⌖</span><span id="brand-title">Friends Cup</span></a><span class="game">COUNTER-STRIKE <b> // </b> PRIVATE TOURNAMENT</span></header>
+  <header class="topbar"><a class="brand" href="./"><span class="mark" aria-hidden="true">⌖</span><span id="brand-title">Friends Cup</span></a><div class="header-actions"><span class="game">COUNTER-STRIKE <b> // </b> PRIVATE TOURNAMENT</span><button type="button" id="open-options" class="options-cog" aria-label="Edit page headers" aria-haspopup="dialog" aria-controls="options-dialog" title="Edit page headers" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m9 3-.7 2.5-2 .9L4 5.7 2 9l1.8 1.8v2.4L2 15l2 3.3 2.3-.7 2 .9L9 21h4l.7-2.5 2-.9 2.3.7 2-3.3-1.8-1.8v-2.4L20 9l-2-3.3-2.3.7-2-.9L13 3Z"/><circle cx="11" cy="12" r="3"/></svg></button></div></header>
   <main>
     <div class="intro"><div><p class="eyebrow">COUNTER-STRIKE <span class="slash"> / </span> PRIVATE MATCH CENTRE</p><h1 id="title">Friends Cup<span>.</span></h1><p class="subtitle">Your squad. Your server. Your tournament.</p></div><div class="broadcast-state"><span class="label">TOURNAMENT SIGNAL</span><strong id="broadcast-status">READY</strong><span id="broadcast-caption">COUNTER-STRIKE / FRIENDS CUP</span></div></div>
     <section class="overview" aria-label="Tournament summary"><div><span class="label">FORMAT</span><strong id="format-name">Groups → playoffs</strong></div><div><span class="label">TEAMS</span><strong id="team-count">8 teams entered</strong></div><div><span class="label">PROGRESS</span><strong id="progress">0 / 15 <small>matches complete</small></strong></div><div><span class="label">STATUS</span><strong id="status" class="accent">Awaiting first match</strong></div></section>
@@ -21,7 +21,6 @@
 <button type="button" id="tab-team-setup" aria-label="Team setup" hidden role="tab" aria-controls="panel-team-setup" aria-selected="false" tabindex="-1">Team setup</button>
 <button type="button" id="tab-leaderboard" aria-label="Leader board" role="tab" aria-controls="panel-leaderboard" aria-selected="true" tabindex="0">Leader board</button>
 <button type="button" id="tab-fixtures" aria-label="Fixtures" role="tab" aria-controls="panel-fixtures" aria-selected="false" tabindex="-1">Fixtures</button>
-<button type="button" id="tab-options" aria-label="Options" hidden role="tab" aria-controls="panel-options" aria-selected="false" tabindex="-1">Options</button>
 <button type="button" id="tab-stats" aria-label="Stats" role="tab" aria-controls="panel-stats" aria-selected="false" tabindex="-1">Stats</button>
 </div>
 <p id="connection-status" class="connection-status" role="status">Viewing the published tournament. Connect in Set up to publish changes.</p>
@@ -81,9 +80,9 @@
     <section class="awards-section" aria-labelledby="player-awards-heading"><div class="section-heading"><h2 id="player-awards-heading">Player bragging rights</h2><span>MINIMUM 2 RECORDED GAMES</span></div><div id="player-awards" class="awards-grid"></div><p class="award-footnote">Player awards use games with recorded K/D/A only. Tied leaders share the award.</p></section>
     <section class="stats-section" aria-labelledby="stats-heading"><div class="section-heading"><h2 id="stats-heading">Player stats</h2><span>KILLS / DEATHS / ASSISTS</span></div><div id="player-stats" class="table-scroll"></div></section>
 </div>
-<div id="panel-options" class="tab-panel" role="tabpanel" aria-labelledby="tab-options" tabindex="0" hidden>
-<section aria-labelledby="options-heading"><div class="section-heading"><h2 id="options-heading">Page options</h2><span>HEADER SETTINGS</span></div>
-<form id="options-form" class="options-form"><label>Top header text<input id="option-brand" maxlength="80" required></label><label>Large banner heading<input id="option-banner" maxlength="120" required></label><p class="rules">Include the event date in the banner text, for example: 12 October 2026 · Friends Cup. Saving publishes these headings for everyone.</p><button id="save-options" type="submit">Save & publish headers</button></form></section></div>
+<dialog id="options-dialog" class="options-dialog" aria-labelledby="options-heading">
+<section aria-labelledby="options-heading"><div class="section-heading"><h2 id="options-heading">Page options</h2><button type="button" id="close-options" class="options-close" aria-label="Close page options">&#215;</button></div>
+<form id="options-form" class="options-form"><label>Top header text<input id="option-brand" maxlength="80" required></label><label>Large banner heading<input id="option-banner" maxlength="120" required></label><p class="rules">Include the event date in the banner text, for example: 12 October 2026 · Friends Cup. Saving publishes these headings for everyone.</p><p id="options-status" role="status"></p><button id="save-options" type="submit">Save & publish headers</button></form></section></dialog>
     <p id="error" role="alert" hidden></p>
     <noscript><p>Please enable JavaScript to view the tournament bracket and results.</p></noscript>
   </main>

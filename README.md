@@ -18,7 +18,7 @@ Only the default branch deploys. No repository owner or API token needs to be pl
 
 In Set up, follow the token instructions. Create a fine-grained token as the repository owner, select only your dashboard repository and grant Contents: Read and write. Organisation policies may require approval. A token cannot grant access your account does not already have.
 
-Paste it into the dashboard and connect. Team setup and Options appear after connection. Remember for this tab uses session storage, scoped to the repository; disconnect clears it. Browser session restoration may retain it. Never commit tokens or include them in URLs.
+Paste it into the dashboard and connect. Team setup and the header settings cog appear after connection. Remember for this tab uses session storage, scoped to the repository; disconnect clears it. Browser session restoration may retain it. Never commit tokens or include them in URLs.
 
 ## Run a tournament
 
@@ -27,7 +27,7 @@ Paste it into the dashboard and connect. Team setup and Options appear after con
 - Choose 0 groups for straight knockout or 1–4 balanced groups with at least two teams per group. The top two advance. Byes fill uneven brackets; with three groups, Group A and B winners receive playoff byes.
 - Review team names and map assignments, then publish. Publishing a draw replaces the current tournament after confirmation.
 - In Fixtures, enter rounds and optional kills/deaths/assists. Group ties count as draws; tied knockout games require a tiebreak winner. Correcting results can clear affected later results after confirmation.
-- Options edits the top header and banner. Clear tournament removes tournament data while preserving headers and the organiser connection.
+- The cog beside PRIVATE TOURNAMENT opens a lightbox to edit the top header and banner. Clear tournament removes tournament data while preserving headers and the organiser connection.
 
 Saves update tournament.json through GitHub’s Contents API. Other viewers see changes after deployment and refresh. File-SHA checks reject concurrent edits: reload saved data before retrying. Published names and stats are public.
 
