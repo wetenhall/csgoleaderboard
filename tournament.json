@@ -320,7 +320,17 @@
         "t3",
         "t7"
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t3",
+          "t7"
+        ],
+        "scores": [
+          6,
+          5
+        ],
+        "players": {}
+      }
     },
     {
       "id": "d1",
