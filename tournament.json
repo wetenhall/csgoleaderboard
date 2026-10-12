@@ -667,7 +667,28 @@
           "winner": "de12"
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t2",
+          "t3"
+        ],
+        "scores": [
+          6,
+          8
+        ],
+        "players": {
+          "p1": {
+            "kills": 6,
+            "deaths": 8,
+            "assists": 0
+          },
+          "p5": {
+            "kills": 8,
+            "deaths": 6,
+            "assists": 0
+          }
+        }
+      }
     },
     {
       "id": "de17",
