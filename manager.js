@@ -144,6 +144,7 @@ function updateHeaders(data, brand, banner) {
   return {...data,headers:{brand:brand.trim(),banner:banner.trim()}};
 }
 function validateData(data, resolve) {
+  if (data?.registrationEnabled !== undefined && typeof data.registrationEnabled !== 'boolean') throw Error('Registration setting must be enabled or disabled.');
   if (!data || typeof data.name !== 'string' || data.name.length > 100 || !Array.isArray(data.teams) || !Array.isArray(data.groups) || data.groups.length > 4 || !Array.isArray(data.matches)) throw Error('Invalid tournament structure.');
   if (data.headers !== undefined) updateHeaders(data,data.headers?.brand,data.headers?.banner);
   if (!data.teams.length && !data.groups.length && !data.matches.length && data.mapPool === undefined) return data;
@@ -188,7 +189,7 @@ function applyResult(data, id, result, resolve) {
   validateData(next, resolve);
   return { next, cleared };
 }
-function emptyTournament(data) { return {name:data.name,teams:[],groups:[],matches:[],...(data.headers?{headers:structuredClone(data.headers)}:{})}; }
+function emptyTournament(data) { return {name:data.name,teams:[],groups:[],matches:[],...(data.headers?{headers:structuredClone(data.headers)}:{}),...(data.registrationEnabled!==undefined?{registrationEnabled:data.registrationEnabled}:{})}; }
 if (typeof module !== 'undefined') module.exports = { makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament, tournamentAwards, updateHeaders, repositorySettings };
 if (typeof document !== 'undefined') (() => {
   const $ = id => document.getElementById(id);
@@ -284,13 +285,21 @@ if (typeof document !== 'undefined') (() => {
   };
   function renderAll() {
     renderTournament(current); renderAwards(); renderSchedule(); renderStats(); renderTies(); controls();
+    const registrationOpen=current.registrationEnabled!==false;
+    $('tab-register').hidden=!registrationOpen;
+    if(!registrationOpen){
+      $('registration-frame').removeAttribute('src');
+      if($('tab-register').getAttribute('aria-selected')==='true')selectTab($('tab-leaderboard'));
+    } else if($('tab-register').getAttribute('aria-selected')==='true')loadRegistration();
     $('option-brand').value=current.headers?.brand || current.name;
     $('option-banner').value=current.headers?.banner || current.name;
+    $('option-registration').checked=current.registrationEnabled!==false;
   }
   $('open-options').onclick=()=>{
     if(!token || busy)return;
     $('option-brand').value=current.headers?.brand || current.name;
     $('option-banner').value=current.headers?.banner || current.name;
+    $('option-registration').checked=current.registrationEnabled!==false;
     $('options-status').textContent='';
     $('options-dialog').showModal();
     $('option-brand').focus();
@@ -304,9 +313,10 @@ if (typeof document !== 'undefined') (() => {
     event.preventDefault();if(busy || !token)return;
     try {
       const next=updateHeaders(current,$('option-brand').value,$('option-banner').value);
-      await publish(next,'Update page header text');
-      if(draw)draw.headers=structuredClone(current.headers);
-      say('Headers saved to GitHub. The public page updates after deployment.');
+      next.registrationEnabled=$('option-registration').checked;
+      await publish(next,'Update page settings');
+      if(draw){draw.headers=structuredClone(current.headers);draw.registrationEnabled=current.registrationEnabled;}
+      say('Settings saved to GitHub. The public page updates after deployment.');
     } catch(error){say(error.message);}
   };
   $('clear-tournament').onclick = async () => {
@@ -576,12 +586,18 @@ if (typeof document !== 'undefined') (() => {
   document.addEventListener('keydown',event=>{if(event.key==='Escape' && expandedDraw){event.preventDefault();setExpandedDraw(false);}});
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
   const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+  function loadRegistration(){
+    const frame=$('registration-frame');
+    if(current.registrationEnabled!==false && !frame.hasAttribute('src'))frame.src=frame.dataset.src;
+  }
   function selectTab(tab, focus = false, updateUrl = true) {
+    if(tab===$('tab-register') && current.registrationEnabled===false)tab=$('tab-leaderboard');
     tabs.forEach(item => {
       const active = item === tab;
       item.setAttribute('aria-selected', String(active)); item.tabIndex = active ? 0 : -1;
       $(item.getAttribute('aria-controls')).hidden = !active;
     });
+    if(tab===$('tab-register'))loadRegistration();
     if (updateUrl) history.replaceState(null,'','#'+tab.id.slice(4));
     if (focus) tab.focus();
   }

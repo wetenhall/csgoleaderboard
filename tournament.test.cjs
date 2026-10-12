@@ -234,3 +234,17 @@ test('1v1 publishes without maps and clears maps inherited from a previous tourn
   assert.equal(data.mapPool,undefined);
  }
 });
+
+test('registration visibility persists across header edits, clearing and new draws',()=>{
+ const {updateHeaders,emptyTournament}=require('./manager.js');
+ for(const enabled of [true,false]){
+  const data={...fixture(),registrationEnabled:enabled};
+  assert.equal(validateData(data,resolveTournament).registrationEnabled,enabled);
+  assert.equal(updateHeaders(data,'Cup','Next cup').registrationEnabled,enabled);
+  const cleared=emptyTournament(data);
+  assert.equal(validateData(cleared,resolveTournament).registrationEnabled,enabled);
+  const players=Array.from({length:4},(_,i)=>({id:'p'+i,name:'P'+i}));
+  assert.equal(makeTournament(players,2,cleared).registrationEnabled,enabled);
+ }
+ assert.throws(()=>validateData({...emptyTournament(fixture()),registrationEnabled:'false'},resolveTournament),/Registration setting/);
+});

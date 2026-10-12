@@ -46,3 +46,6 @@ The public Register tab embeds the Google Form configured in index.html. Respons
 
 Link directly to registration by appending #register to your deployed site URL. Public tabs open from their URL fragment, and switching tabs updates the shareable URL without reloading the form.
 
+
+In the settings cog, Registration open controls whether the Register tab and embedded form appear. Save & publish settings applies it after deployment. Disabled registration links fall back to the leaderboard. The separate Google Forms link remains active unless responses are closed in Google Forms.
+
