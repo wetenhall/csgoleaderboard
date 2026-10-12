@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="styles.css">
   <script defer src="tournament.js"></script>
   <script defer src="app.js"></script>
+  <script defer src="extras.js"></script>
   <script defer src="manager.js"></script>
 </head>
 <body>
@@ -25,14 +26,16 @@
 <button type="button" id="tab-leaderboard" aria-label="Leader board" role="tab" aria-controls="panel-leaderboard" aria-selected="true" tabindex="0">Leader board</button>
 <button type="button" id="tab-fixtures" aria-label="Fixtures" role="tab" aria-controls="panel-fixtures" aria-selected="false" tabindex="-1">Fixtures</button>
 <button type="button" id="tab-stats" aria-label="Stats" role="tab" aria-controls="panel-stats" aria-selected="false" tabindex="-1">Stats</button>
+<button type="button" id="tab-history" aria-label="History" role="tab" aria-controls="panel-history" aria-selected="false" tabindex="-1">History</button>
 <button type="button" id="tab-register" hidden aria-label="Register" role="tab" aria-controls="panel-register" aria-selected="false" tabindex="-1">Register</button>
 </div>
 <p id="connection-status" class="connection-status" role="status">Viewing the published tournament. Connect in Settings to publish changes.</p>
+<p id="viewer-update" class="viewer-update" role="status">Automatic updates every 30 seconds.</p>
 <div id="panel-team-setup" class="tab-panel" role="tabpanel" aria-labelledby="tab-team-setup" tabindex="0" hidden>
 <p id="team-setup-locked" class="rules">Connect your GitHub token in Settings to create teams and configure the tournament.</p>
 <section class="organiser"><div class="organiser-body">
         <div id="connected-setup" hidden>
-        <div class="tournament-actions"><button id="refresh-data" type="button" class="secondary">Reload latest saved tournament</button><button id="clear-tournament" type="button" class="secondary danger" disabled>Clear tournament</button></div>
+        <div class="tournament-actions"><button id="refresh-data" type="button" class="secondary">Reload latest saved tournament</button><button id="archive-cup" type="button" class="secondary" disabled>Archive &amp; start new tournament</button><button id="clear-tournament" type="button" class="secondary danger" disabled>Clear tournament</button></div>
         <section id="draw-panel" aria-labelledby="draw-heading"><div class="section-heading"><h2 id="draw-heading">Create a new tournament · Wheel draw</h2></div>
           <p>Choose 1v1, Duos or Squads. Any number of complete teams is supported (minimum two). Choose 1–4 balanced groups with at least two teams per group; the selected number in each advance. Duos and Squads can choose 0 for straight knockout. For 1v1, choose groups before spinning; players are drawn directly into groups and the selected number advance. Byes fill uneven brackets automatically. The new draw replaces the current tournament and its results only when you publish it.</p>
           <div class="draw-layout"><div>
@@ -52,10 +55,10 @@
     </section>
 </div>
 <div id="panel-leaderboard" class="tab-panel" role="tabpanel" aria-labelledby="tab-leaderboard" tabindex="0">
-<section class="awards-section" aria-labelledby="team-awards-heading"><div class="section-heading"><h2 id="team-awards-heading">Team bragging rights</h2><span>MINIMUM 2 COMPLETED GAMES</span></div><div id="team-awards" class="awards-grid"></div></section>
+<section id="match-night" class="match-night" aria-label="Playing now and upcoming fixtures"></section><section class="awards-section" aria-labelledby="team-awards-heading"><div class="section-heading"><h2 id="team-awards-heading">Team bragging rights</h2><span>MINIMUM 2 COMPLETED GAMES</span></div><div id="team-awards" class="awards-grid"></div></section>
     <section aria-labelledby="groups-heading"><div class="section-heading"><h2 id="groups-heading">Group stage</h2><span id="qualification-label">ROUND ROBIN / TOP 2 ADVANCE</span></div><div id="groups" class="groups"></div><p class="rules" id="group-rules">Ranked by wins, then round difference (RD). Remaining ties need a tiebreak decision. Playoff places are confirmed after all six group matches.</p></section><section aria-labelledby="bracket-heading"><div class="section-heading"><h2 id="bracket-heading">Playoffs</h2><span>WIN AND ADVANCE</span></div><div id="bracket" class="bracket"></div></section>
     <section class="champion" aria-label="Tournament champion"><span class="champion-icon" aria-hidden="true">★</span><div><span class="eyebrow">VICTORY</span><h2 id="champion">One team takes it all.</h2></div><span class="champion-note" id="champion-note">Decided in the grand final</span></section>
-    <section aria-labelledby="podium-heading"><div class="section-heading"><h2 id="podium-heading">Tournament podium</h2><span>THE TOP FINISHERS</span></div><div id="podium" class="podium"></div></section>
+    <button id="champion-card" type="button" class="secondary" hidden>Download champion card</button><section aria-labelledby="podium-heading"><div class="section-heading"><h2 id="podium-heading">Tournament podium</h2><span>THE TOP FINISHERS</span></div><div id="podium" class="podium"></div></section>
     <section aria-labelledby="teams-heading"><div class="section-heading"><h2 id="teams-heading">Team roster</h2><span id="roster-count">8 TEAMS / 1 TROPHY</span></div><div id="teams" class="teams"></div></section>
 </div>
 <div id="panel-fixtures" class="tab-panel" role="tabpanel" aria-labelledby="tab-fixtures" tabindex="0" hidden>
@@ -63,7 +66,11 @@
 </div>
 <div id="panel-stats" class="tab-panel" role="tabpanel" aria-labelledby="tab-stats" tabindex="0" hidden>
     <section class="awards-section" aria-labelledby="player-awards-heading"><div class="section-heading"><h2 id="player-awards-heading">Player bragging rights</h2><span>MINIMUM 2 RECORDED GAMES</span></div><div id="player-awards" class="awards-grid"></div><p class="award-footnote">Player awards use games with recorded K/D/A only. Tied leaders share the award.</p></section>
-    <section class="stats-section" aria-labelledby="stats-heading"><div class="section-heading"><h2 id="stats-heading">Player stats</h2><span>KILLS / DEATHS / ASSISTS</span></div><div id="player-stats" class="table-scroll"></div></section>
+    <section class="career-section" aria-labelledby="career-heading"><div class="section-heading"><h2 id="career-heading">All-time player records</h2><span>THE HALL OF FAME</span></div><label>Competition<select id="career-mode"><option value="duos">Duos</option><option value="squads">Squads</option><option value="1v1">1v1</option></select></label><p id="career-caption" class="rules"></p><p class="rules">Names identify players across cups (ignoring case and surrounding spaces). Use consistent names. Wins include every completed match; K/D uses recorded stats only. Stats games shows how many matches include K/D/A.</p><div id="career-table" class="table-scroll"></div></section>
+<section class="stats-section" aria-labelledby="stats-heading"><div class="section-heading"><h2 id="stats-heading">Player stats</h2><span>KILLS / DEATHS / ASSISTS</span></div><div id="player-stats" class="table-scroll"></div></section>
+</div>
+<div id="panel-history" class="tab-panel" role="tabpanel" aria-labelledby="tab-history" tabindex="0" hidden>
+<section aria-labelledby="history-heading"><div class="section-heading"><h2 id="history-heading">Tournament history</h2><span>PAST CUPS / LASTING BRAGGING RIGHTS</span></div><p class="rules">Completed cups are saved here when the organiser archives them. Past results and player stats stay available after a new draw.</p><div id="cup-history"></div></section>
 </div>
 <div id="panel-register" class="tab-panel" role="tabpanel" aria-labelledby="tab-register" tabindex="0" hidden>
   <section aria-labelledby="register-heading">
@@ -73,6 +80,7 @@
     <iframe id="registration-frame" class="registration-form" title="Tournament registration form" data-src="https://docs.google.com/forms/d/e/1FAIpQLSd0rNnpKSl5wJ6Dws_w59VMS2rRWcubW2oupCNp2z85D2Ng2g/viewform?embedded=true" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
   </section>
 </div>
+<dialog id="archive-dialog" class="options-dialog" aria-labelledby="archive-heading"><div class="section-heading"><h2 id="archive-heading">Archive this cup</h2><button type="button" id="close-archive" class="options-close" aria-label="Close archive">&#215;</button></div><form id="archive-form"><label>Cup name<input id="archive-title" required maxlength="120"></label><p class="rules">Save this completed tournament, its champion, fixtures and player stats to History, then clear the current teams and results for a new draw. Your headers and previous archives are kept. Any unfinished wheel draw will be discarded.</p><p id="archive-status" role="alert"></p><button id="confirm-archive" type="submit">Archive &amp; start new tournament</button></form></dialog>
 <dialog id="options-dialog" class="options-dialog" aria-labelledby="options-heading">
 <section aria-labelledby="options-heading"><div class="section-heading"><h2 id="options-heading">Settings</h2><button type="button" id="close-options" class="options-close" aria-label="Close settings">&#215;</button></div>
 <p id="options-status" role="status"></p><div id="connection-setup">

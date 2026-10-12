@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const { resolveTournament } = require('./app.js');
+const { cupMode, cupFinal, completedCup, archiveCup, careerRecords, matchNight } = require('./extras.js');
 function fixture() { return JSON.parse(vm.runInNewContext(fs.readFileSync('tournament.js', 'utf8') + '\nJSON.stringify(TOURNAMENT)')); }
 function completeGroups(data) { data.matches.filter(m => m.group).forEach(m => { m.result = { teams: m.teams, scores: [13, 9] }; }); }
 test('current tournament data is valid', () => { assert.equal(resolveTournament(fixture()).matches.length, 15); });
@@ -436,4 +437,67 @@ test('podium records count played results, draws and knockout tiebreaks without 
  assert.deepEqual(podiumRecord(resolveTournament(data).matches,semi.ids[0]),{played:2,won:0,lost:1,drawn:1});
  const double=makeTournament(players.slice(0,3),1,fixture(),undefined,0,[],2,'double');
  assert.deepEqual(podiumRecord(resolveTournament(double).matches,'t1'),{played:0,won:0,lost:0,drawn:0});
+});
+
+test('archive lifecycle is atomic, preserves settings and history without nested snapshots', () => {
+  const {makeTournament,emptyTournament,validateData,applyResult}=require('./manager.js');
+  const players=[{id:'p1',name:'Sam'},{id:'p2',name:'Dan'}];
+  let data=makeTournament(players,1,{name:'Cup',headers:{brand:'Gang',banner:'October cup'},registrationEnabled:false},['t1','t2'],0,[],2);
+  assert.equal(completedCup(data,resolveTournament),false);
+  assert.throws(()=>archiveCup(data,resolveTournament,emptyTournament,'Cup'),/Finish/);
+  data.activeMatchId='f1';
+  data=applyResult(data,'f1',{teams:['t1','t2'],scores:[10,8]},resolveTournament).next;
+  assert.equal(data.activeMatchId,undefined);
+  assert.equal(completedCup(data,resolveTournament),true);
+  const next=archiveCup(data,resolveTournament,emptyTournament,'October cup','2026-10-12T19:00:00Z','archive-1');
+  assert.equal(next.matches.length,0);assert.equal(next.history.length,1);
+  assert.equal(next.registrationEnabled,false);assert.equal(next.headers.brand,'Gang');
+  assert.equal(next.history[0].tournament.history,undefined);assert.equal(next.history[0].tournament.activeMatchId,undefined);
+  validateData(next,resolveTournament);
+  const fresh=makeTournament(players,1,next,['t1','t2'],0,[],2);
+  assert.equal(fresh.history.length,1);assert.equal(fresh.matches[0].result,null);
+  const bad=structuredClone(next);bad.history.push(bad.history[0]);assert.throws(()=>validateData(bad,resolveTournament),/history/);
+  const nested=structuredClone(next);nested.history[0].tournament.history=[];assert.throws(()=>validateData(nested,resolveTournament),/archived/);
+});
+
+test('career records use names across recycled IDs, split modes and keep missing stats out of K/D',()=>{
+  const {makeTournament,playerTotals,emptyTournament,applyResult}=require('./manager.js');
+  let solo=makeTournament([{id:'p1',name:'Sam'},{id:'p2',name:'Dan'}],1,{name:'Cup'},['t1','t2'],0,[],2);
+  solo=applyResult(solo,'f1',{teams:['t1','t2'],scores:[10,8]},resolveTournament).next;
+  const blank=archiveCup(solo,resolveTournament,emptyTournament,'One','2026-10-12T19:00:00Z','one');
+  let other=makeTournament([{id:'p1',name:'Dan'},{id:'p2',name:' sam '}],1,blank,['t1','t2'],0,[],2);
+  other=applyResult(other,'f1',{teams:['t1','t2'],scores:[5,7]},resolveTournament).next;
+  const archived=archiveCup(other,resolveTournament,emptyTournament,'Two','2026-10-12T20:00:00Z','two');
+  const records=careerRecords(archived.history,'1v1',resolveTournament,playerTotals);
+  assert.equal(records.length,2);assert.equal(records[0].name,'Sam');assert.equal(records[0].trophies,2);assert.equal(records[0].kills,17);assert.equal(records[0].deaths,13);assert.equal(records[0].games,2);
+  assert.deepEqual(careerRecords(archived.history,'duos',resolveTournament,playerTotals),[]);
+  let duo=makeTournament(['Sam','Dan','Alex','Pat'].map((name,i)=>({id:'p'+i,name})),2,{name:'Duo'},['t1','t2'],0,['Nuke']);
+  duo=applyResult(duo,'f1',{teams:['t1','t2'],scores:[13,9]},resolveTournament).next;
+  const duoArchive=archiveCup(duo,resolveTournament,emptyTournament,'Duos','2026-10-12T21:00:00Z','duo');
+  const row=careerRecords(duoArchive.history,'duos',resolveTournament,playerTotals)[0];
+  assert.equal(row.games,1);assert.equal(row.wins,1);assert.equal(row.recorded,0);assert.equal(row.trophies,1);
+});
+
+test('match queue skips unfinished qualification and rejects stale active matches',()=>{
+  const {makeTournament,validateData,applyResult,orderedMatches}=require('./manager.js');
+  let data=makeTournament(['A','B','C'].map((name,i)=>({id:'p'+i,name})),1,{name:'Cup'},['t1','t2','t3'],1,[]);
+  let night=matchNight(data,resolveTournament,orderedMatches);
+  assert.equal(night.next.length,2);assert.ok(night.next.every(m=>m.group));
+  data.activeMatchId=night.next[0].id;validateData(data,resolveTournament);
+  night=matchNight(data,resolveTournament,orderedMatches);assert.equal(night.active.id,data.activeMatchId);
+  const active=night.active;data=applyResult(data,active.id,{teams:active.ids,scores:[5,2]},resolveTournament).next;
+  assert.equal(data.activeMatchId,undefined);data.activeMatchId='f1';assert.throws(()=>validateData(data,resolveTournament),/playing fixture/);
+});
+
+test('double elimination archive waits for reset final when the lower finalist wins',()=>{
+  const {makeTournament,applyResult,emptyTournament,orderedMatches}=require('./manager.js');
+  let data=makeTournament([{id:'p1',name:'A'},{id:'p2',name:'B'}],1,{name:'Cup'},['t1','t2'],0,[],2,'double');
+  while(!resolveTournament(data).matches.find(m=>m.id==='f1').result){
+    const m=orderedMatches(resolveTournament(data).matches).find(m=>!m.result && m.ids.every(Boolean));
+    data=applyResult(data,m.id,{teams:m.ids,scores:m.id==='f1'?[2,5]:[5,2]},resolveTournament).next;
+  }
+  assert.equal(cupFinal(data,resolveTournament).id,'f2');assert.equal(completedCup(data,resolveTournament),false);
+  assert.throws(()=>archiveCup(data,resolveTournament,emptyTournament,'Cup'),/Finish/);
+  const final=resolveTournament(data).matches.find(m=>m.id==='f2');data=applyResult(data,final.id,{teams:final.ids,scores:[5,2]},resolveTournament).next;
+  assert.equal(completedCup(data,resolveTournament),true);assert.equal(cupMode(data),'1v1');
 });

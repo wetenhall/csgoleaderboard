@@ -29,7 +29,7 @@ Paste it into the dashboard and connect. Team setup and the header settings cog 
 - In Fixtures, enter rounds and optional kills/deaths/assists. Group ties count as draws; tied knockout games require a tiebreak winner. Correcting results can clear affected later results after confirmation.
 - The cog beside PRIVATE TOURNAMENT opens a lightbox to edit the top header and banner. Clear tournament removes tournament data while preserving headers and the organiser connection.
 
-Saves update tournament.json through GitHub’s Contents API. Other viewers see changes after deployment and refresh. File-SHA checks reject concurrent edits: reload saved data before retrying. Published names and stats are public.
+Saves update tournament.json through GitHub’s Contents API. Other viewers receive changes automatically after deployment. File-SHA checks reject concurrent edits: reload saved data before retrying. Published names and stats are public.
 
 ## Local development
 
@@ -61,3 +61,15 @@ During registration mode, connected organisers can still view the tournament sum
 
 In 1v1, match scores are kills. Each player receives kills equal to their score and deaths equal to the opponent score; assists are zero. Stats and awards derive these values for existing results too, while saving a result records them automatically. Duos and Squads retain optional manual player stats.
 
+
+## Match night, history and career records
+
+The leaderboard shows Playing now and the next two ready fixtures, including the map and player roster. A connected organiser can mark a ready fixture as playing, or clear that status. Saving its result clears the playing status automatically. Fixtures awaiting qualification are held out of the queue.
+
+After all required games finish (including a double-elimination reset final when needed), use Archive & start new tournament in Team setup. Give the cup a name and confirm. A single GitHub save appends an immutable snapshot to history in tournament.json and clears the current tournament. Headers and registration preferences stay in place. Previous archives survive new draws and Clear tournament. Clearing or replacing a cup without archiving does not create a history entry.
+
+History lists cup winners, final scores, every played fixture and recorded player stats. Stats includes all-time records from archived cups, with separate 1v1, Duos and Squads tables. Players are matched by normalized display name, ignoring case and surrounding spaces: keep names consistent across cups. Trophies count tournament wins, and match wins include knockout tiebreaks. K/D totals only games with recorded player stats; missing stats are shown as unavailable rather than zero. For 1v1, kills and deaths come from the match scores.
+
+Download champion card on the leaderboard or inside an archived cup generates a 1200 × 675 PNG locally in the browser. It includes branding, cup name, winning players and final score; no image service is required.
+
+Viewer pages check the deployed tournament.json every 30 seconds and show the last check time. Results arrive after the normal Pages deployment. Hidden tabs pause checks and check again when visible. Connected organisers and active editing/draw sessions pause automatic replacement; Reload latest saved tournament explicitly loads the latest repository version. Existing SHA conflict checks protect concurrent saves.
