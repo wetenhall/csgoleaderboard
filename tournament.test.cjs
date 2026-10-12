@@ -385,3 +385,39 @@ test('connected double bracket positions cards without overlap and links every w
   assert.ok(layout.nodes.filter(n=>n.match.bracket==='upper').every(n=>layout.nodes.filter(l=>l.match.bracket==='lower').every(l=>l.y>=n.y+84)));
  }
 });
+
+test('podium confirms double elimination third and waits for a required reset final',()=>{
+ const {tournamentPodium}=require('./app.js');
+ let data=makeTournament(Array.from({length:5},(_,i)=>({id:'p'+i,name:'P'+i})),1,fixture(),undefined,0,[],2,'double');
+ assert.ok(tournamentPodium(data).every(p=>!p.ids.length));
+ for(const game of orderedMatches(data.matches).filter(m=>m.bracket!=='final')){
+  const m=resolveTournament(data).matches.find(m=>m.id===game.id);
+  data=applyResult(data,m.id,{teams:m.ids,scores:[6,4],players:{}},resolveTournament).next;
+ }
+ assert.equal(tournamentPodium(data)[2].ids.length,1);
+ let final=resolveTournament(data).matches.find(m=>m.id==='f1');
+ data=applyResult(data,'f1',{teams:final.ids,scores:[4,6],players:{}},resolveTournament).next;
+ assert.equal(tournamentPodium(data)[0].ids.length,0);
+ assert.match(tournamentPodium(data)[0].note,/reset/);
+ const reset=resolveTournament(data).matches.find(m=>m.id==='f2');
+ data=applyResult(data,'f2',{teams:reset.ids,scores:[6,4],players:{}},resolveTournament).next;
+ assert.deepEqual(tournamentPodium(data).slice(0,2).map(p=>p.ids[0]),reset.ids);
+ const corrected=applyResult(data,'f1',{teams:final.ids,scores:[6,4],players:{}},resolveTournament).next;
+ assert.deepEqual(tournamentPodium(corrected).slice(0,2).map(p=>p.ids[0]),final.ids);
+});
+
+test('single elimination podium shares third and handles two entrants and empty tournaments',()=>{
+ const {tournamentPodium}=require('./app.js');
+ for(const count of [2,3,4,8]){
+  let data=makeTournament(Array.from({length:count},(_,i)=>({id:'p'+i,name:'P'+i})),1,fixture(),undefined,0,[]);
+  for(const game of orderedMatches(data.matches)){
+   const m=resolveTournament(data).matches.find(m=>m.id===game.id);
+   data=applyResult(data,m.id,{teams:m.ids,scores:[6,4],players:{}},resolveTournament).next;
+  }
+  const podium=tournamentPodium(data);
+  assert.equal(podium[0].ids.length,1);assert.equal(podium[1].ids.length,1);
+  assert.equal(podium[2].ids.length,count===2?0:count===3?1:2);
+  assert.equal(new Set(podium.flatMap(p=>p.ids)).size,podium.flatMap(p=>p.ids).length);
+ }
+ assert.ok(tournamentPodium(require('./manager.js').emptyTournament(fixture())).every(p=>!p.ids.length));
+});

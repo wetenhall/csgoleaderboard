@@ -95,6 +95,38 @@ function teamNameNode(team) {
   if (display !== team.name) node.append(element('small', 'team-identifier', team.name));
   return node;
 }
+function tournamentPodium(data, state = resolveTournament(data)) {
+  const places=[{rank:1,ids:[],note:'Awaiting the final'},{rank:2,ids:[],note:'Awaiting the final'},{rank:3,ids:[],note:'Awaiting results'}];
+  const first=state.matches.find(m=>m.id==='f1');
+  if(!first)return places;
+  const final=data.format==='double' && first.winner && first.winner===first.ids[1] ? state.matches.find(m=>m.id==='f2') : first;
+  if(final?.winner){places[0].ids=[final.winner];places[0].note='Champion';places[1].ids=final.ids.filter(id=>id!==final.winner);places[1].note='Runner-up';}
+  else if(data.format==='double' && first.winner){places[0].note=places[1].note='Awaiting the reset final';}
+  const loser=match=>match?.winner?match.ids.filter(id=>id!==match.winner):[];
+  if(data.teams.length<3){places[2].note='Not applicable · two entrants';return places;}
+  if(data.format==='double'){
+    const lowerFinal=state.matches.filter(m=>m.bracket==='lower').at(-1);
+    places[2].ids=loser(lowerFinal);places[2].note=places[2].ids.length?'Third place':'Awaiting the losers final';
+  }else{
+    const sources=first.sources || (first.from||[]).map(winner=>({winner}));
+    const semifinals=sources.filter(s=>s.winner).map(s=>state.matches.find(m=>m.id===s.winner));
+    if(semifinals.length && semifinals.every(m=>m?.winner)){
+      places[2].ids=semifinals.flatMap(loser);places[2].note=places[2].ids.length>1?'Joint third · no third-place playoff':'Third place';
+    }else places[2].note=semifinals.length?'Awaiting the semi-finals':'No third-place playoff';
+  }
+  return places;
+}
+function renderPodium(data,state){
+  const root=document.getElementById('podium');root.replaceChildren();
+  for(const place of tournamentPodium(data,state)){
+    const card=element('article','podium-place podium-'+place.rank+(place.ids.length?' confirmed':''));
+    card.append(element('span','podium-medal',place.rank===1?'★':place.rank===2?'◆':'◆'),element('h3','podium-rank',place.rank===1?'1st place':place.rank===2?'2nd place':'3rd place'));
+    const names=element('div','podium-names');
+    if(place.ids.length)place.ids.forEach(id=>names.append(element('strong','',teamDisplayName(state.teams.get(id)))));
+    else names.append(element('strong','','To be decided'));
+    card.append(names,element('p','podium-note',place.note));root.append(card);
+  }
+}
 function bracketLayout(matches) {
   const nodes=[],byId=new Map(),width=240,height=84,gap=64,pitch=120;
   const lanes=[['upper','Winners bracket'],['lower','Losers bracket']];
@@ -153,6 +185,7 @@ function renderTournament(data) {
   const qualifiers = data.qualifiersPerGroup ?? 2;
   document.getElementById('qualification-label').textContent = `ROUND ROBIN / TOP ${qualifiers} ADVANCE`;
   const state = resolveTournament(data);
+  renderPodium(data,state);
   const {teams,groups}=state; const matches=state.matches.filter(m=>!m.skipped);
   ['groups', 'bracket', 'teams'].forEach(id => document.getElementById(id).replaceChildren());
   document.getElementById('champion').textContent = 'One team takes it all.';
@@ -266,4 +299,4 @@ if (typeof document !== 'undefined') {
     alert.textContent = 'Tournament results could not be loaded. Please check back shortly.'; console.error(error);
   }
 }
-if (typeof module !== 'undefined') module.exports = { resolveTournament, teamDisplayName, teamDisplayLabel, bracketLayout };
+if (typeof module !== 'undefined') module.exports = { resolveTournament, teamDisplayName, teamDisplayLabel, bracketLayout, tournamentPodium };
