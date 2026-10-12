@@ -369,3 +369,19 @@ test('draw button accepts solo double elimination without groups and preserves g
  assert.equal(check({count:3,groups:2,format:'groups'}),true);
  assert.equal(check({count:4,groups:2,format:'groups'}),false);
 });
+
+test('connected double bracket positions cards without overlap and links every winner path',()=>{
+ const {bracketLayout}=require('./app.js');
+ for(const count of [2,3,5,8,10,17,32]){
+  const data=makeTournament(Array.from({length:count},(_,i)=>({id:'p'+i,name:'Player '+i})),1,fixture(),undefined,0,[],2,'double');
+  const matches=resolveTournament(data).matches,layout=bracketLayout(matches);
+  assert.equal(layout.nodes.length,matches.length);
+  for(const node of layout.nodes){
+   assert.ok(node.x>=0 && node.y>=0 && node.x+240<=layout.width && node.y+84<=layout.height);
+   for(const other of layout.nodes)if(other!==node)assert.ok(node.x+240<=other.x || other.x+240<=node.x || node.y+84<=other.y || other.y+84<=node.y);
+  }
+  for(const link of layout.links){const a=layout.nodes.find(n=>n.match.id===link.from),b=layout.nodes.find(n=>n.match.id===link.to);assert.ok(a.x<b.x);}
+  assert.ok(layout.links.some(l=>l.from==='f1' && l.to==='f2'));
+  assert.ok(layout.nodes.filter(n=>n.match.bracket==='upper').every(n=>layout.nodes.filter(l=>l.match.bracket==='lower').every(l=>l.y>=n.y+84)));
+ }
+});

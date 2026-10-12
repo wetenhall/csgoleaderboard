@@ -95,6 +95,60 @@ function teamNameNode(team) {
   if (display !== team.name) node.append(element('small', 'team-identifier', team.name));
   return node;
 }
+function bracketLayout(matches) {
+  const nodes=[],byId=new Map(),width=240,height=84,gap=64,pitch=120;
+  const lanes=[['upper','Winners bracket'],['lower','Losers bracket']];
+  let top=48,maxColumn=0;const headings=[];
+  for(const [lane,title] of lanes){
+    const games=matches.filter(m=>m.bracket===lane);
+    if(!games.length)continue;
+    headings.push({title,y:top-30});
+    const rounds=[...new Set(games.map(m=>m.round))].sort((a,b)=>a-b),positions=new Map(),gameIds=new Set(games.map(m=>m.id));let cursor=top,bottom=top;
+    function position(match){
+      if(positions.has(match.id))return positions.get(match.id);
+      const parents=(match.sources||[]).filter(s=>gameIds.has(s.winner)).map(s=>games.find(m=>m.id===s.winner));
+      const ys=parents.map(position);const y=ys.length?ys.reduce((a,b)=>a+b,0)/ys.length:cursor;
+      if(!ys.length)cursor+=pitch;positions.set(match.id,y);return y;
+    }
+    position(games.at(-1));
+    for(const match of games){
+      const column=rounds.indexOf(match.round),y=position(match);
+      const node={match,column,x:column*(width+gap)+24,y};nodes.push(node);byId.set(match.id,node);bottom=Math.max(bottom,y+height);maxColumn=Math.max(maxColumn,column);
+    }
+    top=bottom+100;
+  }
+  const lastUpper=nodes.filter(n=>n.match.bracket==='upper').at(-1);
+  let column=maxColumn+1;
+  for(const match of matches.filter(m=>m.bracket==='final')){
+    const node={match,column,x:column*(width+gap)+24,y:lastUpper?.y??48};nodes.push(node);byId.set(match.id,node);column++;
+  }
+  const links=[];
+  for(const node of nodes){
+    const refs=node.match.resetOf?[{winner:node.match.resetOf}]:(node.match.sources||[]);
+    refs.forEach((source,i)=>{const parent=byId.get(source.winner);if(!parent)return;
+      const x1=parent.x+width,y1=parent.y+height/2,x2=node.x,y2=node.y+(node.match.resetOf?height/2:i===0?32:64),mid=x2-gap/2;
+      links.push({from:parent.match.id,to:node.match.id,path:'M '+x1+' '+y1+' H '+mid+' V '+y2+' H '+x2});
+    });
+  }
+  return {nodes,links,headings,width:Math.max(...nodes.map(n=>n.x+width),width)+24,height:Math.max(...nodes.map(n=>n.y+height),height)+36};
+}
+function renderConnectedBracket(root,matches,teams) {
+  const layout=bracketLayout(matches),canvas=element('div','bracket-canvas');
+  const hint=element('p','bracket-hint','Follow the connecting lines from left to right. Losing players drop into the labelled losers-bracket fixtures. Scroll sideways to see the full bracket.');root.append(hint);
+  const viewport=element('div','bracket-viewport');viewport.tabIndex=0;viewport.setAttribute('role','region');viewport.setAttribute('aria-label','Double elimination bracket, scroll horizontally');
+  canvas.style.width=layout.width+'px';canvas.style.height=layout.height+'px';
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('width',layout.width);svg.setAttribute('height',layout.height);svg.setAttribute('aria-hidden','true');svg.classList.add('bracket-connectors');
+  for(const link of layout.links){const path=document.createElementNS(svg.namespaceURI,'path');path.setAttribute('d',link.path);svg.append(path);}canvas.append(svg);
+  for(const heading of layout.headings){const label=element('h3','bracket-section-title',heading.title);label.style.top=heading.y+'px';canvas.append(label);}
+  for(const {match,x,y} of layout.nodes){
+    const card=element('article','bracket-game'+(match.result?' is-played':''));card.style.left=x+'px';card.style.top=y+'px';card.setAttribute('aria-label',match.label+' · '+match.id.toUpperCase());
+    card.append(element('div','bracket-game-label',match.id.toUpperCase()+' · '+match.label));
+    match.ids.forEach((id,i)=>{const team=teams.get(id),name=team?teamDisplayName(team):matchPlaceholder(match,i),row=element('div','bracket-player'+(id && id===match.winner?' winner':'')+(!team?' pending':''));row.title=name;row.append(element('span','bracket-seed',team?.tag||'—'),element('span','bracket-player-name',name),element('strong','bracket-score',match.result?String(match.result.scores[i]):'—'));card.append(row);});
+    if(match.resetOf)card.title='Only played if the losers bracket champion wins the first grand final.';
+    canvas.append(card);
+  }
+  viewport.append(canvas);root.append(viewport);
+}
 function renderTournament(data) {
   const qualifiers = data.qualifiersPerGroup ?? 2;
   document.getElementById('qualification-label').textContent = `ROUND ROBIN / TOP ${qualifiers} ADVANCE`;
@@ -178,17 +232,12 @@ function renderTournament(data) {
   }
   const bracketRoot=document.getElementById('bracket');
   bracketRoot.classList.toggle('double-bracket',data.format==='double');
-  const lanes={};
-  if(data.format==='double')for(const [key,title] of [['upper','Winners bracket'],['lower','Losers bracket'],['final','Finals']]){const lane=element('section','bracket-lane');lane.append(element('h3','',title));const rounds=element('div','bracket-lane-rounds');lane.append(rounds);bracketRoot.append(lane);lanes[key]=rounds;}
-  [...new Set(matches.filter(match => !match.group).map(match => match.round))].sort((a,b)=>a-b).forEach(round => {
-    const name = knockoutRoundName({round},matches);
-    const column = element('div', `round round-${round}`);
-    const heading = element('h3', 'round-heading', name);
-    heading.append(element('span', '', `0${round+1}`));
-    column.append(heading);
-    const list = element('div', 'match-list');
-    matches.filter(match => match.round === round).forEach(match => list.append(matchCard(match)));
-    column.append(list); (lanes[matches.find(m=>m.round===round)?.bracket] || bracketRoot).append(column);
+  if(data.format==='double')renderConnectedBracket(bracketRoot,matches,teams);
+  else [...new Set(matches.filter(match => !match.group).map(match => match.round))].sort((a,b)=>a-b).forEach(round => {
+    const column=element('div', 'round round-'+round),heading=element('h3','round-heading',knockoutRoundName({round},matches));
+    heading.append(element('span','',String(round+1).padStart(2,'0')));column.append(heading);
+    const list=element('div','match-list');matches.filter(match=>match.round===round).forEach(match=>list.append(matchCard(match)));
+    column.append(list);bracketRoot.append(column);
   });
   const firstFinal=matches.find(match=>match.id==='f1');
   const final = data.format==='double' && firstFinal.winner===firstFinal.ids[1] && firstFinal.winner ? matches.find(match=>match.id==='f2') : firstFinal;
@@ -217,4 +266,4 @@ if (typeof document !== 'undefined') {
     alert.textContent = 'Tournament results could not be loaded. Please check back shortly.'; console.error(error);
   }
 }
-if (typeof module !== 'undefined') module.exports = { resolveTournament, teamDisplayName, teamDisplayLabel };
+if (typeof module !== 'undefined') module.exports = { resolveTournament, teamDisplayName, teamDisplayLabel, bracketLayout };

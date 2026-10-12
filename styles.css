@@ -91,3 +91,20 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .bracket-lane > h3 { margin: 0 0 16px; }
 .bracket-lane-rounds { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 12px; }
 .bracket-lane-rounds > .round { flex: 0 0 280px; }
+
+.bracket.double-bracket{display:block;min-width:0;overflow:hidden}
+.bracket-hint{font:13px/1.6 'Segoe UI',sans-serif;color:var(--muted);margin:0 0 16px}
+.bracket-viewport{max-width:100%;overflow:auto;border:1px solid var(--border);background:#191d24b8;scrollbar-color:#707782 #20242c;padding:12px 0}
+.bracket-viewport:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.bracket-canvas{position:relative;isolation:isolate}
+.bracket-connectors{position:absolute;inset:0;pointer-events:none;z-index:-1}
+.bracket-connectors path{fill:none;stroke:#8e959f;stroke-width:1.5;stroke-linejoin:round}
+.bracket-section-title{position:absolute;left:24px;margin:0;color:var(--accent);font:700 15px var(--ui);letter-spacing:1px;text-transform:uppercase}
+.bracket-game{position:absolute;width:240px;height:84px;border:1px solid #565e6c;background:#313740;border-radius:3px;box-shadow:0 3px 12px #0003;overflow:hidden}
+.bracket-game-label{height:20px;line-height:20px;padding:0 8px;background:#20252d;font-size:11px;font-weight:600;color:#c0c7d0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bracket-player{height:31px;display:grid;grid-template-columns:28px minmax(0,1fr) 30px;align-items:center;font:600 13px 'Segoe UI',sans-serif;border-top:1px solid #ffffff12}
+.bracket-player.pending{color:#b7bdc6;font-size:12px;font-style:italic}
+.bracket-player.winner{background:#ff9b0122;color:#ffe2b2}
+.bracket-seed{text-align:center;color:#b7bec7;font-size:11px;background:#ffffff08;line-height:31px}
+.bracket-player-name{padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bracket-score{text-align:center;color:var(--accent)}
