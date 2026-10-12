@@ -155,7 +155,18 @@ if (typeof document !== 'undefined') (() => {
   function renderSchedule() {
     $('schedule').replaceChildren(); const state = resolveTournament(current);
     const matches = orderedMatches(state.matches); let markedNext = false;
+    const sections = {};
+    for (const [key, title] of [['upcoming','Upcoming games'],['played','Played games']]) {
+      const section = element('section','fixture-section');
+      const heading = element('h3','fixture-heading'); heading.id = 'fixtures-' + key;
+      section.setAttribute('aria-labelledby',heading.id);
+      const count = matches.filter(match => Boolean(match.result) === (key === 'played')).length;
+      heading.textContent = title + ' · ' + count; section.append(heading);
+      if (!count) section.append(element('p','rules',key === 'played' ? 'No games played yet. Completed results will appear here.' : 'All games complete.'));
+      sections[key] = section; $('schedule').append(section);
+    }
     matches.forEach((match,index) => {
+      const container = sections[match.result ? 'played' : 'upcoming'];
       const details = element('details','scheduled-match');
       const ready = match.ids.every(Boolean); const next = !markedNext && !match.result && ready;
       if (next) { markedNext = true; details.classList.add('next-match'); }
@@ -163,7 +174,7 @@ if (typeof document !== 'undefined') (() => {
       details.append(element('summary','',`${String(index+1).padStart(2,'0')} · ${names.join(' vs ')} · ${match.result ? match.result.scores.join(' – ') : next ? 'UP NEXT' : ready ? 'Scheduled' : 'Awaiting qualifiers'}`));
       const body = element('div','result-body');
       body.append(element('p','rules',`${match.id.toUpperCase()} · ${match.group ? `Group ${match.group}` : match.id === 'f1' ? 'Grand final' : 'Semi-final'}`));
-      if (!ready) { body.append(element('p','','Teams will appear once qualification is confirmed.')); details.append(body); $('schedule').append(details); return; }
+      if (!ready) { body.append(element('p','','Teams will appear once qualification is confirmed.')); details.append(body); container.append(details); return; }
       const form = element('form','result-form'); const scores = names.map((name,i) => numeric(`${name} rounds`,match.result?.scores[i],99));
       const scoreRow = element('div','score-inputs'); scores.forEach(s => {s.input.required=true;scoreRow.append(s.wrap);}); form.append(scoreRow);
       form.append(element('p','rules','Player stats are optional. Leave all three fields blank if not recorded; enter all three to include that player in averages.'));
@@ -195,7 +206,7 @@ if (typeof document !== 'undefined') (() => {
           await publish(next,`Update ${match.id.toUpperCase()} result and player stats`);
         } catch(error) {note.textContent=error.message;}
       };
-      body.append(form); details.append(body); $('schedule').append(details);
+      body.append(form); details.append(body); container.append(details);
     });
   }
   function renderStats() {
@@ -245,7 +256,23 @@ if (typeof document !== 'undefined') (() => {
     showDrawTeams();spinning=false;$('spin').disabled=!remaining.length;$('reset-draw').disabled=false;controls();
   };
   $('reset-draw').onclick=()=>{if(spinning || busy)return;if(selected.length && !confirm('Discard this unpublished draw?'))return;selected=[];remaining=[];draw=null;lock(false);$('spin').disabled=true;$('draw-teams').replaceChildren();$('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();announce('Select your players to start a new draw.');};
-  $('publish-draw').onclick=async()=>{if(!draw || !token || busy)return;if(!confirm(`Publish these ${draw.teams.length} ${draw.teamSize===2?'duo':'squad'} teams and replace the current tournament, including all existing results and player stats?`))return;try{await publish(structuredClone(draw),'Publish new player draw and tournament groups');draw=null;selected=[];$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();announce('Teams and groups saved. Use Match order below to run the tournament.');}catch(error){announce(error.message);}};
+  $('publish-draw').onclick=async()=>{if(!draw || !token || busy)return;if(!confirm(`Publish these ${draw.teams.length} ${draw.teamSize===2?'duo':'squad'} teams and replace the current tournament, including all existing results and player stats?`))return;try{await publish(structuredClone(draw),'Publish new player draw and tournament groups');draw=null;selected=[];$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();announce('Teams and groups saved. Open Fixtures to run the tournament.');}catch(error){announce(error.message);}};
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
+  const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+  function selectTab(tab, focus = false) {
+    tabs.forEach(item => {
+      const active = item === tab;
+      item.setAttribute('aria-selected', String(active)); item.tabIndex = active ? 0 : -1;
+      $(item.getAttribute('aria-controls')).hidden = !active;
+    });
+    if (focus) tab.focus();
+  }
+  tabs.forEach((tab,index) => {
+    tab.addEventListener('click', () => selectTab(tab));
+    tab.addEventListener('keydown', event => {
+      const target = event.key === 'ArrowRight' ? (index+1)%tabs.length : event.key === 'ArrowLeft' ? (index+tabs.length-1)%tabs.length : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length-1 : null;
+      if (target !== null) { event.preventDefault(); selectTab(tabs[target],true); }
+    });
+  });
   paintWheel([]);renderAll();
 })();

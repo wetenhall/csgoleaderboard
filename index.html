@@ -14,14 +14,23 @@
 <body>
   <header class="topbar"><a class="brand" href="./"><span class="mark" aria-hidden="true">⌖</span> FRIENDS CUP</a><span class="game">COUNTER-STRIKE <b> // </b> PRIVATE TOURNAMENT</span></header>
   <main>
-    <details class="organiser" id="organiser"><summary>Organiser tools · Draw teams & update results</summary>
+    <div class="intro"><div><p class="eyebrow">COUNTER-STRIKE <span class="slash"> / </span> FRIENDS TOURNAMENT</p><h1 id="title">Friends Cup<span>.</span></h1><p class="subtitle">Buy in. Lock in. Let the scoreboard do the talking.</p></div><div class="edition" aria-hidden="true"><span class="edition-top">COMPETITIVE</span><strong>CS<span class="edition-slash">/</span></strong><span>FRIENDS CUP · 01</span></div></div>
+    <section class="overview" aria-label="Tournament summary"><div><span class="label">FORMAT</span><strong id="format-name">Groups → playoffs</strong></div><div><span class="label">TEAMS</span><strong id="team-count">8 teams entered</strong></div><div><span class="label">PROGRESS</span><strong id="progress">0 / 15 <small>matches complete</small></strong></div><div><span class="label">STATUS</span><strong id="status" class="accent">Awaiting first match</strong></div></section>
+    <div class="page-tabs" role="tablist" aria-label="Tournament sections">
+<button type="button" id="tab-setup" role="tab" aria-controls="panel-setup" aria-selected="false" tabindex="-1">Set up</button>
+<button type="button" id="tab-leaderboard" role="tab" aria-controls="panel-leaderboard" aria-selected="true" tabindex="0">Leader board</button>
+<button type="button" id="tab-fixtures" role="tab" aria-controls="panel-fixtures" aria-selected="false" tabindex="-1">Fixtures</button>
+<button type="button" id="tab-stats" role="tab" aria-controls="panel-stats" aria-selected="false" tabindex="-1">Stats</button>
+</div>
+<p id="connection-status" class="connection-status" role="status">Viewing the published tournament. Connect in Set up to publish changes.</p>
+<div id="panel-setup" class="tab-panel" role="tabpanel" aria-labelledby="tab-setup" tabindex="0" hidden>
+    <section class="organiser" id="organiser" aria-labelledby="setup-heading"><div class="section-heading"><h2 id="setup-heading">Tournament setup</h2></div>
       <div class="organiser-body">
         <p>Connect to publish draws and results for everyone. Your token stays in this tab’s memory and is cleared when you disconnect or close the page.</p>
         <form id="connect-form" class="connection"><label>GitHub token <input id="github-token" type="password" autocomplete="off" required placeholder="Fine-grained access token"></label><button>Connect organiser</button><button id="disconnect" type="button" hidden>Disconnect</button></form>
         <details><summary>One-time organiser setup</summary><p>Create a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">fine-grained GitHub token</a> owned by wetenhall, restricted to <strong>csgoleaderboard</strong>, with <strong>Contents: Read and write</strong>. Choose an expiry date. Paste the token above, never into chat. Anyone with this token can change this repository, so keep it private.</p></details>
-        <p id="connection-status" role="status">Viewing the published tournament. Connect to publish changes.</p>
         <button id="refresh-data" type="button" class="secondary">Reload latest saved tournament</button>
-        <details id="draw-panel"><summary>Create a new tournament · Wheel draw</summary>
+        <details id="draw-panel" open><summary>Create a new tournament · Wheel draw</summary>
           <p>Choose Duos or Squads. Any number of complete teams is supported (minimum two). Up to five teams play one group then a final; six or more split into two balanced groups then playoffs. The new draw replaces the current tournament and its results only when you publish it.</p>
           <div class="draw-layout"><div>
             <label>Tournament type <select id="team-size"><option value="2">Duos · 2 players per team</option><option value="5">Squads · 5 players per team</option></select></label>
@@ -32,14 +41,19 @@
           <div id="draw-teams" class="teams"></div><button id="publish-draw" type="button" disabled>Publish teams & groups</button>
         </details>
       </div>
-    </details>
-    <div class="intro"><div><p class="eyebrow">COUNTER-STRIKE <span class="slash"> / </span> FRIENDS TOURNAMENT</p><h1 id="title">Friends Cup<span>.</span></h1><p class="subtitle">Buy in. Lock in. Let the scoreboard do the talking.</p></div><div class="edition" aria-hidden="true"><span class="edition-top">COMPETITIVE</span><strong>CS<span class="edition-slash">/</span></strong><span>FRIENDS CUP · 01</span></div></div>
-    <section class="overview" aria-label="Tournament summary"><div><span class="label">FORMAT</span><strong id="format-name">Groups → playoffs</strong></div><div><span class="label">TEAMS</span><strong id="team-count">8 teams entered</strong></div><div><span class="label">PROGRESS</span><strong id="progress">0 / 15 <small>matches complete</small></strong></div><div><span class="label">STATUS</span><strong id="status" class="accent">Awaiting first match</strong></div></section>
+    </section>
+</div>
+<div id="panel-leaderboard" class="tab-panel" role="tabpanel" aria-labelledby="tab-leaderboard" tabindex="0">
     <section aria-labelledby="groups-heading"><div class="section-heading"><h2 id="groups-heading">Group stage</h2><span>ROUND ROBIN / TOP 2 ADVANCE</span></div><div id="groups" class="groups"></div><p class="rules" id="group-rules">Ranked by wins, then round difference (RD). Remaining ties need a tiebreak decision. Playoff places are confirmed after all six group matches.</p></section><section aria-labelledby="bracket-heading"><div class="section-heading"><h2 id="bracket-heading">Playoffs</h2><span>WIN AND ADVANCE</span></div><div id="bracket" class="bracket"></div></section>
     <section class="champion" aria-label="Tournament champion"><span class="champion-icon" aria-hidden="true">★</span><div><span class="eyebrow">VICTORY</span><h2 id="champion">One team takes it all.</h2></div><span class="champion-note" id="champion-note">Decided in the grand final</span></section>
     <section aria-labelledby="teams-heading"><div class="section-heading"><h2 id="teams-heading">Team roster</h2><span id="roster-count">8 TEAMS / 1 TROPHY</span></div><div id="teams" class="teams"></div></section>
+</div>
+<div id="panel-fixtures" class="tab-panel" role="tabpanel" aria-labelledby="tab-fixtures" tabindex="0" hidden>
     <section class="schedule-section" aria-labelledby="schedule-heading"><div class="section-heading"><h2 id="schedule-heading">Match order</h2><span>PLAY IN NUMBERED ORDER</span></div><p class="rules" id="schedule-rules">Group games alternate between A and B, followed by semi-finals and the final. Connect as organiser to enter or correct results.</p><div id="tie-controls"></div><div id="schedule"></div></section>
+</div>
+<div id="panel-stats" class="tab-panel" role="tabpanel" aria-labelledby="tab-stats" tabindex="0" hidden>
     <section class="stats-section" aria-labelledby="stats-heading"><div class="section-heading"><h2 id="stats-heading">Player stats</h2><span>KILLS / DEATHS / ASSISTS</span></div><div id="player-stats" class="table-scroll"></div></section>
+</div>
     <p id="error" role="alert" hidden></p>
     <noscript><p>Please enable JavaScript to view the tournament bracket and results.</p></noscript>
   </main>
