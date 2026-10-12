@@ -523,7 +523,28 @@
           "winner": "de6"
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t6",
+          "t3"
+        ],
+        "scores": [
+          6,
+          8
+        ],
+        "players": {
+          "p9": {
+            "kills": 6,
+            "deaths": 8,
+            "assists": 0
+          },
+          "p5": {
+            "kills": 8,
+            "deaths": 6,
+            "assists": 0
+          }
+        }
+      }
     },
     {
       "id": "de13",
