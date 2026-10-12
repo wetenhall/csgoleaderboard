@@ -351,3 +351,21 @@ test('double elimination supports uneven fields, both final outcomes and two-los
   assert.doesNotThrow(()=>validateData(changed.next,resolveTournament));
  }
 });
+
+test('draw button accepts solo double elimination without groups and preserves group requirements',()=>{
+ const source=fs.readFileSync('manager.js','utf8');
+ const selection=source.slice(source.indexOf('  function selectionCount()'),source.indexOf('  function selectedMaps()'));
+ function check({count,size=1,groups=0,format='double',locked=false}){
+  const nodes={'pool-list':{querySelectorAll:()=>Array(count).fill({})},'team-size':{value:String(size)},'group-count':{value:String(groups)},'qualifiers-per-group':{value:'2'},'tournament-format':{value:format},'pool-count':{},'start-draw':{}};
+  vm.runInNewContext(selection+'\nselectionCount();',{$:id=>nodes[id],locked});
+  return nodes['start-draw'].disabled;
+ }
+ for(const count of [2,3,10,17])assert.equal(check({count}),false);
+ assert.equal(check({count:1}),true);
+ assert.equal(check({count:10,locked:true}),true);
+ assert.equal(check({count:3,size:2}),true);
+ assert.equal(check({count:4,size:2}),false);
+ assert.equal(check({count:10,size:5}),false);
+ assert.equal(check({count:3,groups:2,format:'groups'}),true);
+ assert.equal(check({count:4,groups:2,format:'groups'}),false);
+});

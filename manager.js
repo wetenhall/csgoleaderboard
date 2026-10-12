@@ -576,12 +576,12 @@ if (typeof document !== 'undefined') (() => {
     const count=$('pool-list').querySelectorAll('input:checked').length,size=Number($('team-size').value),teams=Math.floor(count/size),extra=count%size,groups=Number($('group-count').value);
     const qualifiers=Number($('qualifiers-per-group').value);
     if(groups===1 && qualifiers===1){$('pool-count').textContent='Top 1 needs at least two groups to create a knockout stage.';$('start-draw').disabled=true;return;}
-    if(size===1){
+    if(size===1 && $('tournament-format').value!=='double'){
       const valid=groups>=1 && count>=groups*2;
       $('pool-count').textContent=count+' players selected · '+groups+' groups · '+(valid?'Top '+qualifiers+' per group advance.':'Select at least '+groups*2+' players.');
       $('start-draw').disabled=locked || !valid;return;
     }
-    $('pool-count').textContent=`${count} selected · ${teams} complete ${size===2?'duo':'squad'} teams`+(extra ? ` · Select ${size-extra} more or deselect ${extra} to make full teams.` : teams<2 ? ' · At least 2 teams needed.' : ' · Choose your group count before publishing.');$('start-draw').disabled=locked || teams<2 || extra!==0;
+    $('pool-count').textContent=`${count} selected · ${teams} ${size===1?'solo players':size===2?'complete duo teams':'complete squad teams'}`+(extra ? ` · Select ${size-extra} more or deselect ${extra} to make full teams.` : teams<2 ? ' · At least 2 entrants needed.' : $('tournament-format').value==='double' ? ' · Ready for double elimination.' : ' · Choose your group count before publishing.');$('start-draw').disabled=locked || teams<2 || extra!==0;
   }
   function selectedMaps() { return [...$('map-options').querySelectorAll('input:checked')].map(input=>input.value); }
   function renderMapOptions() {
