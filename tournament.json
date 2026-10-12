@@ -1,10 +1,383 @@
 {
   "name": "Friends Cup",
-  "teams": [],
-  "groups": [],
-  "matches": [],
+  "teams": [
+    {
+      "id": "t1",
+      "name": "Team 01",
+      "tag": "01",
+      "players": [
+        {
+          "id": "p9",
+          "name": "aatori"
+        }
+      ]
+    },
+    {
+      "id": "t2",
+      "name": "Team 02",
+      "tag": "02",
+      "players": [
+        {
+          "id": "p6",
+          "name": "sam"
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "name": "Team 03",
+      "tag": "03",
+      "players": [
+        {
+          "id": "p1",
+          "name": "frodo"
+        }
+      ]
+    },
+    {
+      "id": "t4",
+      "name": "Team 04",
+      "tag": "04",
+      "players": [
+        {
+          "id": "p10",
+          "name": "hans"
+        }
+      ]
+    },
+    {
+      "id": "t5",
+      "name": "Team 05",
+      "tag": "05",
+      "players": [
+        {
+          "id": "p4",
+          "name": "tart"
+        }
+      ]
+    },
+    {
+      "id": "t6",
+      "name": "Team 06",
+      "tag": "06",
+      "players": [
+        {
+          "id": "p7",
+          "name": "dan"
+        }
+      ]
+    },
+    {
+      "id": "t7",
+      "name": "Team 07",
+      "tag": "07",
+      "players": [
+        {
+          "id": "p11",
+          "name": "omni"
+        }
+      ]
+    },
+    {
+      "id": "t8",
+      "name": "Team 08",
+      "tag": "08",
+      "players": [
+        {
+          "id": "p3",
+          "name": "cantlon"
+        }
+      ]
+    },
+    {
+      "id": "t9",
+      "name": "Team 09",
+      "tag": "09",
+      "players": [
+        {
+          "id": "p2",
+          "name": "ribe"
+        }
+      ]
+    },
+    {
+      "id": "t10",
+      "name": "Team 10",
+      "tag": "10",
+      "players": [
+        {
+          "id": "p5",
+          "name": "grayzee"
+        }
+      ]
+    },
+    {
+      "id": "t11",
+      "name": "Team 11",
+      "tag": "11",
+      "players": [
+        {
+          "id": "p8",
+          "name": "part"
+        }
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "id": "A",
+      "teams": [
+        "t1",
+        "t4",
+        "t7",
+        "t10"
+      ],
+      "tiebreakOrder": []
+    },
+    {
+      "id": "B",
+      "teams": [
+        "t2",
+        "t5",
+        "t8",
+        "t11"
+      ],
+      "tiebreakOrder": []
+    },
+    {
+      "id": "C",
+      "teams": [
+        "t3",
+        "t6",
+        "t9"
+      ],
+      "tiebreakOrder": []
+    }
+  ],
+  "matches": [
+    {
+      "id": "a1",
+      "group": "A",
+      "teams": [
+        "t1",
+        "t4"
+      ],
+      "result": null
+    },
+    {
+      "id": "a2",
+      "group": "A",
+      "teams": [
+        "t7",
+        "t10"
+      ],
+      "result": null
+    },
+    {
+      "id": "a3",
+      "group": "A",
+      "teams": [
+        "t1",
+        "t7"
+      ],
+      "result": null
+    },
+    {
+      "id": "a4",
+      "group": "A",
+      "teams": [
+        "t4",
+        "t10"
+      ],
+      "result": null
+    },
+    {
+      "id": "a5",
+      "group": "A",
+      "teams": [
+        "t1",
+        "t10"
+      ],
+      "result": null
+    },
+    {
+      "id": "a6",
+      "group": "A",
+      "teams": [
+        "t4",
+        "t7"
+      ],
+      "result": null
+    },
+    {
+      "id": "b1",
+      "group": "B",
+      "teams": [
+        "t2",
+        "t5"
+      ],
+      "result": null
+    },
+    {
+      "id": "b2",
+      "group": "B",
+      "teams": [
+        "t8",
+        "t11"
+      ],
+      "result": null
+    },
+    {
+      "id": "b3",
+      "group": "B",
+      "teams": [
+        "t2",
+        "t8"
+      ],
+      "result": null
+    },
+    {
+      "id": "b4",
+      "group": "B",
+      "teams": [
+        "t5",
+        "t11"
+      ],
+      "result": null
+    },
+    {
+      "id": "b5",
+      "group": "B",
+      "teams": [
+        "t2",
+        "t11"
+      ],
+      "result": null
+    },
+    {
+      "id": "b6",
+      "group": "B",
+      "teams": [
+        "t5",
+        "t8"
+      ],
+      "result": null
+    },
+    {
+      "id": "c1",
+      "group": "C",
+      "teams": [
+        "t6",
+        "t9"
+      ],
+      "result": null
+    },
+    {
+      "id": "c2",
+      "group": "C",
+      "teams": [
+        "t3",
+        "t9"
+      ],
+      "result": null
+    },
+    {
+      "id": "c3",
+      "group": "C",
+      "teams": [
+        "t3",
+        "t6"
+      ],
+      "result": null
+    },
+    {
+      "id": "k1-2",
+      "round": 0,
+      "sources": [
+        {
+          "seed": [
+            "A",
+            1
+          ]
+        },
+        {
+          "seed": [
+            "B",
+            1
+          ]
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "k1-4",
+      "round": 0,
+      "sources": [
+        {
+          "seed": [
+            "C",
+            0
+          ]
+        },
+        {
+          "seed": [
+            "C",
+            1
+          ]
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "k2-1",
+      "round": 1,
+      "sources": [
+        {
+          "seed": [
+            "A",
+            0
+          ]
+        },
+        {
+          "winner": "k1-2"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "k2-2",
+      "round": 1,
+      "sources": [
+        {
+          "seed": [
+            "B",
+            0
+          ]
+        },
+        {
+          "winner": "k1-4"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "f1",
+      "round": 2,
+      "sources": [
+        {
+          "winner": "k2-1"
+        },
+        {
+          "winner": "k2-2"
+        }
+      ],
+      "result": null
+    }
+  ],
   "headers": {
     "brand": "Pull up gang",
     "banner": "Tournament"
-  }
+  },
+  "teamSize": 1,
+  "mode": "1v1"
 }
