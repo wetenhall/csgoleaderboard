@@ -462,7 +462,17 @@
           ]
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t7",
+          "t11"
+        ],
+        "scores": [
+          6,
+          5
+        ],
+        "players": {}
+      }
     },
     {
       "id": "k1-4",
