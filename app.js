@@ -212,7 +212,7 @@ async function downloadMatchImage(data) {
   text('SELECTED MAP / CUSTOM 5V5',800,90,22,'#ff9b01',1400,'center');text((match.map || 'Map pending').toUpperCase(),800,205,100,'#ff9b01',1400,'center');
   match.ids.forEach((id,i)=>{const team=state.teams.get(id),x=30+i*785,color=i===0?'#70b4cd':'#ff9b01';ctx.fillStyle='#23272f';ctx.fillRect(x,290,755,570);ctx.strokeStyle='#424b55';ctx.strokeRect(x,290,755,570);ctx.fillStyle=color;ctx.fillRect(x,290,755,4);
     text(team.name,x+30,365,42,'#f4f4f4',570);text(match.result?String(match.result.scores[i]):'—',x+715,365,42,'#ff9b01',100,'right');text(match.winner===id?'WINNERS':'5 PLAYERS',x+30,410,20,'#ff9b01');
-    team.players.forEach((player,j)=>{const y=445+j*76;ctx.strokeStyle='#424b55';ctx.beginPath();ctx.moveTo(x+30,y);ctx.lineTo(x+725,y);ctx.stroke();text(String(j+1).padStart(2,'0'),x+30,y+48,18,'#b8bcbf',35);text(player.name,x+80,y+48,34,'#f4f4f4',640);});
+    team.players.forEach((player,j)=>{const y=445+j*76;ctx.strokeStyle='#424b55';ctx.beginPath();ctx.moveTo(x+30,y);ctx.lineTo(x+725,y);ctx.stroke();text(String(j+1).padStart(2,'0'),x+30,y+48,18,'#b8bcbf',35);text(player.name+(team.captainId===player.id?' (C)':''),x+80,y+48,34,'#f4f4f4',640);});
   });
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('Could not create match image.');
   const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=(match.map || 'custom').replace(/[^a-z0-9_-]+/gi,'-')+'-5v5-match.png';link.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
@@ -324,7 +324,7 @@ function renderTournament(data) {
       heading.append(teamEmblem(team),element('h3','',team.name),element('strong','single-squad-score',match.result?String(match.result.scores[i]):'—'));
       card.append(heading,element('p','eyebrow',match.winner===id?'WINNERS':'5 PLAYERS'));
       const roster=element('ol','single-squad-players');
-      team.players.forEach(player=>roster.append(element('li','',player.name)));
+      team.players.forEach(player=>roster.append(element('li','',player.name+(team.captainId===player.id?' · Captain':''))));
       card.append(roster);squads.append(card);
     });
     bracketRoot.append(squads);
@@ -355,6 +355,7 @@ function renderTournament(data) {
     if (teamDisplayName(team) !== team.name) details.append(element('small', 'team-identifier', team.name));
     details.append(element('p', '', final.winner === team.id ? 'Champion' : eliminated.has(team.id) ? 'Eliminated' : group ? `Group ${group.id}` : 'Knockout'));
     if (team.players && team.players.length > 2) details.append(element('p', 'players-list', team.players.map(player => player.name).join(' · ')));
+    const captain=team.players?.find(player=>player.id===team.captainId);if(captain)details.append(element('p','accent','Captain: '+captain.name));
     card.append(teamEmblem(team), details); document.getElementById('teams').append(card);
   });
 }

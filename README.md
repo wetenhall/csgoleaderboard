@@ -83,3 +83,11 @@ Squads (5v5) wheel draws fill teams in rotation: Team 01, Team 02, Team 03 (when
 For a custom 5v5 game, choose Squads and Tournament format: One match. Select exactly ten players, draw two squads in rotation, then publish one fixture using a map from the selected pool. Group settings are hidden for this format. Scores and individual player stats work as usual.
 
 In Squads / One match, completing the player draw changes the wheel to the selected map pool. Spin for map before publishing. Changing the map pool clears that pick and requires a new map spin. The leaderboard shows the chosen map with the two squads.
+
+Game-night tools:
+- After a Duos or Squads draw, Review teams offers player swaps, random captains and optional skill ratings (1–5; default 3). Balance teams uses the closest possible rating totals for two teams and a capacity-limited greedy balance for larger tournaments. Review the result before publishing. Balancing clears captain picks; swapping a captain out of a team clears that team's pick. Captains appear in rosters, Discord text and the 5v5 PNG.
+- Squads / One match supports map vetoes instead of a wheel. The organiser records alternating team bans from the selected pool; the last remaining map is selected. Changing the pool or selection method resets the veto. With only one map, confirm it directly.
+- Rematch retains squads and returns to map selection. Publishing archives the completed previous game and its original stats, then starts a fresh fixture. An unfinished match is replaced without creating an archive. Reloading or changing the saved match while preparing a rematch requires starting the rematch again.
+- Copy match details for Discord includes the selected fixture, teams, captains and any score. If clipboard access is unavailable, a dialog offers selectable text.
+- Settings accepts an optional public server hostname/IP and port. Copy server connection copies its console command. Server settings survive tournament clearing and rematches.
+- Recent custom matches displays the current completed 5v5 game and up to eight archived custom matches, with maps, scores and winners. History remains the full record; deleting an archive also removes it from recent results.

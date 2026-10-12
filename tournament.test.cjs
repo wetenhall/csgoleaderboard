@@ -566,3 +566,29 @@ test('one match format is squads only, requires ten players and publishes one ro
  assert.throws(()=>makeTournament([...players,...players.map(p=>({...p,id:p.id+'x'}))],5,{name:'Bad'},undefined,0,['Nuke'],2,'single'),/exactly 10/);
  const bad=structuredClone(cup);bad.matches.push({...bad.matches[0],id:'f2'});assert.throws(()=>validateData(bad,resolveTournament),/exactly one/);
 });
+
+test('balanced squads find the closest possible totals while preserving every player',()=>{
+  const {balanceRosters}=require('./game-night.js');
+  const teams=[0,1].map(t=>({id:'t'+t,players:Array.from({length:5},(_,i)=>({id:'p'+(t*5+i),name:'Player',rating:t?1:5})),captainId:'p'+t*5}));
+  const balanced=balanceRosters(teams,()=>0.5),totals=balanced.map(t=>t.players.reduce((sum,p)=>sum+p.rating,0));
+  assert.equal(Math.abs(totals[0]-totals[1]),4);
+  assert.equal(new Set(balanced.flatMap(t=>t.players.map(p=>p.id))).size,10);
+  assert.ok(balanced.every(t=>t.players.length===5 && !t.captainId));
+  assert.equal(teams[0].players[0].rating,5);
+});
+test('balancing three squads keeps five unique players per squad',()=>{
+  const {balanceRosters}=require('./game-night.js');const teams=Array.from({length:3},(_,t)=>({id:'t'+t,players:Array.from({length:5},(_,i)=>({id:'p'+(t*5+i),rating:i+1}))}));
+  const balanced=balanceRosters(teams);assert.ok(balanced.every(t=>t.players.length===5));assert.equal(new Set(balanced.flatMap(t=>t.players.map(p=>p.id))).size,15);
+});
+test('player swaps preserve rosters and remove a captain who moved teams',()=>{
+  const {swapDraftPlayers}=require('./game-night.js');const teams=[{id:'a',captainId:'p1',players:[{id:'p1'},{id:'p2'}]},{id:'b',players:[{id:'p3'},{id:'p4'}]}];const next=swapDraftPlayers(teams,'p1','p3');assert.equal(next[0].players[0].id,'p3');assert.equal(next[1].players[0].id,'p1');assert.equal(next[0].captainId,undefined);assert.equal(teams[0].players[0].id,'p1');assert.throws(()=>swapDraftPlayers(teams,'p1','p2'));
+});
+test('map veto alternates teams and selects the last remaining map',()=>{
+  const {advanceMapVeto}=require('./game-night.js'),maps=['Mirage','Nuke','Cache'],teams=[{id:'a'},{id:'b'}];const first=advanceMapVeto(maps,teams,[],'Mirage');assert.equal(first.bans[0].teamId,'a');assert.equal(first.selected,null);const second=advanceMapVeto(maps,teams,first.bans,'Nuke');assert.equal(second.bans[1].teamId,'b');assert.equal(second.selected,'Cache');assert.throws(()=>advanceMapVeto(maps,teams,second.bans,'Cache'));assert.throws(()=>advanceMapVeto(maps,teams,first.bans,'Mirage'));
+});
+test('server connection accepts addresses but rejects command injection and invalid ports',()=>{
+  const {validServerAddress}=require('./game-night.js');for(const address of ['','server.example.com:27015','127.0.0.1','[::1]:27015'])assert.equal(validServerAddress(address),address);for(const address of ['host; quit','host 27015','https://host','host:99999','host:0','host\nquit'])assert.throws(()=>validServerAddress(address));
+});
+test('Discord details include captains and avoid mentions or formatting from names',()=>{
+  const {discordMatchText}=require('./game-night.js'),{makeTournament}=require('./manager.js');const data=makeTournament(Array.from({length:10},(_,i)=>({id:'p'+i,name:i?'Player '+i:'@everyone'})),5,{name:'Friends'},undefined,0,['Cache'],2,'single');data.teams[0].captainId=data.teams[0].players[0].id;const text=discordMatchText(data,resolveTournament);assert.ok(text.includes('Map: Cache'));assert.ok(text.includes('(Captain)'));assert.ok(!text.includes('@everyone'));
+});

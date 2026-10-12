@@ -14,6 +14,7 @@
   <script defer src="tournament.js"></script>
   <script defer src="app.js"></script>
   <script defer src="extras.js"></script>
+  <script defer src="game-night.js"></script>
   <script defer src="manager.js"></script>
 </head>
 <body>
@@ -106,7 +107,7 @@
       </div>
     </section>
 </div>
-<form id="options-form" class="options-form" hidden><h3>Page settings</h3><label>Top header text<input id="option-brand" maxlength="80" required></label><label>Large banner heading<input id="option-banner" maxlength="120" required></label><p class="rules">Include the event date in the banner text, for example: 12 October 2026 · Friends Cup. Saving publishes these headings for everyone.</p><label class="registration-toggle"><input id="option-registration" type="checkbox" checked> Registration open</label><p class="rules">On: visitors see registration; connected organisers can also view Leader board, Fixtures and Stats. Off: play mode shows the tournament tabs and hides registration. Organiser setup remains available. This does not close the separate Google form link.</p><button id="save-options" type="submit">Save & publish settings</button></form></section></dialog>
+<form id="options-form" class="options-form" hidden><h3>Page settings</h3><label>Top header text<input id="option-brand" maxlength="80" required></label><label>Large banner heading<input id="option-banner" maxlength="120" required></label><p class="rules">Include the event date in the banner text, for example: 12 October 2026 · Friends Cup. Saving publishes these headings for everyone.</p><label class="registration-toggle"><input id="option-registration" type="checkbox" checked> Registration open</label><p class="rules">On: visitors see registration; connected organisers can also view Leader board, Fixtures and Stats. Off: play mode shows the tournament tabs and hides registration. Organiser setup remains available. This does not close the separate Google form link.</p><label>Game server address<input id="option-server" maxlength="253" placeholder="server.example.com:27015"></label><p class="rules">Optional. Published for everyone; use only the server address, without a password. Players can copy its connection command from the match page.</p><button id="save-options" type="submit">Save & publish settings</button></form></section></dialog>
     <p id="error" role="alert" hidden></p>
     <noscript><p>Please enable JavaScript to view the tournament bracket and results.</p></noscript>
   </main>
