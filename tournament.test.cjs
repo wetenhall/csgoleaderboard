@@ -512,3 +512,24 @@ test('saved players deduplicate archive rosters by name and merge with new playe
  assert.equal(mergePlayerNames('SAM',['ＳＡＭ']),'SAM');
  assert.throws(()=>mergePlayerNames('',Array.from({length:200},(_,i)=>('Player '+i).padEnd(40,'x'))),/full/);
 });
+
+test('removing archived cups keeps the active tournament intact and recalculates saved players and records',()=>{
+ const {removeCupHistory,savedPlayers,careerRecords}=require('./extras.js');
+ const {makeTournament,applyResult,emptyTournament,playerTotals,validateData}=require('./manager.js');
+ let cup=makeTournament([{id:'p1',name:'Sam'},{id:'p2',name:'Dan'}],1,{name:'Cup'},['t1','t2'],0,[]);
+ cup=applyResult(cup,'f1',{teams:['t1','t2'],scores:[5,3]},resolveTournament).next;
+ const archived=archiveCup(cup,resolveTournament,emptyTournament,'One','2026-10-12T19:00:00Z','one');
+ const current={...structuredClone(cup),history:archived.history,activeMatchId:undefined};
+ delete current.activeMatchId;
+ const second=structuredClone(current.history[0]);second.id='two';second.title='Two';second.tournament.teams[1].players[0].name='Alex';current.history.push(second);
+ const original=structuredClone(current);
+ const next=removeCupHistory(current,'one');
+ assert.equal(next.history.length,1);assert.equal(next.history[0].id,'two');
+ assert.deepEqual(next.matches,current.matches);assert.deepEqual(next.teams,current.teams);assert.deepEqual(current,original);
+ assert.deepEqual(savedPlayers(next.history),['Alex','Sam']);
+ assert.equal(careerRecords(next.history,'1v1',resolveTournament,playerTotals).find(p=>p.name==='Sam').trophies,1);
+ validateData(next,resolveTournament);
+ const cleared=removeCupHistory(next);assert.deepEqual(cleared.history,[]);assert.deepEqual(cleared.matches,current.matches);
+ assert.deepEqual(savedPlayers(cleared.history),[]);assert.deepEqual(careerRecords(cleared.history,'1v1',resolveTournament,playerTotals),[]);
+ assert.throws(()=>removeCupHistory(next,'missing'),/no longer exists/);
+});
