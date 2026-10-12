@@ -481,9 +481,43 @@ if (typeof document !== 'undefined') (() => {
   function renderTies() {
     $('tie-controls').replaceChildren(); const state=resolveTournament(current);
     for(const group of state.groups.filter(g=>g.tied)) {
-      const form=element('form','tie-form');form.append(element('p','',`Group ${group.id}: qualification is tied. Record the finishing order after your tiebreak. This only breaks equal wins and round difference.`));
-      const fields=group.rows.map(row=>{const field=numeric(state.teams.get(row.id).name,'',group.rows.length);field.input.min='1';field.input.required=true;form.append(field.wrap);return {id:row.id,input:field.input};});
-      const button=element('button','','Publish tiebreak order');const note=element('p');form.append(button,note);form.onsubmit=async e=>{e.preventDefault();try{const ranks=fields.map(f=>Number(f.input.value));if(new Set(ranks).size!==group.rows.length)throw Error(`Use each position from 1 to ${group.rows.length} once.`);const next=structuredClone(current);next.groups.find(g=>g.id===group.id).tiebreakOrder=fields.sort((a,b)=>Number(a.input.value)-Number(b.input.value)).map(f=>f.id);await publish(next,`Resolve Group ${group.id} tiebreak`);}catch(error){note.textContent=error.message;}};$('tie-controls').append(form);
+      const form=element('form','tie-form');
+      form.append(element('h3','entry-heading',`Group ${group.id} · Decide knockout places`),element('p','entry-help','Group games are complete, but players or teams are level on wins and round difference. Play a deciding match or agree a tiebreak, then record the finishing positions below. These are positions, not match scores.'));
+      const list=element('div','tie-positions');
+      const fields=group.rows.map((row,index)=>{
+        const peers=group.rows.map((other,i)=>({row:other,position:i+1})).filter(other=>other.row.wins===row.wins && other.row.difference===row.difference);
+        const needsDecision=peers.length>1 && peers.some(peer=>peer.position<=2);
+        const card=element('div','tie-position'+(needsDecision?' needs-decision':'')),identity=element('div');
+        const name=teamDisplayLabel(state.teams.get(row.id));
+        identity.append(element('strong','',name),element('p','entry-help',row.wins+' wins · '+(row.difference>0?'+':'')+row.difference+' round difference'));card.append(identity);
+        let input;
+        if(needsDecision){
+          const label=element('label','','Finishing position');input=element('select');input.required=true;input.setAttribute('aria-label',name+' finishing position');
+          const blank=element('option','','Choose position');blank.value='';input.append(blank);
+          peers.forEach(peer=>{const position=peer.position;const option=element('option','',position+(position===1?'st':position===2?'nd':position===3?'rd':'th')+(position<=2?' · Qualifies':' · Eliminated'));option.value=String(position);input.append(option);});
+          label.append(input);card.append(label);
+        }else card.append(element('span','fixed-position',(index+1)+(index===0?'st':index===1?'nd':index===2?'rd':'th')+' · '+(index<2?'Qualifies':'Eliminated')));
+        list.append(card);return {id:row.id,name,input,position:index+1};
+      });
+      const preview=element('p','score-outcome');preview.setAttribute('aria-live','polite');
+      const ranks=()=>fields.map(field=>field.input?Number(field.input.value):field.position);
+      const refresh=()=>{
+        const positions=ranks();
+        preview.textContent=positions.includes(0)?'Choose a different finishing position for each highlighted player or team. The top two qualify.':new Set(positions).size!==positions.length?'Two entries have the same position. Choose a different position for each.':'Will qualify: '+[1,2].map(position=>fields[positions.indexOf(position)].name).join(' and ')+'.';
+      };
+      fields.forEach(field=>field.input?.addEventListener('change',refresh));refresh();
+      const button=element('button','','Confirm order & update knockouts');button.type='submit';
+      const note=element('p','form-note');note.setAttribute('role','status');
+      form.append(list,preview,element('p','entry-help','Only tied positions can change. Recorded match scores, wins and round difference stay unchanged.'),button,note);
+      form.onsubmit=async e=>{
+        e.preventDefault();if(!token || busy)return;
+        try{
+          const positions=ranks();
+          if(positions.includes(0) || new Set(positions).size!==group.rows.length)throw Error('Choose a different finishing position for each highlighted player or team.');
+          const next=structuredClone(current);next.groups.find(g=>g.id===group.id).tiebreakOrder=fields.map((field,i)=>({id:field.id,rank:positions[i]})).sort((a,b)=>a.rank-b.rank).map(field=>field.id);
+          await publish(next,`Resolve Group ${group.id} tiebreak`);
+        }catch(error){note.textContent=error.message;}
+      };$('tie-controls').append(form);
     }
   }
   function selectionCount() {
