@@ -287,10 +287,19 @@ if (typeof document !== 'undefined') (() => {
     renderTournament(current); renderAwards(); renderSchedule(); renderStats(); renderTies(); controls();
     const registrationOpen=current.registrationEnabled!==false;
     $('tab-register').hidden=!registrationOpen;
+    ['leaderboard','fixtures','stats'].forEach(name=>{$('tab-'+name).hidden=registrationOpen;});
+    document.querySelector('.overview').hidden=registrationOpen;
+    document.body.classList.toggle('registration-mode',registrationOpen);
+    if(registrationOpen){
+      $('broadcast-status').textContent='REGISTRATION OPEN';
+      $('broadcast-status').dataset.state='registration';
+    }
     if(!registrationOpen){
       $('registration-frame').removeAttribute('src');
-      if($('tab-register').getAttribute('aria-selected')==='true')selectTab($('tab-leaderboard'));
-    } else if($('tab-register').getAttribute('aria-selected')==='true')loadRegistration();
+    }
+    const activeTab=tabs.find(tab=>tab.getAttribute('aria-selected')==='true');
+    if(!activeTab || activeTab.hidden)selectTab(defaultTab(),false,false);
+    else if(activeTab===$('tab-register'))loadRegistration();
     $('option-brand').value=current.headers?.brand || current.name;
     $('option-banner').value=current.headers?.banner || current.name;
     $('option-registration').checked=current.registrationEnabled!==false;
@@ -586,12 +595,13 @@ if (typeof document !== 'undefined') (() => {
   document.addEventListener('keydown',event=>{if(event.key==='Escape' && expandedDraw){event.preventDefault();setExpandedDraw(false);}});
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
   const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+  function defaultTab(){return current.registrationEnabled!==false ? $('tab-register') : $('tab-leaderboard');}
   function loadRegistration(){
     const frame=$('registration-frame');
     if(current.registrationEnabled!==false && !frame.hasAttribute('src'))frame.src=frame.dataset.src;
   }
   function selectTab(tab, focus = false, updateUrl = true) {
-    if(tab===$('tab-register') && current.registrationEnabled===false)tab=$('tab-leaderboard');
+    if(!tab || tab.hidden)tab=defaultTab();
     tabs.forEach(item => {
       const active = item === tab;
       item.setAttribute('aria-selected', String(active)); item.tabIndex = active ? 0 : -1;
@@ -603,7 +613,7 @@ if (typeof document !== 'undefined') (() => {
   }
   function selectLinkedTab() {
     const tab=tabs.find(item=>'#'+item.id.slice(4)===location.hash && !item.hidden);
-    selectTab(tab || $('tab-leaderboard'),false,false);
+    selectTab(tab || defaultTab(),false,false);
   }
   window.addEventListener('hashchange',selectLinkedTab);
   tabs.forEach(tab => {

@@ -77,3 +77,5 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .registration-intro,.registration-link{font-family:'Segoe UI',Arial,sans-serif;font-size:14px;line-height:1.6;color:var(--muted)}.registration-link a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}.registration-form{display:block;width:100%;height:1100px;border:1px solid var(--border);background:#fff;color-scheme:light;margin-top:24px}@media(max-width:700px){.page-tabs{grid-auto-flow:row;grid-template-columns:repeat(3,minmax(0,1fr))}.registration-form{height:1200px}.registration-intro,.registration-link{font-size:14px}}
 
 .registration-toggle{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;color:var(--text);margin-top:24px}.registration-toggle input{width:20px;height:20px;accent-color:var(--accent)}
+
+.registration-mode .intro{margin-bottom:24px}.registration-mode #broadcast-status{font-size:13px;letter-spacing:1px}

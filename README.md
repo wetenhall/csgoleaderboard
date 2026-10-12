@@ -49,3 +49,6 @@ Link directly to registration by appending #register to your deployed site URL. 
 
 In the settings cog, Registration open controls whether the Register tab and embedded form appear. Save & publish settings applies it after deployment. Disabled registration links fall back to the leaderboard. The separate Google Forms link remains active unless responses are closed in Google Forms.
 
+
+Registration open also switches the public page mode: on shows registration and hides the tournament summary, leaderboard, fixtures and stats; off shows the tournament pages and hides registration. Setup stays available, with Team setup and settings accessible to connected organisers. Links to hidden tabs fall back to the active mode.
+
