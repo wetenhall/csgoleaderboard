@@ -70,7 +70,7 @@ After all required games finish (including a double-elimination reset final when
 
 History lists cup winners, final scores, every played fixture and recorded player stats. Stats includes all-time records from archived cups, with separate 1v1, Duos and Squads tables. Players are matched by normalized display name, ignoring case and surrounding spaces: keep names consistent across cups. Trophies count tournament wins, and match wins include knockout tiebreaks. K/D totals only games with recorded player stats; missing stats are shown as unavailable rather than zero. For 1v1, kills and deaths come from the match scores.
 
-Download champion card on the leaderboard or inside an archived cup generates a 1200 × 675 PNG locally in the browser. It includes branding, cup name, winning players and final score; no image service is required.
+Download champion card on the leaderboard or inside an archived cup generates a 1200 × 1080 PNG locally in the browser. It includes branding, cup name, winning players, final score and the podium (including joint third places and match records); no image service is required.
 
 Viewer pages check the deployed tournament.json every 30 seconds and show the last check time. Results arrive after the normal Pages deployment. Hidden tabs pause checks and check again when visible. Connected organisers and active editing/draw sessions pause automatic replacement; Reload latest saved tournament explicitly loads the latest repository version. Existing SHA conflict checks protect concurrent saves.
 

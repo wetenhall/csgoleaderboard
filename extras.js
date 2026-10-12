@@ -156,12 +156,27 @@ function createTournamentExtras({getData,isOrganiser,isBusy,isPoolLocked,addName
     try {
       const final=cupFinal(data,resolveTournament);if(!final?.winner)throw Error('A champion card is available once the final is decided.');
       await document.fonts.ready;
-      const state=resolveTournament(data),winner=state.teams.get(final.winner),canvas=document.createElement('canvas');canvas.width=1200;canvas.height=675;const ctx=canvas.getContext('2d');
-      ctx.fillStyle='#101316';ctx.fillRect(0,0,1200,675);ctx.fillStyle='#ff9b01';ctx.fillRect(0,0,1200,14);ctx.fillRect(60,80,6,440);
+      const state=resolveTournament(data),winner=state.teams.get(final.winner),canvas=document.createElement('canvas');canvas.width=1200;canvas.height=1080;const ctx=canvas.getContext('2d');
+      ctx.fillStyle='#101316';ctx.fillRect(0,0,1200,1080);ctx.fillStyle='#ff9b01';ctx.fillRect(0,0,1200,14);ctx.fillRect(60,80,6,440);
       const text=(value,x,y,size,color='#f4f4f4',max=1070)=>{ctx.fillStyle=color;ctx.font='700 '+size+'px Rajdhani, sans-serif';while(ctx.measureText(value).width>max && size>14){size--;ctx.font='700 '+size+'px Rajdhani, sans-serif';}ctx.fillText(value,x,y);};
       text(data.headers?.brand || data.name,90,110,30,'#b8bcbf');text(title,90,175,45);text('TOURNAMENT CHAMPIONS',90,270,28,'#ff9b01');text(teamDisplayName(winner),90,360,74);
       text((winner.players || []).map(p=>p.name).join(' / '),90,415,28,'#b8bcbf');text('FINAL  '+final.result.scores.join(' – ')+(final.result.tiebreakWinner?'  ·  TIEBREAK WIN':''),90,505,42,'#ff9b01');
       text(final.ids.map(id=>teamLabel(state,id)).join(' vs '),90,550,24,'#b8bcbf');text(modeLabel(cupMode(data))+'  //  '+(final.map || 'COUNTER-STRIKE'),90,620,22);
+      text('TOURNAMENT PODIUM',90,710,26,'#b8bcbf');
+      const places=tournamentPodium(data,state);
+      // Raised champion in the centre, with silver and bronze either side.
+      for(const [rank,x,y,color] of [[2,60,800,'#bfcbd5'],[1,430,750,'#ff9b01'],[3,800,825,'#cf9862']]) {
+        const place=places.find(p=>p.rank===rank),width=340;
+        ctx.fillStyle=rank===1?'#30271b':'#1b2025';ctx.fillRect(x,y,width,1010-y);
+        ctx.fillStyle=color;ctx.fillRect(x,y,width,4);
+        text(rank===1?'1ST · CHAMPION':rank===2?'2ND · RUNNER-UP':place.ids.length>1?'JOINT 3RD':'3RD',x+20,y+38,23,color,width-40);
+        if(!place.ids.length){text('—',x+20,y+80,26,'#f4f4f4',width-40);text(place.note,x+20,y+115,17,'#b8bcbf',width-40);continue;}
+        place.ids.forEach((id,index)=>{
+          const team=state.teams.get(id),record=podiumRecord(state.matches,id),line=y+80+index*58;
+          text(teamDisplayName(team),x+20,line,27,'#f4f4f4',width-40);
+          text(record.won+(record.won===1?' win · ':' wins · ')+record.lost+(record.lost===1?' loss':' losses')+(record.drawn?' · '+record.drawn+' draws':''),x+20,line+24,17,'#b8bcbf',width-40);
+        });
+      }
       const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('Could not generate the card.');
       const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=(title.replace(/[^a-z0-9_-]+/gi,'-').slice(0,80) || 'tournament')+'-champions.png';link.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
     }catch(e){notify(e.message);}
