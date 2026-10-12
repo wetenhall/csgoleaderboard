@@ -248,3 +248,25 @@ test('registration visibility persists across header edits, clearing and new dra
  }
  assert.throws(()=>validateData({...emptyTournament(fixture()),registrationEnabled:'false'},resolveTournament),/Registration setting/);
 });
+
+test('1v1 wheel order fills balanced groups round robin and preserves assignments into playoffs',()=>{
+ const {soloDrawGroups}=require('./manager.js');
+ assert.deepEqual(soloDrawGroups(7,3),[[0,3,6],[1,4],[2,5]]);
+ for(const [total,count] of [[2,1],[7,2],[7,3],[9,4]]){
+  const players=Array.from({length:total},(_,i)=>({id:'p'+i,name:'Player '+i}));
+  const slots=soloDrawGroups(total,count);
+  const order=slots.flat().map(index=>'t'+(index+1));
+  let data=makeTournament(players,1,fixture(),order,count,[]);
+  data.groups.forEach((group,i)=>{assert.deepEqual(group.teams,slots[i].map(index=>'t'+(index+1)));group.tiebreakOrder=[...group.teams];});
+  for(const match of data.matches.filter(m=>m.group))data=applyResult(data,match.id,{teams:match.teams,scores:[10,5],players:{}},resolveTournament).next;
+  const state=resolveTournament(data),qualified=new Set(state.groups.flatMap(g=>g.rows.slice(0,2).map(row=>row.id)));
+  assert.equal(qualified.size,count*2);
+  for(const match of orderedMatches(data.matches).filter(m=>!m.group)){
+   const resolved=resolveTournament(data).matches.find(m=>m.id===match.id);
+   assert.ok(resolved.ids.every(id=>qualified.has(id)));
+   data=applyResult(data,match.id,{teams:resolved.ids,scores:[10,5],players:{}},resolveTournament).next;
+  }
+  assert.ok(resolveTournament(data).matches.find(m=>m.id==='f1').winner);
+ }
+ for(const [total,count] of [[3,2],[4,0],[8,5]])assert.throws(()=>soloDrawGroups(total,count),/groups/);
+});

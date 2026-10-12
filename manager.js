@@ -42,6 +42,10 @@ function shuffle(items) {
   for (let i = copy.length - 1; i > 0; i--) { const j = randomIndex(i + 1); [copy[i], copy[j]] = [copy[j], copy[i]]; }
   return copy;
 }
+function soloDrawGroups(total, count) {
+  if(!Number.isInteger(count) || count<1 || count>4 || !Number.isInteger(total) || total<count*2)throw Error('Choose 1–4 groups with at least two players per group before starting the draw.');
+  return Array.from({length:count},(_,group)=>Array.from({length:Math.floor(total/count)+Number(group<total%count)},(_,slot)=>group+slot*count));
+}
 function makeTournament(players, size, template, groupOrder, groupCount = players.length / size < 6 ? 1 : 2, maps = MAP_POOLS[size]) {
   if (![1, 2, 5].includes(size) || players.length < size * 2 || players.length % size || new Set(players.map(p => p.id)).size !== players.length) throw Error('Select enough unique players for at least two complete teams.');
   const data = structuredClone(template);
@@ -190,7 +194,7 @@ function applyResult(data, id, result, resolve) {
   return { next, cleared };
 }
 function emptyTournament(data) { return {name:data.name,teams:[],groups:[],matches:[],...(data.headers?{headers:structuredClone(data.headers)}:{}),...(data.registrationEnabled!==undefined?{registrationEnabled:data.registrationEnabled}:{})}; }
-if (typeof module !== 'undefined') module.exports = { makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament, tournamentAwards, updateHeaders, repositorySettings };
+if (typeof module !== 'undefined') module.exports = { makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament, tournamentAwards, updateHeaders, repositorySettings, soloDrawGroups };
 if (typeof document !== 'undefined') (() => {
   const $ = id => document.getElementById(id);
   const repository=repositorySettings(document.querySelector('meta[name=dashboard-repository]')?.content,document.querySelector('meta[name=dashboard-branch]')?.content,location.hostname,location.pathname);
@@ -217,7 +221,7 @@ if (typeof document !== 'undefined') (() => {
     if (!token && $('tab-team-setup').getAttribute('aria-selected') === 'true') selectTab(defaultTab());
     $('connected-setup').hidden = !token;
     $('team-setup-locked').hidden = !!token;
-    $('group-count').disabled = busy || spinning;
+    $('group-count').disabled = busy || spinning || (locked && Number($('team-size').value)===1);
     $('map-options').querySelectorAll('input').forEach(input=>{input.disabled=busy || spinning;});
     $('disconnect').hidden = !token;
     $('connect-form').querySelector('button').disabled = busy || !!token || !repository;
@@ -456,13 +460,26 @@ if (typeof document !== 'undefined') (() => {
       const button=element('button','','Publish tiebreak order');const note=element('p');form.append(button,note);form.onsubmit=async e=>{e.preventDefault();try{const ranks=fields.map(f=>Number(f.input.value));if(new Set(ranks).size!==group.rows.length)throw Error(`Use each position from 1 to ${group.rows.length} once.`);const next=structuredClone(current);next.groups.find(g=>g.id===group.id).tiebreakOrder=fields.sort((a,b)=>Number(a.input.value)-Number(b.input.value)).map(f=>f.id);await publish(next,`Resolve Group ${group.id} tiebreak`);}catch(error){note.textContent=error.message;}};$('tie-controls').append(form);
     }
   }
-  function selectionCount() { const count=$('pool-list').querySelectorAll('input:checked').length;const size=Number($('team-size').value),teams=Math.floor(count/size),extra=count%size; $('pool-count').textContent=`${count} selected · ${teams} complete ${size===1?'solo':size===2?'duo':'squad'} teams`+(extra ? ` · Select ${size-extra} more or deselect ${extra} to make full teams.` : teams<2 ? ' · At least 2 teams needed.' : ' · Choose your group count before publishing.');$('start-draw').disabled=locked || teams<2 || extra!==0; }
+  function selectionCount() {
+    const count=$('pool-list').querySelectorAll('input:checked').length,size=Number($('team-size').value),teams=Math.floor(count/size),extra=count%size,groups=Number($('group-count').value);
+    if(size===1){
+      const valid=groups>=1 && count>=groups*2;
+      $('pool-count').textContent=count+' players selected · '+groups+' groups · '+(valid?'Top 2 per group advance.':'Select at least '+groups*2+' players.');
+      $('start-draw').disabled=locked || !valid;return;
+    }
+    $('pool-count').textContent=`${count} selected · ${teams} complete ${size===2?'duo':'squad'} teams`+(extra ? ` · Select ${size-extra} more or deselect ${extra} to make full teams.` : teams<2 ? ' · At least 2 teams needed.' : ' · Choose your group count before publishing.');$('start-draw').disabled=locked || teams<2 || extra!==0;
+  }
   function selectedMaps() { return [...$('map-options').querySelectorAll('input:checked')].map(input=>input.value); }
   function renderMapOptions() {
     $('map-options').replaceChildren();
     const solo = Number($('team-size').value) === 1;
     $('map-selection').hidden = solo;
     $('solo-map-note').hidden = !solo;
+    $('solo-group-note').hidden = !solo;
+    $('group-count').querySelector('option[value="0"]').disabled=solo;
+    if(solo && $('group-count').value==='0')$('group-count').value='1';
+    document.querySelector('.draw-roster h3').textContent=solo?'Group draw':'Team draft';
+    document.querySelector('.draw-stage-toolbar>span').textContent=solo?'LIVE GROUP DRAW':'LIVE TEAM DRAW';
     if (solo) return;
     for (const map of MAP_POOLS[Number($('team-size').value)]) {
       const label=element('label'),input=element('input'); input.type='checkbox'; input.value=map; input.checked=true;
@@ -471,7 +488,7 @@ if (typeof document !== 'undefined') (() => {
     updateMapCount();
   }
   function updateMapCount() { const count=selectedMaps().length; $('map-count').textContent=count ? count+' maps selected' : 'Select at least one map before publishing.'; }
-  $('team-size').onchange=()=>{selectionCount();renderMapOptions();};
+  $('team-size').onchange=()=>{renderMapOptions();selectionCount();controls();};
   $('load-pool').onclick=()=>{
     if(locked || busy)return;
     const names=$('pool-input').value.split(/\r?\n/).map(n=>n.trim()).filter(Boolean);
@@ -523,6 +540,21 @@ if (typeof document !== 'undefined') (() => {
   function showDrawTeams(latestId=null) {
     $('draw-teams').replaceChildren();const size=Number($('team-size').value),total=selected.length+remaining.length;
     $('draw-progress').max=Math.max(1,total);$('draw-progress').value=selected.length;
+    if(size===1 && total){
+      const count=Number($('group-count').value),groups=soloDrawGroups(total,count);
+      $('draw-progress-label').textContent=selected.length+' of '+total+' players drawn · '+(remaining.length?'Next: Group '+String.fromCharCode(65+selected.length%count):'All groups complete');
+      groups.forEach((slots,i)=>{
+        const members=slots.map(index=>selected[index]),complete=members.every(Boolean);
+        const card=element('div','draw-team'+(complete?' team-complete':'')+(members.some(p=>p?.id===latestId)?' team-flash':''));
+        card.style.setProperty('--team-colour',teamColours[i]);card.append(element('h3','','Group '+String.fromCharCode(65+i)));
+        members.forEach((player,j)=>{
+          const slot=element('div','draft-slot'+(player?' filled':'')+(player?.id===latestId?' player-arrives':''));
+          slot.append(element('span','slot-avatar',player?initials(player.name):String(j+1)),element('span','',player?.name || 'Awaiting player'));card.append(slot);
+        });
+        card.append(element('p','team-state',complete?'GROUP COMPLETE · TOP 2 ADVANCE':members.filter(Boolean).length+' / '+slots.length+' PLAYERS'));$('draw-teams').append(card);
+      });
+      return;
+    }
     $('draw-progress-label').textContent=total?selected.length+' of '+total+' players selected · '+(remaining.length?'Filling Team '+String(Math.floor(selected.length/size)+1).padStart(2,'0'):'All teams complete'):'Load players to start';
     for(let i=0;i<total/size;i++){
       const members=selected.slice(i*size,(i+1)*size),complete=members.length===size,latest=members.some(p=>p.id===latestId);
@@ -535,7 +567,14 @@ if (typeof document !== 'undefined') (() => {
     }
   }
   function lock(value){locked=value;['team-size','pool-input','load-pool','start-draw'].forEach(id=>{$(id).disabled=value;});$('pool-list').querySelectorAll('input').forEach(i=>{i.disabled=value;});}
-  $('start-draw').onclick=()=>{if(busy)return;const ids=[...$('pool-list').querySelectorAll('input:checked')].map(i=>i.value);const size=Number($('team-size').value);if(ids.length<size*2 || ids.length%size)return;remaining=pool.filter(p=>ids.includes(p.id));selected=[];draw=null;lock(true);resetReveal();showDrawTeams();paintWheel(remaining);$('spin').disabled=false;announce('Drawing Team 01. Spin to select its first player.');};
+  $('start-draw').onclick=()=>{
+    if(busy)return;
+    const ids=[...$('pool-list').querySelectorAll('input:checked')].map(i=>i.value),size=Number($('team-size').value);
+    if(ids.length<size*2 || ids.length%size)return;
+    if(size===1){try{soloDrawGroups(ids.length,Number($('group-count').value));}catch(error){announce(error.message);return;}}
+    remaining=pool.filter(p=>ids.includes(p.id));selected=[];draw=null;lock(true);resetReveal();showDrawTeams();paintWheel(remaining);controls();
+    announce(size===1?'Drawing Group A. Spin to select its first player.':'Drawing Team 01. Spin to select its first player.');
+  };
   $('spin').onclick=async()=>{
     if(busy || spinning || !remaining.length)return;
     spinning=true;controls();$('reset-draw').disabled=true;
@@ -557,10 +596,18 @@ if (typeof document !== 'undefined') (() => {
       });
       paintWheel(names,target,index);
       remaining.splice(index,1);selected.push(picked);const size=Number($('team-size').value),team=Math.ceil(selected.length/size);
-      $('reveal-avatar').textContent=initials(picked.name);$('reveal-name').textContent=picked.name;$('reveal-label').textContent='JOINING TEAM '+String(team).padStart(2,'0');$('player-reveal').classList.add('revealed');
+      const destination=size===1?'Group '+String.fromCharCode(65+(selected.length-1)%Number($('group-count').value)):'Team '+String(team).padStart(2,'0');
+      $('reveal-avatar').textContent=initials(picked.name);$('reveal-name').textContent=picked.name;$('reveal-label').textContent='JOINING '+destination.toUpperCase();$('player-reveal').classList.add('revealed');
       playTone(selected.length%size===0?1046:784,0.24);
-      announce(picked.name+' joins Team '+String(team).padStart(2,'0')+'. '+(selected.length%size===0?'Team complete! ':'')+remaining.length+' players remaining.');
-      if(!remaining.length){draw=makeTournament(selected,size,current);drawOrder=draw.groups.flatMap(g=>g.teams);configureDraw();announce('Draw complete. Review team names and tournament format, then publish.');}
+      announce(picked.name+' joins '+destination+'. '+(size!==1 && selected.length%size===0?'Team complete! ':'')+remaining.length+' players remaining.');
+      if(!remaining.length){
+        if(size===1){
+          const count=Number($('group-count').value);
+          drawOrder=soloDrawGroups(selected.length,count).flat().map(index=>'t'+(index+1));
+          draw=makeTournament(selected,1,current,drawOrder,count,[]);
+        }else{draw=makeTournament(selected,size,current);drawOrder=draw.groups.flatMap(g=>g.teams);}
+        configureDraw();announce(size===1?'Draw complete. Review your groups, then publish. The top two players in each group advance to knockouts.':'Draw complete. Review team names and tournament format, then publish.');
+      }
       showDrawTeams(picked.id);
     } finally {spinning=false;$('reset-draw').disabled=false;controls();}
   };
@@ -579,7 +626,7 @@ if (typeof document !== 'undefined') (() => {
     } catch(error) { $('format-preview').textContent = error.message; $('draw-fixtures').replaceChildren(); }
     controls();
   }
-  $('group-count').onchange = configureDraw;
+  $('group-count').onchange = ()=>{selectionCount();configureDraw();};
   $('reset-draw').onclick=()=>{if(spinning || busy)return;if(selected.length && !confirm('Discard this unpublished draw?'))return;selected=[];remaining=[];draw=null;lock(false);$('spin').disabled=true;$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();$('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();announce('Select your players to start a new draw.');};
   $('publish-draw').onclick=async()=>{if(!draw || !token || busy || draw.groups.length !== Number($('group-count').value) || (Number($('team-size').value)!==1 && !selectedMaps().length))return;if(!confirm(`Publish these ${draw.teams.length} ${draw.teamSize===1?'solo':draw.teamSize===2?'duo':'squad'} teams and replace the current tournament, including all existing results and player stats?`))return;try{await publish(structuredClone(draw),'Publish new player draw and tournament groups');draw=null;selected=[];$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();announce('Teams and groups saved. Open Fixtures to run the tournament.');}catch(error){announce(error.message);}};
   const drawStage=$('draw-stage'),fullscreenButton=$('fullscreen-draw');

@@ -52,3 +52,6 @@ In the settings cog, Registration open controls whether the Register tab and emb
 
 Registration open also switches the public page mode: on shows registration and hides the tournament summary, leaderboard, fixtures and stats; off shows the tournament pages and hides registration. The settings cog stays available for connection; Team setup and page settings are accessible to connected organisers. Links to hidden tabs fall back to the active mode.
 
+
+For 1v1, select 1–4 groups before locking the player pool. The wheel assigns players to groups in rotation; group sizes differ by at most one. Group count stays locked until the draw is reset, and published groups preserve every wheel assignment. The top two players from each group qualify for knockouts; maps are chosen in the server.
+
