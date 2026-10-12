@@ -58,3 +58,6 @@ For 1v1, select 1–4 groups before locking the player pool. The wheel assigns p
 
 During registration mode, connected organisers can still view the tournament summary, leaderboard, fixtures and stats. Disconnecting hides these sections immediately. This is UI visibility, not private storage: tournament data remains public in the repository and deployed files.
 
+
+In 1v1, match scores are kills. Each player receives kills equal to their score and deaths equal to the opponent score; assists are zero. Stats and awards derive these values for existing results too, while saving a result records them automatically. Duos and Squads retain optional manual player stats.
+

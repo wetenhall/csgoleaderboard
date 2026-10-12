@@ -101,9 +101,18 @@ function orderedMatches(matches) {
   for (let i = 0; i < Math.max(0,...lists.map(list => list.length)); i++) for (const list of lists) if (list[i]) order.push(list[i]);
   return order.concat(matches.filter(m => !m.group).sort((a,b) => a.round-b.round));
 }
+function resultPlayerStats(data,result) {
+  if(!result)return {};
+  if(data.teamSize!==1)return result.players || {};
+  return Object.fromEntries(result.teams.map((teamId,i)=>{
+    const player=data.teams.find(team=>team.id===teamId)?.players?.[0];
+    if(!player)throw Error('A 1v1 result needs one player on each side.');
+    return [player.id,{kills:result.scores[i],deaths:result.scores[1-i],assists:0}];
+  }));
+}
 function playerTotals(data) {
   const totals = new Map(data.teams.flatMap(t => (t.players || []).map(p => [p.id,{...p,team:t.name,games:0,kills:0,deaths:0,assists:0}])));
-  for (const match of data.matches) for (const [id, stats] of Object.entries(match.result?.players || {})) {
+  for (const match of data.matches) for (const [id, stats] of Object.entries(resultPlayerStats(data,match.result))) {
     const row = totals.get(id);
     if (row) { row.games++; for (const field of ['kills','deaths','assists']) row[field] += stats[field]; }
   }
@@ -179,7 +188,7 @@ function validateData(data, resolve) {
 }
 function applyResult(data, id, result, resolve) {
   const next = structuredClone(data);
-  next.matches.find(m => m.id === id).result = result;
+  next.matches.find(m => m.id === id).result = {...result,players:resultPlayerStats(data,result)};
   // Recompute later participants. Keep valid results; clear only stale descendants.
   const oldPlayoffs = next.matches.filter(m => !m.group).map(m => [m.id,m.result]);
   next.matches.filter(m => !m.group).forEach(m => { m.result = null; });
@@ -385,15 +394,16 @@ if (typeof document !== 'undefined') (() => {
         identity.append(element('span','fixture-team',names[i]));versus.append(identity);
       });
       summary.append(meta,versus);
-      summary.append(element('span','fixture-edit-hint',!ready?'Waiting for qualification':token?(match.result?'Edit score & player stats':'Enter score & player stats'):'View match details'));
+      summary.append(element('span','fixture-edit-hint',!ready?'Waiting for qualification':token?(current.teamSize===1?(match.result?'Edit score · stats calculated automatically':'Enter score · stats calculated automatically'):(match.result?'Edit score & player stats':'Enter score & player stats')):'View match details'));
       if(match.result?.tiebreakWinner)summary.append(element('span','fixture-decision','Tiebreak winner: '+teamDisplayLabel(state.teams.get(match.result.tiebreakWinner))));
       else if(match.result && match.result.scores[0]===match.result.scores[1])summary.append(element('span','fixture-decision','DRAW'));
       details.append(summary);
       const body = element('div','result-body');
       body.append(element('p','rules',`${match.id.toUpperCase()} · ${match.group ? `Group ${match.group}` : knockoutRoundName(match,state.matches)}`));
       if (!ready) { body.append(element('p','','Teams will appear once qualification is confirmed.')); details.append(body); container.append(details); return; }
-      const form = element('form','result-form'); const scores = names.map((name,i) => numeric(`${name} — rounds won`,match.result?.scores[i],99));
-      form.append(element('h4','entry-heading','1. Match score'),element('p','entry-help','Enter the final number of rounds won by each side, not kills.'));
+      const solo=current.teamSize===1;
+      const form = element('form','result-form'); const scores = names.map((name,i) => numeric(`${name} — ${solo?'kills':'rounds won'}`,match.result?.scores[i],99));
+      form.append(element('h4','entry-heading',solo?'Match score · Kills':'1. Match score'),element('p','entry-help',solo?'Enter each player’s kills. Deaths are calculated from the opponent’s kills automatically. A 4–6 result records 4 kills / 6 deaths and 6 kills / 4 deaths.':'Enter the final number of rounds won by each side, not kills.'));
       const scoreRow = element('div','score-inputs');
       scores.forEach((s,i) => {
         s.input.required=true;s.input.placeholder='0';s.input.inputMode='numeric';
@@ -422,7 +432,7 @@ if (typeof document !== 'undefined') (() => {
       stats.open=Boolean(match.result?.players && Object.keys(match.result.players).length);
       stats.append(element('summary','','2. Player stats · optional'),element('p','entry-help','Kills = opponents eliminated · Deaths = times eliminated · Assists = assisted eliminations. For each player, fill all three fields or leave all three blank.'));
       const inputs = [];
-      for (const teamId of match.ids) {
+      for (const teamId of solo?[]:match.ids) {
         const team = state.teams.get(teamId);
         const teamStats=element('fieldset','stats-team');teamStats.append(element('legend','',teamDisplayLabel(team)));
         for (const player of team.players || []) {

@@ -270,3 +270,23 @@ test('1v1 wheel order fills balanced groups round robin and preserves assignment
  }
  for(const [total,count] of [[3,2],[4,0],[8,5]])assert.throws(()=>soloDrawGroups(total,count),/groups/);
 });
+
+test('1v1 scores automatically produce mirrored kills and deaths, including old results and corrections',()=>{
+ const players=[{id:'one',name:'One'},{id:'two',name:'Two'}];
+ const data=makeTournament(players,1,fixture(),['t1','t2'],1,[]);
+ const game=data.matches.find(m=>m.group);
+ game.result={teams:game.teams,scores:[4,6],players:{}};
+ let totals=playerTotals(data);
+ assert.deepEqual(totals.find(p=>p.id==='one'),{id:'one',name:'One',team:'Team 01',games:1,kills:4,deaths:6,assists:0});
+ const updated=applyResult(data,game.id,{teams:game.teams,scores:[7,3],players:{one:{kills:99,deaths:99,assists:99}}},resolveTournament).next;
+ assert.deepEqual(updated.matches.find(m=>m.id===game.id).result.players,{one:{kills:7,deaths:3,assists:0},two:{kills:3,deaths:7,assists:0}});
+ assert.equal(playerTotals(updated).find(p=>p.id==='one').games,1);
+ assert.equal(playerTotals(data).find(p=>p.id==='one').kills,4);
+ const tied=applyResult(data,game.id,{teams:game.teams,scores:[0,0],players:{}},resolveTournament).next;
+ assert.equal(playerTotals(tied).find(p=>p.id==='one').deaths,0);
+ const duo=makeTournament(Array.from({length:4},(_,i)=>({id:'d'+i,name:'D'+i})),2,fixture());
+ const dg=duo.matches.find(m=>m.group);
+ const manual={d0:{kills:12,deaths:2,assists:5}};
+ const saved=applyResult(duo,dg.id,{teams:dg.teams,scores:[4,6],players:manual},resolveTournament).next;
+ assert.deepEqual(saved.matches.find(m=>m.id===dg.id).result.players,manual);
+});
