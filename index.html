@@ -29,6 +29,7 @@
         <p>Connect to publish draws and results for everyone. Your token stays in this tab’s memory and is cleared when you disconnect or close the page.</p>
         <form id="connect-form" class="connection"><label>GitHub token <input id="github-token" type="password" autocomplete="off" required placeholder="Fine-grained access token"></label><button>Connect organiser</button><button id="disconnect" type="button" hidden>Disconnect</button></form>
         <details><summary>One-time organiser setup</summary><p>Create a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">fine-grained GitHub token</a> owned by wetenhall, restricted to <strong>csgoleaderboard</strong>, with <strong>Contents: Read and write</strong>. Choose an expiry date. Paste the token above, never into chat. Anyone with this token can change this repository, so keep it private.</p></details>
+        <div id="connected-setup" hidden>
         <button id="refresh-data" type="button" class="secondary">Reload latest saved tournament</button>
         <details id="draw-panel" open><summary>Create a new tournament · Wheel draw</summary>
           <p>Choose Duos or Squads. Any number of complete teams is supported (minimum two). Up to five teams play one group then a final; six or more split into two balanced groups then playoffs. The new draw replaces the current tournament and its results only when you publish it.</p>
@@ -40,6 +41,7 @@
           </div><div class="wheel-panel"><div class="wheel-wrap"><span class="wheel-pointer" aria-hidden="true">▼</span><canvas id="wheel" width="640" height="640" role="img" aria-label="Player selection wheel"></canvas></div><p id="draw-announcement" role="status" aria-live="polite">Load your players to begin.</p><button id="spin" type="button" disabled>Spin for next player</button></div></div>
           <div id="draw-teams" class="teams"></div><button id="publish-draw" type="button" disabled>Publish teams & groups</button>
         </details>
+        </div>
       </div>
     </section>
 </div>

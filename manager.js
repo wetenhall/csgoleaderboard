@@ -98,6 +98,7 @@ if (typeof document !== 'undefined') (() => {
   const say = text => { $('connection-status').textContent = text; };
   const announce = text => { $('draw-announcement').textContent = text; };
   function controls() {
+    $('connected-setup').hidden = !token;
     $('disconnect').hidden = !token;
     $('connect-form').querySelector('button').disabled = busy || !!token;
     $('refresh-data').disabled = busy;
