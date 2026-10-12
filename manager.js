@@ -525,26 +525,17 @@ if (typeof document !== 'undefined') (() => {
   $('reset-draw').onclick=()=>{if(spinning || busy)return;if(selected.length && !confirm('Discard this unpublished draw?'))return;selected=[];remaining=[];draw=null;lock(false);$('spin').disabled=true;$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();$('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();announce('Select your players to start a new draw.');};
   $('publish-draw').onclick=async()=>{if(!draw || !token || busy || draw.groups.length !== Number($('group-count').value) || !selectedMaps().length)return;if(!confirm(`Publish these ${draw.teams.length} ${draw.teamSize===2?'duo':'squad'} teams and replace the current tournament, including all existing results and player stats?`))return;try{await publish(structuredClone(draw),'Publish new player draw and tournament groups');draw=null;selected=[];$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();announce('Teams and groups saved. Open Fixtures to run the tournament.');}catch(error){announce(error.message);}};
   const drawStage=$('draw-stage'),fullscreenButton=$('fullscreen-draw');
-  let fullscreenFallback=false;
-  function updateFullscreen() {
-    const active=document.fullscreenElement===drawStage || fullscreenFallback;
-    fullscreenButton.textContent=active?'Exit full screen':'Full-screen draw';
-    fullscreenButton.setAttribute('aria-pressed',String(active));
+  let expandedDraw=false;
+  function setExpandedDraw(active) {
+    expandedDraw=active;
+    drawStage.classList.toggle('fullscreen-fallback',active);
     document.body.classList.toggle('draw-fullscreen-open',active);
+    fullscreenButton.textContent=active?'Exit expanded view':'Expand draw';
+    fullscreenButton.setAttribute('aria-pressed',String(active));
+    fullscreenButton.focus();
   }
-  async function exitDrawFullscreen() {
-    fullscreenFallback=false;drawStage.classList.remove('fullscreen-fallback');
-    if(document.fullscreenElement===drawStage)await document.exitFullscreen();
-    updateFullscreen();fullscreenButton.focus();
-  }
-  fullscreenButton.onclick=async()=>{
-    if(document.fullscreenElement===drawStage || fullscreenFallback){await exitDrawFullscreen();return;}
-    try {if(!drawStage.requestFullscreen)throw Error('Unavailable');await drawStage.requestFullscreen();}
-    catch {fullscreenFallback=true;drawStage.classList.add('fullscreen-fallback');}
-    updateFullscreen();fullscreenButton.focus();
-  };
-  document.addEventListener('fullscreenchange',updateFullscreen);
-  document.addEventListener('keydown',event=>{if(event.key==='Escape' && fullscreenFallback){event.preventDefault();void exitDrawFullscreen();}});
+  fullscreenButton.onclick=()=>setExpandedDraw(!expandedDraw);
+  document.addEventListener('keydown',event=>{if(event.key==='Escape' && expandedDraw){event.preventDefault();setExpandedDraw(false);}});
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
   const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
   function selectTab(tab, focus = false) {
