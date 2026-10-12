@@ -424,7 +424,7 @@ if (typeof document !== 'undefined') (() => {
     pool=names.map((name,i)=>({id:`p${i+1}`,name}));$('pool-list').replaceChildren();
     pool.forEach(p=>{const label=element('label');const box=element('input');box.type='checkbox';box.value=p.id;box.checked=true;box.onchange=selectionCount;label.append(box,document.createTextNode(p.name));$('pool-list').append(label);});selectionCount();announce('Select your players, then lock the pool.');
   };
-  const teamColours=['#ffad32','#79b9df','#b6a0ee','#73d1a9','#f18e97','#e1cf80'];
+  const teamColours=['#ff9b01','#67afd3','#b6a0ee','#73d1a9','#f18e97','#e1cf80'];
   let soundEnabled=true,audioContext=null;
   function initials(name) { return name.trim().split(/\s+/).map(part=>part[0]).join('').slice(0,2).toUpperCase(); }
   function playTone(frequency,duration=0.035) {
@@ -446,7 +446,7 @@ if (typeof document !== 'undefined') (() => {
   function paintWheel(names,angle=0,highlight=-1) {
     const ctx=$('wheel').getContext('2d'),n=names.length;ctx.clearRect(0,0,640,640);
     ctx.save();ctx.translate(320,320);ctx.rotate(angle*Math.PI/180);
-    if(!n){ctx.fillStyle='#222c35';ctx.beginPath();ctx.arc(0,0,302,0,2*Math.PI);ctx.fill();}
+    if(!n){ctx.fillStyle='#23262e';ctx.beginPath();ctx.arc(0,0,302,0,2*Math.PI);ctx.fill();}
     names.forEach((p,i)=>{
       const start=-Math.PI/2+i*2*Math.PI/n,active=i===highlight;
       ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,302,start,start+2*Math.PI/n);ctx.closePath();
@@ -457,9 +457,9 @@ if (typeof document !== 'undefined') (() => {
       if(n<=18){ctx.beginPath();ctx.arc(112,0,19,0,2*Math.PI);ctx.fillStyle='#111c29';ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 12px Arial';ctx.textAlign='center';ctx.fillText(initials(p.name),112,4);}
       ctx.restore();
     });ctx.restore();
-    ctx.beginPath();ctx.arc(320,320,302,0,2*Math.PI);ctx.strokeStyle='#ffad32';ctx.lineWidth=5;ctx.stroke();
-    ctx.beginPath();ctx.arc(320,320,64,0,2*Math.PI);ctx.fillStyle='#10161c';ctx.fill();ctx.strokeStyle='#65717b';ctx.lineWidth=2;ctx.stroke();
-    ctx.fillStyle='#ffad32';ctx.textAlign='center';ctx.font='bold 19px Arial';ctx.fillText(n?'DRAFT':'PLAYER',320,316);ctx.font='12px Consolas';ctx.fillText(n?n+' LEFT':'DRAW',320,338);
+    ctx.beginPath();ctx.arc(320,320,302,0,2*Math.PI);ctx.strokeStyle='#ff9b01';ctx.lineWidth=5;ctx.stroke();
+    ctx.beginPath();ctx.arc(320,320,64,0,2*Math.PI);ctx.fillStyle='#1e202f';ctx.fill();ctx.strokeStyle='#65717b';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='#ff9b01';ctx.textAlign='center';ctx.font='bold 19px Arial';ctx.fillText(n?'DRAFT':'PLAYER',320,316);ctx.font='12px Consolas';ctx.fillText(n?n+' LEFT':'DRAW',320,338);
   }
   function resetReveal(){ $('reveal-avatar').textContent='?';$('reveal-label').textContent='NEXT RECRUIT';$('reveal-name').textContent='Who’s joining your team?';$('player-reveal').classList.remove('revealed');$('draw-progress').value=0;$('draw-progress-label').textContent='Load players to start'; }
   function showDrawTeams(latestId=null) {

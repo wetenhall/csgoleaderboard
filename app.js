@@ -79,7 +79,7 @@ function teamDisplayLabel(team) {
 }
 function teamEmblem(team) {
   const badge=element('span','team-emblem',team.tag || team.id.replace(/[^0-9]/g,'').padStart(2,'0'));
-  const colours=['#eeb453','#80b2d4','#b6a0ee','#73d1a9','#f18e97','#e1cf80'];
+  const colours=['#ff9b01','#67afd3','#b6a0ee','#73d1a9','#f18e97','#e1cf80'];
   const number=Number(team.id.replace(/[^0-9]/g,'')) || 1;badge.style.setProperty('--emblem-colour',colours[(number-1)%colours.length]);
   badge.setAttribute('aria-hidden','true');return badge;
 }
