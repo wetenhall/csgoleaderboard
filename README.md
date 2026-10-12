@@ -55,3 +55,6 @@ Registration open also switches the public page mode: on shows registration and 
 
 For 1v1, select 1–4 groups before locking the player pool. The wheel assigns players to groups in rotation; group sizes differ by at most one. Group count stays locked until the draw is reset, and published groups preserve every wheel assignment. The top two players from each group qualify for knockouts; maps are chosen in the server.
 
+
+During registration mode, connected organisers can still view the tournament summary, leaderboard, fixtures and stats. Disconnecting hides these sections immediately. This is UI visibility, not private storage: tournament data remains public in the repository and deployed files.
+

@@ -218,6 +218,11 @@ if (typeof document !== 'undefined') (() => {
     $('options-form').hidden = !token;
     document.querySelector('.token-help').hidden = !!token;
     $('tab-team-setup').hidden = !token;
+    const hideTournament=current.registrationEnabled!==false && !token;
+    ['leaderboard','fixtures','stats'].forEach(name=>{$('tab-'+name).hidden=hideTournament;});
+    document.querySelector('.overview').hidden=hideTournament;
+    const active=tabs.find(tab=>tab.getAttribute('aria-selected')==='true');
+    if(active?.hidden && active!==$('tab-team-setup'))selectTab(defaultTab(),false,false);
     if (!token && $('tab-team-setup').getAttribute('aria-selected') === 'true') selectTab(defaultTab());
     $('connected-setup').hidden = !token;
     $('team-setup-locked').hidden = !!token;
@@ -292,8 +297,6 @@ if (typeof document !== 'undefined') (() => {
     renderTournament(current); renderAwards(); renderSchedule(); renderStats(); renderTies(); controls();
     const registrationOpen=current.registrationEnabled!==false;
     $('tab-register').hidden=!registrationOpen;
-    ['leaderboard','fixtures','stats'].forEach(name=>{$('tab-'+name).hidden=registrationOpen;});
-    document.querySelector('.overview').hidden=registrationOpen;
     document.body.classList.toggle('registration-mode',registrationOpen);
     if(registrationOpen){
       $('broadcast-status').textContent='REGISTRATION OPEN';
@@ -643,7 +646,7 @@ if (typeof document !== 'undefined') (() => {
   document.addEventListener('keydown',event=>{if(event.key==='Escape' && expandedDraw){event.preventDefault();setExpandedDraw(false);}});
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
   const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
-  function defaultTab(){return current.registrationEnabled!==false ? $('tab-register') : $('tab-leaderboard');}
+  function defaultTab(){return current.registrationEnabled!==false && !token ? $('tab-register') : $('tab-leaderboard');}
   function loadRegistration(){
     const frame=$('registration-frame');
     if(current.registrationEnabled!==false && !frame.hasAttribute('src'))frame.src=frame.dataset.src;
