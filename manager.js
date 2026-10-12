@@ -576,14 +576,20 @@ if (typeof document !== 'undefined') (() => {
   document.addEventListener('keydown',event=>{if(event.key==='Escape' && expandedDraw){event.preventDefault();setExpandedDraw(false);}});
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
   const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
-  function selectTab(tab, focus = false) {
+  function selectTab(tab, focus = false, updateUrl = true) {
     tabs.forEach(item => {
       const active = item === tab;
       item.setAttribute('aria-selected', String(active)); item.tabIndex = active ? 0 : -1;
       $(item.getAttribute('aria-controls')).hidden = !active;
     });
+    if (updateUrl) history.replaceState(null,'','#'+tab.id.slice(4));
     if (focus) tab.focus();
   }
+  function selectLinkedTab() {
+    const tab=tabs.find(item=>'#'+item.id.slice(4)===location.hash && !item.hidden);
+    selectTab(tab || $('tab-leaderboard'),false,false);
+  }
+  window.addEventListener('hashchange',selectLinkedTab);
   tabs.forEach(tab => {
     tab.addEventListener('click', () => selectTab(tab));
     tab.addEventListener('keydown', event => {
@@ -593,6 +599,7 @@ if (typeof document !== 'undefined') (() => {
     });
   });
   renderMapOptions();paintWheel([]);renderAll();
+  selectLinkedTab();
   if(!repository)say('Read-only preview. Deploy with GitHub Actions to enable organiser connection for your repository.');
   let rememberedToken = '';
   try { rememberedToken = sessionStorage.getItem(tokenStorageKey) || ''; } catch { /* Storage may be disabled by browser settings. */ }

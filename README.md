@@ -43,3 +43,6 @@ Standard owner.github.io/project hosting can also infer its repository from the 
 
 The public Register tab embeds the Google Form configured in index.html. Responses remain in Google Forms; they do not automatically enter the tournament player pool. When copying this dashboard, replace both registration URLs with your own published form link.
 
+
+Link directly to registration by appending #register to your deployed site URL. Public tabs open from their URL fragment, and switching tabs updates the shareable URL without reloading the form.
+
