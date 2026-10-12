@@ -127,7 +127,28 @@
           "team": "t1"
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t8",
+          "t1"
+        ],
+        "scores": [
+          8,
+          6
+        ],
+        "players": {
+          "p6": {
+            "kills": 8,
+            "deaths": 6,
+            "assists": 0
+          },
+          "p4": {
+            "kills": 6,
+            "deaths": 8,
+            "assists": 0
+          }
+        }
+      }
     },
     {
       "id": "de2",
