@@ -156,7 +156,17 @@
         "t1",
         "t11"
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t1",
+          "t11"
+        ],
+        "scores": [
+          7,
+          6
+        ],
+        "players": {}
+      }
     },
     {
       "id": "a2",
