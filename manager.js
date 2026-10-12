@@ -1,5 +1,6 @@
 /* Tournament editing and GitHub persistence. Optional tab-session credentials. */
 const MAP_POOLS = {
+  1: ['Pool Day','AWP Lego 2','AWP Orange','AWP India','AIM Crash Dust 1on1','AIM Puma','AIM Map Classic','AIM Long Dust'],
   2: ['Inferno','Nuke','Vertigo','Overpass','Poseidon','Debris','Eldorado'],
   5: ['Mirage','Dust2','Inferno','Nuke','Ancient','Anubis','Vertigo','Cache','Train','Overpass','Office','Italy']
 };
@@ -37,7 +38,7 @@ function shuffle(items) {
   return copy;
 }
 function makeTournament(players, size, template, groupOrder, groupCount = players.length / size < 6 ? 1 : 2, maps = MAP_POOLS[size]) {
-  if (![2, 5].includes(size) || players.length < size * 2 || players.length % size || new Set(players.map(p => p.id)).size !== players.length) throw Error('Select enough unique players for at least two complete teams.');
+  if (![1, 2, 5].includes(size) || players.length < size * 2 || players.length % size || new Set(players.map(p => p.id)).size !== players.length) throw Error('Select enough unique players for at least two complete teams.');
   const data = structuredClone(template);
   data.teams = Array.from({ length: players.length / size }, (_, i) => ({ id: `t${i+1}`, name: `Team ${String(i+1).padStart(2,'0')}`, tag: String(i+1).padStart(2,'0'), players: players.slice(i*size,(i+1)*size) }));
   const ids = groupOrder || shuffle(data.teams.map(t => t.id));
@@ -71,7 +72,7 @@ function makeTournament(players, size, template, groupOrder, groupCount = player
     }
   }
   data.teamSize = size;
-  data.mode = size === 2 ? 'duos' : 'squads';
+  data.mode = size === 1 ? '1v1' : size === 2 ? 'duos' : 'squads';
   return assignMaps(data,maps);
 }
 function roundRobinPairs(teams) {
@@ -155,7 +156,7 @@ function validateData(data, resolve) {
     if (games.length !== group.teams.length*(group.teams.length-1)/2 || new Set(pairs).size !== pairs.length || games.some(m => m.teams.length !== 2 || m.teams[0] === m.teams[1] || m.teams.some(id => !group.teams.includes(id)))) throw Error('Invalid round-robin schedule.');
   }
   const players = data.teams.flatMap(t => t.players || []);
-  if (players.length && (![2,5].includes(data.teamSize) || data.teams.some(t => t.players?.length !== data.teamSize) || new Set(players.map(p => p.id)).size !== players.length || players.some(p => typeof p.name !== 'string' || !p.name.trim() || p.name.length > 40))) throw Error('Invalid player rosters.');
+  if (players.length && (![1,2,5].includes(data.teamSize) || data.teams.some(t => t.players?.length !== data.teamSize) || new Set(players.map(p => p.id)).size !== players.length || players.some(p => typeof p.name !== 'string' || !p.name.trim() || p.name.length > 40))) throw Error('Invalid player rosters.');
   const state = resolve(data);
   if (orderedMatches(state.matches).some(m => !m)) throw Error('Missing scheduled match.');
   for (const match of state.matches) {
@@ -430,7 +431,7 @@ if (typeof document !== 'undefined') (() => {
       const button=element('button','','Publish tiebreak order');const note=element('p');form.append(button,note);form.onsubmit=async e=>{e.preventDefault();try{const ranks=fields.map(f=>Number(f.input.value));if(new Set(ranks).size!==group.rows.length)throw Error(`Use each position from 1 to ${group.rows.length} once.`);const next=structuredClone(current);next.groups.find(g=>g.id===group.id).tiebreakOrder=fields.sort((a,b)=>Number(a.input.value)-Number(b.input.value)).map(f=>f.id);await publish(next,`Resolve Group ${group.id} tiebreak`);}catch(error){note.textContent=error.message;}};$('tie-controls').append(form);
     }
   }
-  function selectionCount() { const count=$('pool-list').querySelectorAll('input:checked').length;const size=Number($('team-size').value),teams=Math.floor(count/size),extra=count%size; $('pool-count').textContent=`${count} selected · ${teams} complete ${size===2?'duo':'squad'} teams`+(extra ? ` · Select ${size-extra} more or deselect ${extra} to make full teams.` : teams<2 ? ' · At least 2 teams needed.' : ' · Choose your group count before publishing.');$('start-draw').disabled=locked || teams<2 || extra!==0; }
+  function selectionCount() { const count=$('pool-list').querySelectorAll('input:checked').length;const size=Number($('team-size').value),teams=Math.floor(count/size),extra=count%size; $('pool-count').textContent=`${count} selected · ${teams} complete ${size===1?'solo':size===2?'duo':'squad'} teams`+(extra ? ` · Select ${size-extra} more or deselect ${extra} to make full teams.` : teams<2 ? ' · At least 2 teams needed.' : ' · Choose your group count before publishing.');$('start-draw').disabled=locked || teams<2 || extra!==0; }
   function selectedMaps() { return [...$('map-options').querySelectorAll('input:checked')].map(input=>input.value); }
   function renderMapOptions() {
     $('map-options').replaceChildren();
@@ -551,7 +552,7 @@ if (typeof document !== 'undefined') (() => {
   }
   $('group-count').onchange = configureDraw;
   $('reset-draw').onclick=()=>{if(spinning || busy)return;if(selected.length && !confirm('Discard this unpublished draw?'))return;selected=[];remaining=[];draw=null;lock(false);$('spin').disabled=true;$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();$('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();announce('Select your players to start a new draw.');};
-  $('publish-draw').onclick=async()=>{if(!draw || !token || busy || draw.groups.length !== Number($('group-count').value) || !selectedMaps().length)return;if(!confirm(`Publish these ${draw.teams.length} ${draw.teamSize===2?'duo':'squad'} teams and replace the current tournament, including all existing results and player stats?`))return;try{await publish(structuredClone(draw),'Publish new player draw and tournament groups');draw=null;selected=[];$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();announce('Teams and groups saved. Open Fixtures to run the tournament.');}catch(error){announce(error.message);}};
+  $('publish-draw').onclick=async()=>{if(!draw || !token || busy || draw.groups.length !== Number($('group-count').value) || !selectedMaps().length)return;if(!confirm(`Publish these ${draw.teams.length} ${draw.teamSize===1?'solo':draw.teamSize===2?'duo':'squad'} teams and replace the current tournament, including all existing results and player stats?`))return;try{await publish(structuredClone(draw),'Publish new player draw and tournament groups');draw=null;selected=[];$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();announce('Teams and groups saved. Open Fixtures to run the tournament.');}catch(error){announce(error.message);}};
   const drawStage=$('draw-stage'),fullscreenButton=$('fullscreen-draw');
   let expandedDraw=false;
   function setExpandedDraw(active) {

@@ -71,7 +71,7 @@ function element(tag, className, text) {
   return node;
 }
 function teamDisplayName(team) {
-  return team.players?.length === 2 ? team.players.map(player => player.name).join(' + ') : team.name;
+  return (team.players?.length === 1 || team.players?.length === 2) ? team.players.map(player => player.name).join(' + ') : team.name;
 }
 function teamDisplayLabel(team) {
   const display = teamDisplayName(team);
@@ -106,7 +106,7 @@ function renderTournament(data) {
   document.getElementById('broadcast-status').dataset.state=completed && completed<matches.length?'live':'ready';
   document.getElementById('progress').replaceChildren(document.createTextNode(`${completed} / ${matches.length} `), element('small', '', 'matches complete'));
   document.getElementById('team-count').textContent = `${data.teams.length} teams entered`;
-  document.getElementById('format-name').textContent = `${data.teamSize === 2 ? 'Duos' : data.teamSize === 5 ? 'Squads' : 'Teams'} · ${groups.length === 0 ? 'Knockout' : groups.length === 1 ? 'Group → final' : `${groups.length} groups → playoffs`}`;
+  document.getElementById('format-name').textContent = `${data.teamSize === 1 ? '1v1' : data.teamSize === 2 ? 'Duos' : data.teamSize === 5 ? 'Squads' : 'Teams'} · ${groups.length === 0 ? 'Knockout' : groups.length === 1 ? 'Group → final' : `${groups.length} groups → playoffs`}`;
   document.getElementById('groups-heading').closest('section').hidden = !groups.length;
   document.getElementById('roster-count').textContent = `${data.teams.length} TEAMS / 1 TROPHY`;
   document.getElementById('group-rules').textContent = 'Ranked by wins, then round difference (RD). Remaining ties need a tiebreak decision. Playoff places are confirmed when each team has played every other team in its group.';
@@ -189,7 +189,7 @@ function renderTournament(data) {
     details.append(element('h3', '', teamDisplayName(team)));
     if (teamDisplayName(team) !== team.name) details.append(element('small', 'team-identifier', team.name));
     details.append(element('p', '', final.winner === team.id ? 'Champion' : eliminated.has(team.id) ? 'Eliminated' : group ? `Group ${group.id}` : 'Knockout'));
-    if (team.players && team.players.length !== 2) details.append(element('p', 'players-list', team.players.map(player => player.name).join(' · ')));
+    if (team.players && team.players.length > 2) details.append(element('p', 'players-list', team.players.map(player => player.name).join(' · ')));
     card.append(teamEmblem(team), details); document.getElementById('teams').append(card);
   });
 }

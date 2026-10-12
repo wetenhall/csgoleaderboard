@@ -2,7 +2,7 @@
 
 Typography uses bundled Rajdhani fonts from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/rajdhani), under the SIL Open Font License included in assets/fonts/OFL.txt. It provides a Counter-Strike-inspired style without requiring Stratum 2 font files or an external font service.
 
-A static GitHub Pages dashboard for Duos (2 players) and Squads (5 players). Draw teams with a wheel, choose maps and 0–4 groups, run fixtures, record scores and player stats, and display standings and awards.
+A static GitHub Pages dashboard for 1v1 (solo players), Duos (2 players) and Squads (5 players). Draw teams with a wheel, choose maps and 0–4 groups, run fixtures, record scores and player stats, and display standings and awards.
 
 ## Publish your own copy
 
@@ -22,7 +22,7 @@ Paste it into the dashboard and connect. Team setup and the header settings cog 
 
 ## Run a tournament
 
-- In Team setup, select Duos or Squads, pick maps and load one unique player name per line.
+- In Team setup, select 1v1, Duos or Squads, pick maps and load one unique player name per line.
 - Lock the player pool and spin to fill teams. Expand draw fills the browser page; Escape exits.
 - Choose 0 groups for straight knockout or 1–4 balanced groups with at least two teams per group. The top two advance. Byes fill uneven brackets; with three groups, Group A and B winners receive playoff byes.
 - Review team names and map assignments, then publish. Publishing a draw replaces the current tournament after confirmation.
@@ -38,3 +38,5 @@ Run node --test tournament.test.cjs and node build.cjs. Serve _site with a local
 The production bootstrap is generated from tournament.json. tournament.js is a legacy regression fixture and local fallback. Builds version asset filenames to avoid stale caches.
 
 Standard owner.github.io/project hosting can also infer its repository from the URL when build metadata is absent, defaulting to main. Use the workflow or explicit build variables for custom domains, non-main branches or nonstandard hosting paths.
+
+The 1v1 map pool includes Pool Day, AWP Lego 2, AWP Orange, AWP India, AIM Crash Dust 1on1, AIM Puma, AIM Map Classic and AIM Long Dust. Select any subset in Team setup; each player occupies their own team slot and is shown by name in standings and fixtures.
