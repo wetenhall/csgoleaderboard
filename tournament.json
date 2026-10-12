@@ -163,7 +163,28 @@
           "team": "t6"
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t10",
+          "t6"
+        ],
+        "scores": [
+          6,
+          8
+        ],
+        "players": {
+          "p7": {
+            "kills": 6,
+            "deaths": 8,
+            "assists": 0
+          },
+          "p9": {
+            "kills": 8,
+            "deaths": 6,
+            "assists": 0
+          }
+        }
+      }
     },
     {
       "id": "de3",
