@@ -335,7 +335,7 @@ if (typeof document !== 'undefined') (() => {
     pool.forEach(p=>{const label=element('label');const box=element('input');box.type='checkbox';box.value=p.id;box.checked=true;box.onchange=selectionCount;label.append(box,document.createTextNode(p.name));$('pool-list').append(label);});selectionCount();announce('Select your players, then lock the pool.');
   };
   const teamColours=['#ffad32','#79b9df','#b6a0ee','#73d1a9','#f18e97','#e1cf80'];
-  let soundEnabled=false,audioContext=null;
+  let soundEnabled=true,audioContext=null;
   function initials(name) { return name.trim().split(/\s+/).map(part=>part[0]).join('').slice(0,2).toUpperCase(); }
   function playTone(frequency,duration=0.035) {
     if(!soundEnabled || !audioContext || audioContext.state!=='running')return;
@@ -344,11 +344,13 @@ if (typeof document !== 'undefined') (() => {
       oscillator.connect(gain);gain.connect(audioContext.destination);oscillator.start();oscillator.stop(audioContext.currentTime+duration);
     } catch { /* Sound is optional. */ }
   }
-  $('sound-toggle').onclick=async()=>{
-    soundEnabled=!soundEnabled;
+  async function prepareSound(){
     try { if(soundEnabled){const Audio=window.AudioContext || window.webkitAudioContext;if(!Audio)throw Error();audioContext ||= new Audio();await audioContext.resume();} }
     catch {soundEnabled=false;}
     $('sound-toggle').setAttribute('aria-pressed',String(soundEnabled));$('sound-toggle').textContent=soundEnabled?'Sound on · Mute':'Sound off';
+  }
+  $('sound-toggle').onclick=async()=>{
+    soundEnabled=!soundEnabled;await prepareSound();
     if(soundEnabled)playTone(660,0.1);
   };
   function paintWheel(names,angle=0,highlight=-1) {
@@ -388,7 +390,8 @@ if (typeof document !== 'undefined') (() => {
   $('start-draw').onclick=()=>{if(busy)return;const ids=[...$('pool-list').querySelectorAll('input:checked')].map(i=>i.value);const size=Number($('team-size').value);if(ids.length<size*2 || ids.length%size)return;remaining=pool.filter(p=>ids.includes(p.id));selected=[];draw=null;lock(true);resetReveal();showDrawTeams();paintWheel(remaining);$('spin').disabled=false;announce('Drawing Team 01. Spin to select its first player.');};
   $('spin').onclick=async()=>{
     if(busy || spinning || !remaining.length)return;
-    spinning=true;controls();$('reset-draw').disabled=true;$('player-reveal').classList.remove('revealed');
+    spinning=true;controls();$('reset-draw').disabled=true;
+    await prepareSound();$('player-reveal').classList.remove('revealed');
     $('reveal-name').textContent='Selecting a player…';$('reveal-label').textContent='DRAFT IN PROGRESS';$('reveal-avatar').textContent='?';
     const index=randomIndex(remaining.length),picked=remaining[index],names=[...remaining];
     const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:4400;
