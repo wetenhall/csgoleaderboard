@@ -21,3 +21,5 @@
 .fixture-heading{font:700 14px var(--mono);text-transform:uppercase;letter-spacing:1px;color:var(--blue);margin:0 0 14px}
 .overview{margin-bottom:24px}
 @media(max-width:620px){.page-tabs button{font-size:12px;letter-spacing:0;padding:14px 5px}.connection-status{margin-bottom:22px}.organiser>.section-heading{padding:0 14px}}
+
+.remember-token{display:flex;align-items:center;gap:8px;margin:0 0 16px}.remember-token input{accent-color:var(--accent)}

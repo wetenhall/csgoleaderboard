@@ -95,6 +95,14 @@ if (typeof document !== 'undefined') (() => {
   const api = 'https://api.github.com/repos/wetenhall/csgoleaderboard/contents/tournament.json';
   let current = structuredClone(TOURNAMENT), token = '', fileSha = '', busy = false;
   let pool = [], remaining = [], selected = [], draw = null, spinning = false, locked = false;
+  const tokenStorageKey = 'friends-cup.organiser-token';
+  function storeToken(value) {
+    try {
+      if (value) sessionStorage.setItem(tokenStorageKey,value);
+      else sessionStorage.removeItem(tokenStorageKey);
+      return true;
+    } catch { return false; }
+  }
   const say = text => { $('connection-status').textContent = text; };
   const announce = text => { $('draw-announcement').textContent = text; };
   function controls() {
@@ -103,6 +111,7 @@ if (typeof document !== 'undefined') (() => {
     $('connect-form').querySelector('button').disabled = busy || !!token;
     $('refresh-data').disabled = busy;
     $('disconnect').disabled = busy;
+    $('remember-token').disabled = busy;
     $('publish-draw').disabled = busy || !draw || !token;
     document.querySelectorAll('.result-form button, .tie-form button').forEach(b => { b.disabled = busy || !token; });
   }
@@ -128,15 +137,28 @@ if (typeof document !== 'undefined') (() => {
     } catch(error) { say(error.message); throw error; }
     finally { busy = false; controls(); }
   }
+  async function connect(candidate) {
+    busy = true; controls(); say('Connecting organiser…');
+    try {
+      const file = await request('GET',null,candidate);
+      const data = validateData(JSON.parse(decode(file.content)),resolveTournament);
+      token = candidate; fileSha = file.sha; current = data;
+      const remembered = storeToken($('remember-token').checked ? token : '');
+      renderAll();
+      say(remembered ? 'Organiser connected. Latest repository data loaded.' : 'Organiser connected. Tab storage is unavailable; enter your token again after refreshing.');
+    } catch(error) { token = ''; fileSha = ''; storeToken(''); say(error.message); }
+    finally { busy = false; controls(); }
+  }
   $('connect-form').addEventListener('submit',async event => {
     event.preventDefault(); if (busy || token) return;
     const candidate = $('github-token').value.trim(); $('github-token').value = '';
-    busy = true; controls();
-    try { const file = await request('GET',null,candidate); const data = validateData(JSON.parse(decode(file.content)),resolveTournament); token = candidate; fileSha = file.sha; current = data; renderAll(); say('Organiser connected. Latest repository data loaded.'); }
-    catch(error) { say(error.message); }
-    finally { busy = false; controls(); }
+    if (candidate) await connect(candidate);
   });
-  $('disconnect').onclick = () => { token = ''; fileSha = ''; controls(); say('Disconnected. No token is stored in this browser.'); };
+  $('remember-token').onchange = () => {
+    const saved = storeToken($('remember-token').checked ? token : '');
+    if (!saved) say('Tab storage is unavailable; enter your token again after refreshing.');
+  };
+  $('disconnect').onclick = () => { token = ''; fileSha = ''; storeToken(''); controls(); say('Disconnected. The remembered token has been cleared.'); };
   $('refresh-data').onclick = async () => {
     if (busy || !confirm('Reload saved data? Any unsaved score entries will be discarded. The wheel draw is kept.')) return;
     busy = true; controls();
@@ -276,4 +298,7 @@ if (typeof document !== 'undefined') (() => {
     });
   });
   paintWheel([]);renderAll();
+  let rememberedToken = '';
+  try { rememberedToken = sessionStorage.getItem(tokenStorageKey) || ''; } catch { /* Storage may be disabled by browser settings. */ }
+  if (rememberedToken) { $('remember-token').checked = true; void connect(rememberedToken); }
 })();
