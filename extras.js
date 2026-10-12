@@ -104,7 +104,7 @@ function createTournamentExtras({getData,isOrganiser,isBusy,isPoolLocked,addName
   function renderNight(data) {
     const root=$('match-night');root.replaceChildren();
     const night=matchNight(data,resolveTournament,orderedMatches);
-    root.hidden=data.registrationEnabled!==false && !isOrganiser();
+    root.hidden=(data.format==='single' && data.teamSize===5) || (data.registrationEnabled!==false && !isOrganiser());
     const heading=element('div','section-heading');heading.append(element('h2','','Match night'),element('span','',night.active?'MATCH IN PROGRESS':'FIXTURE QUEUE'));root.append(heading);
     const cards=element('div','night-grid');
     function card(match,title) {

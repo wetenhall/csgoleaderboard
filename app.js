@@ -288,6 +288,7 @@ function renderTournament(data) {
   }
   const singleSquads=data.format==='single' && data.teamSize===5;
   document.getElementById('teams').closest('section').hidden=singleSquads;
+  document.getElementById('team-awards-heading').closest('section').hidden=singleSquads;
   const bracketRoot=document.getElementById('bracket');
   bracketRoot.classList.toggle('single-squads',singleSquads);
   bracketRoot.classList.toggle('double-bracket',data.format==='double');
