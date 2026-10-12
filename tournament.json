@@ -1,10 +1,453 @@
 {
   "name": "Friends Cup",
-  "teams": [],
+  "teams": [
+    {
+      "id": "t1",
+      "name": "Team 01",
+      "tag": "01",
+      "players": [
+        {
+          "id": "p6",
+          "name": "sam"
+        }
+      ]
+    },
+    {
+      "id": "t2",
+      "name": "Team 02",
+      "tag": "02",
+      "players": [
+        {
+          "id": "p2",
+          "name": "ribe"
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "name": "Team 03",
+      "tag": "03",
+      "players": [
+        {
+          "id": "p1",
+          "name": "frodo"
+        }
+      ]
+    },
+    {
+      "id": "t4",
+      "name": "Team 04",
+      "tag": "04",
+      "players": [
+        {
+          "id": "p3",
+          "name": "cantlon"
+        }
+      ]
+    },
+    {
+      "id": "t5",
+      "name": "Team 05",
+      "tag": "05",
+      "players": [
+        {
+          "id": "p11",
+          "name": "omni"
+        }
+      ]
+    },
+    {
+      "id": "t6",
+      "name": "Team 06",
+      "tag": "06",
+      "players": [
+        {
+          "id": "p8",
+          "name": "part"
+        }
+      ]
+    },
+    {
+      "id": "t7",
+      "name": "Team 07",
+      "tag": "07",
+      "players": [
+        {
+          "id": "p10",
+          "name": "hans"
+        }
+      ]
+    },
+    {
+      "id": "t8",
+      "name": "Team 08",
+      "tag": "08",
+      "players": [
+        {
+          "id": "p4",
+          "name": "tart"
+        }
+      ]
+    },
+    {
+      "id": "t9",
+      "name": "Team 09",
+      "tag": "09",
+      "players": [
+        {
+          "id": "p5",
+          "name": "grayzee"
+        }
+      ]
+    },
+    {
+      "id": "t10",
+      "name": "Team 10",
+      "tag": "10",
+      "players": [
+        {
+          "id": "p9",
+          "name": "aatori"
+        }
+      ]
+    },
+    {
+      "id": "t11",
+      "name": "Team 11",
+      "tag": "11",
+      "players": [
+        {
+          "id": "p7",
+          "name": "dan"
+        }
+      ]
+    }
+  ],
   "groups": [],
-  "matches": [],
+  "matches": [
+    {
+      "id": "de1",
+      "round": 0,
+      "bracket": "upper",
+      "label": "Winners · Round 1",
+      "sources": [
+        {
+          "team": "t2"
+        },
+        {
+          "team": "t1"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de2",
+      "round": 0,
+      "bracket": "upper",
+      "label": "Winners · Round 1",
+      "sources": [
+        {
+          "team": "t8"
+        },
+        {
+          "team": "t7"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de3",
+      "round": 0,
+      "bracket": "upper",
+      "label": "Winners · Round 1",
+      "sources": [
+        {
+          "team": "t3"
+        },
+        {
+          "team": "t4"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de4",
+      "round": 2,
+      "bracket": "upper",
+      "label": "Winners · Round 2",
+      "sources": [
+        {
+          "team": "t5"
+        },
+        {
+          "winner": "de1"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de5",
+      "round": 2,
+      "bracket": "upper",
+      "label": "Winners · Round 2",
+      "sources": [
+        {
+          "team": "t6"
+        },
+        {
+          "team": "t10"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de6",
+      "round": 2,
+      "bracket": "upper",
+      "label": "Winners · Round 2",
+      "sources": [
+        {
+          "team": "t9"
+        },
+        {
+          "winner": "de2"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de7",
+      "round": 2,
+      "bracket": "upper",
+      "label": "Winners · Round 2",
+      "sources": [
+        {
+          "team": "t11"
+        },
+        {
+          "winner": "de3"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de8",
+      "round": 3,
+      "bracket": "lower",
+      "label": "Losers · Round 2",
+      "sources": [
+        {
+          "loser": "de1"
+        },
+        {
+          "loser": "de7"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de9",
+      "round": 3,
+      "bracket": "lower",
+      "label": "Losers · Round 2",
+      "sources": [
+        {
+          "loser": "de2"
+        },
+        {
+          "loser": "de5"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de10",
+      "round": 3,
+      "bracket": "lower",
+      "label": "Losers · Round 2",
+      "sources": [
+        {
+          "loser": "de3"
+        },
+        {
+          "loser": "de4"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de11",
+      "round": 4,
+      "bracket": "lower",
+      "label": "Losers · Round 3",
+      "sources": [
+        {
+          "winner": "de8"
+        },
+        {
+          "loser": "de6"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de12",
+      "round": 4,
+      "bracket": "lower",
+      "label": "Losers · Round 3",
+      "sources": [
+        {
+          "winner": "de9"
+        },
+        {
+          "winner": "de10"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de13",
+      "round": 5,
+      "bracket": "upper",
+      "label": "Winners · Round 3",
+      "sources": [
+        {
+          "winner": "de4"
+        },
+        {
+          "winner": "de5"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de14",
+      "round": 5,
+      "bracket": "upper",
+      "label": "Winners · Round 3",
+      "sources": [
+        {
+          "winner": "de6"
+        },
+        {
+          "winner": "de7"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de15",
+      "round": 6,
+      "bracket": "lower",
+      "label": "Losers · Round 4",
+      "sources": [
+        {
+          "winner": "de11"
+        },
+        {
+          "loser": "de14"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de16",
+      "round": 6,
+      "bracket": "lower",
+      "label": "Losers · Round 4",
+      "sources": [
+        {
+          "winner": "de12"
+        },
+        {
+          "loser": "de13"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de17",
+      "round": 7,
+      "bracket": "lower",
+      "label": "Losers · Round 5",
+      "sources": [
+        {
+          "winner": "de15"
+        },
+        {
+          "winner": "de16"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de18",
+      "round": 8,
+      "bracket": "upper",
+      "label": "Winners · Round 4",
+      "sources": [
+        {
+          "winner": "de13"
+        },
+        {
+          "winner": "de14"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de19",
+      "round": 9,
+      "bracket": "lower",
+      "label": "Losers · Round 6",
+      "sources": [
+        {
+          "winner": "de17"
+        },
+        {
+          "loser": "de18"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "f1",
+      "round": 10,
+      "bracket": "final",
+      "label": "Grand final",
+      "sources": [
+        {
+          "winner": "de18"
+        },
+        {
+          "winner": "de19"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "f2",
+      "round": 11,
+      "bracket": "final",
+      "label": "Grand final reset · if needed",
+      "resetOf": "f1",
+      "sources": [
+        {
+          "winner": "de18"
+        },
+        {
+          "winner": "de19"
+        }
+      ],
+      "result": null
+    }
+  ],
   "headers": {
     "brand": "Pull up gang",
     "banner": "Tournament"
-  }
+  },
+  "format": "double",
+  "qualifiersPerGroup": 2,
+  "teamSize": 1,
+  "mode": "1v1"
 }
