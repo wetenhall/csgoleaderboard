@@ -290,7 +290,7 @@ function renderTournament(data) {
   bracketRoot.classList.toggle('double-bracket',data.format==='double');
   if(data.format==='double')renderConnectedBracket(bracketRoot,matches,teams);
   else [...new Set(matches.filter(match => !match.group).map(match => match.round))].sort((a,b)=>a-b).forEach(round => {
-    const column=element('div', 'round round-'+round),heading=element('h3','round-heading',knockoutRoundName({round},matches));
+    const column=element('div', 'round round-'+round),heading=element('h3','round-heading',data.format==='single'?'5v5 · '+(matches[0].map || 'Map pending'):knockoutRoundName({round},matches));
     heading.append(element('span','',String(round+1).padStart(2,'0')));column.append(heading);
     const list=element('div','match-list');matches.filter(match=>match.round===round).forEach(match=>list.append(matchCard(match)));
     column.append(list);bracketRoot.append(column);

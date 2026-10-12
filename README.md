@@ -81,3 +81,5 @@ Connected organisers can manage archives in History: expand a cup and choose Del
 Squads (5v5) wheel draws fill teams in rotation: Team 01, Team 02, Team 03 (when present), then back to Team 01. Each team receives one player per pass until it has five. The live roster, reveal announcement and published groups or elimination fixtures use the same assignments. Duos keep their existing draw order.
 
 For a custom 5v5 game, choose Squads and Tournament format: One match. Select exactly ten players, draw two squads in rotation, then publish one fixture using a map from the selected pool. Group settings are hidden for this format. Scores and individual player stats work as usual.
+
+In Squads / One match, completing the player draw changes the wheel to the selected map pool. Spin for map before publishing. Changing the map pool clears that pick and requires a new map spin. The leaderboard shows the chosen map with the two squads.

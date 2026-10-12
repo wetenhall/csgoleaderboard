@@ -266,6 +266,7 @@ if (typeof document !== 'undefined') (() => {
   const api=repository?.api;
   let current = structuredClone(TOURNAMENT), token = '', fileSha = '', busy = false;
   let featureUI=null;
+  let drawnMap=null;
   let pool = [], remaining = [], selected = [], draw = null, spinning = false, locked = false, drawOrder = [];
   const tokenStorageKey = 'friends-cup.organiser-token.'+(repository?repository.owner+'/'+repository.repo:'unconfigured');
   function storeToken(value) {
@@ -304,10 +305,13 @@ if (typeof document !== 'undefined') (() => {
     $('connect-form').querySelector('button').disabled = busy || !!token || !repository;
     $('refresh-data').disabled = busy;
     $('clear-tournament').disabled = busy || spinning || !token;
-    $('spin').disabled = busy || spinning || !remaining.length;
+    const mapPending=draw?.format==='single' && !remaining.length && !drawnMap;
+    $('spin').textContent=mapPending?'Spin for map':'Spin for next player';
+    $('wheel').setAttribute('aria-label',mapPending?'Map selection wheel':'Player selection wheel');
+    $('spin').disabled = busy || spinning || (!remaining.length && !mapPending) || (mapPending && !selectedMaps().length);
     $('disconnect').disabled = busy;
     $('remember-token').disabled = busy;
-    $('publish-draw').disabled = busy || !draw || !token || draw.format !== $('tournament-format').value || draw.groups.length !== Number($('group-count').value) || draw.qualifiersPerGroup !== Number($('qualifiers-per-group').value) || (Number($('team-size').value)!==1 && !selectedMaps().length);
+    $('publish-draw').disabled = busy || spinning || (draw?.format==='single' && !drawnMap) || !draw || !token || draw.format !== $('tournament-format').value || draw.groups.length !== Number($('group-count').value) || draw.qualifiersPerGroup !== Number($('qualifiers-per-group').value) || (Number($('team-size').value)!==1 && !selectedMaps().length);
     document.querySelectorAll('.result-form button, .tie-form button').forEach(b => { b.disabled = busy || !token; });
     featureUI?.controls();
   }
@@ -412,7 +416,7 @@ if (typeof document !== 'undefined') (() => {
     } catch(error){say(error.message);}
   };
   function resetDrawState() {
-    pool=[];remaining=[];selected=[];draw=null;drawOrder=[];lock(false);
+    drawnMap=null;pool=[];remaining=[];selected=[];draw=null;drawOrder=[];lock(false);
     $('pool-input').value='';$('pool-list').replaceChildren();$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();
     $('group-count').value='1';renderMapOptions();
     $('format-preview').textContent='Choose the format before publishing. Each group needs at least two teams.';
@@ -633,7 +637,7 @@ if (typeof document !== 'undefined') (() => {
     if (solo) return;
     for (const map of MAP_POOLS[Number($('team-size').value)]) {
       const label=element('label'),input=element('input'); input.type='checkbox'; input.value=map; input.checked=true;
-      input.onchange=()=>{updateMapCount();configureDraw();controls();}; label.append(input,document.createTextNode(map)); $('map-options').append(label);
+      input.onchange=()=>{drawnMap=null;updateMapCount();configureDraw();controls();}; label.append(input,document.createTextNode(map)); $('map-options').append(label);
     }
     updateMapCount();
   }
@@ -726,10 +730,11 @@ if (typeof document !== 'undefined') (() => {
     if(Number($('group-count').value)===1 && Number($('qualifiers-per-group').value)===1){announce('Top 1 needs at least two groups to create a knockout stage.');return;}
     if(ids.length<size*2 || ids.length%size)return;
     if(size===1 && $('tournament-format').value!=='double'){try{soloDrawGroups(ids.length,Number($('group-count').value));}catch(error){announce(error.message);return;}}
-    remaining=pool.filter(p=>ids.includes(p.id));selected=[];draw=null;lock(true);resetReveal();showDrawTeams();paintWheel(remaining);controls();
+    drawnMap=null;remaining=pool.filter(p=>ids.includes(p.id));selected=[];draw=null;lock(true);resetReveal();showDrawTeams();paintWheel(remaining);controls();
     announce(size===1 && $('tournament-format').value!=='double'?'Drawing Group A. Spin to select its first player.':'Drawing Team 01. Spin to select its first player.');
   };
   $('spin').onclick=async()=>{
+    if(draw?.format==='single' && !remaining.length){await spinMap();return;}
     if(busy || spinning || !remaining.length)return;
     spinning=true;controls();$('reset-draw').disabled=true;
     await prepareSound();$('player-reveal').classList.remove('revealed');
@@ -761,29 +766,41 @@ if (typeof document !== 'undefined') (() => {
           drawOrder=soloDrawGroups(selected.length,count).flat().map(index=>'t'+(index+1));
           draw=makeTournament(selected,1,current,drawOrder,count,[],Number($('qualifiers-per-group').value));
         }else{draw=makeTournament(selected,size,current);drawOrder=draw.groups.flatMap(g=>g.teams);}
-        configureDraw();announce(size===1 && $('tournament-format').value!=='double'?'Draw complete. Review your groups, then publish. Your selected qualifiers from each group advance to knockouts.':'Draw complete. Review team names and tournament format, then publish.');
+        configureDraw();announce(draw.format==='single'?'Squads complete. Spin again to select the map before publishing.':size===1 && $('tournament-format').value!=='double'?'Draw complete. Review your groups, then publish. Your selected qualifiers from each group advance to knockouts.':'Draw complete. Review team names and tournament format, then publish.');
       }
       showDrawTeams(picked.id);
     } finally {spinning=false;$('reset-draw').disabled=false;controls();}
   };
+  async function spinMap(){
+    if(busy || spinning || !draw || drawnMap || !selectedMaps().length)return;
+    const names=selectedMaps().map(name=>({name})),index=randomIndex(names.length),target=2160+360-(index+.5)*360/names.length;
+    spinning=true;controls();$('reset-draw').disabled=true;
+    try{
+      await prepareSound();$('reveal-label').textContent='MAP DRAW IN PROGRESS';$('reveal-name').textContent='Selecting a map…';
+      const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:4400;
+      if(duration)await new Promise(resolve=>{const start=performance.now();let previous=-1;function frame(now){const fraction=Math.min(1,(now-start)/duration),angle=target*(1-Math.pow(1-fraction,4)),active=Math.floor(((360-angle%360)%360)/360*names.length)%names.length;paintWheel(names,angle,active);if(active!==previous)playTone(850);previous=active;if(fraction<1)requestAnimationFrame(frame);else resolve();}requestAnimationFrame(frame);});
+      drawnMap=names[index].name;configureDraw();paintWheel(names,target,index);$('player-reveal').classList.add('revealed');playTone(1046,0.24);announce(drawnMap+' selected. Publish your squads and map to show the custom match on the leaderboard.');
+    }finally{spinning=false;$('reset-draw').disabled=false;controls();}
+  }
   function configureDraw() {
     if (!draw) return;
     try {
       const order = drawOrder;
       const next = makeTournament(selected,draw.teamSize,current,order,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value),$('tournament-format').value);
       next.teams.forEach((team,i)=>{team.name=draw.teams[i].name;}); draw=next;
+      if(draw.format==='single'){if(drawnMap)draw.matches[0].map=drawnMap;else delete draw.matches[0].map;paintWheel(selectedMaps().map(name=>({name})));$('reveal-label').textContent=drawnMap?'SELECTED MAP':'MAP DRAW';$('reveal-name').textContent=drawnMap || 'Spin to choose your map';$('reveal-avatar').textContent='MAP';}
       $('format-preview').textContent = draw.groups.length ? draw.groups.map(g=>'Group '+g.id+': '+g.teams.length+' teams').join(' · ') + ' · Top '+draw.qualifiersPerGroup+' advance from each group.' + (draw.groups.length === 3 ? ' Byes fill the knockout bracket automatically.' : '') : (draw.format==='single'?'One match · Two squads of five · ':draw.format==='double'?'Double elimination (includes a reset final if needed) · ':'Straight knockout · ')+draw.matches.length+' game'+(draw.matches.length === 1 ? '' : 's')+(draw.format==='single'?' · Ready for your custom game.':' · Byes advance automatically.');
       showDrawTeams();
       $('draw-fixtures').replaceChildren(element('h3','fixture-heading',draw.teamSize===1?'Fixtures · choose maps in server':'Fixture map preview'));
       const list=element('ol','map-preview');
-      orderedMatches(draw.matches).forEach(match=>list.append(element('li','',match.id.toUpperCase()+' · '+(match.map || 'Choose map in server'))));
+      orderedMatches(draw.matches).forEach(match=>list.append(element('li','',match.id.toUpperCase()+' · '+(match.map || (draw.format==='single'?'Awaiting map spin':'Choose map in server')))));
       $('draw-fixtures').append(list);
     } catch(error) { $('format-preview').textContent = error.message; $('draw-fixtures').replaceChildren(); }
     controls();
   }
   $('group-count').onchange = $('qualifiers-per-group').onchange = ()=>{selectionCount();configureDraw();controls();};
-  $('reset-draw').onclick=()=>{if(spinning || busy)return;if(selected.length && !confirm('Discard this unpublished draw?'))return;selected=[];remaining=[];draw=null;lock(false);$('spin').disabled=true;$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();$('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();announce('Select your players to start a new draw.');};
-  $('publish-draw').onclick=async()=>{if(!draw || !token || busy || draw.groups.length !== Number($('group-count').value) || draw.qualifiersPerGroup !== Number($('qualifiers-per-group').value) || (Number($('team-size').value)!==1 && !selectedMaps().length))return;if(!confirm(`Publish these ${draw.teams.length} ${draw.teamSize===1?'solo':draw.teamSize===2?'duo':'squad'} teams and replace the current tournament, including all existing results and player stats?`))return;try{const next=structuredClone(draw);if(current.history)next.history=structuredClone(current.history);else delete next.history;await publish(next,'Publish new player draw and tournament groups');draw=null;selected=[];$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();announce('Teams and groups saved. Open Fixtures to run the tournament.');}catch(error){announce(error.message);}};
+  $('reset-draw').onclick=()=>{if(spinning || busy)return;if(selected.length && !confirm('Discard this unpublished draw?'))return;drawnMap=null;selected=[];remaining=[];draw=null;lock(false);$('spin').disabled=true;$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();$('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();announce('Select your players to start a new draw.');};
+  $('publish-draw').onclick=async()=>{if(!draw || !token || busy || spinning || (draw.format==='single' && !drawnMap) || draw.groups.length !== Number($('group-count').value) || draw.qualifiersPerGroup !== Number($('qualifiers-per-group').value) || (Number($('team-size').value)!==1 && !selectedMaps().length))return;if(!confirm(`Publish these ${draw.teams.length} ${draw.teamSize===1?'solo':draw.teamSize===2?'duo':'squad'} teams and replace the current tournament, including all existing results and player stats?`))return;try{const next=structuredClone(draw);if(current.history)next.history=structuredClone(current.history);else delete next.history;await publish(next,'Publish new player draw and tournament groups');draw=null;selected=[];$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();announce('Teams and groups saved. Open Fixtures to run the tournament.');}catch(error){announce(error.message);}};
   const drawStage=$('draw-stage'),fullscreenButton=$('fullscreen-draw');
   let expandedDraw=false;
   function setExpandedDraw(active) {
