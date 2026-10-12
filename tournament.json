@@ -7,12 +7,12 @@
       "tag": "01",
       "players": [
         {
-          "id": "p1",
-          "name": "frodo"
+          "id": "p3",
+          "name": "cantlon"
         },
         {
-          "id": "p2",
-          "name": "ribe"
+          "id": "p7",
+          "name": "dan"
         }
       ]
     },
@@ -22,12 +22,12 @@
       "tag": "02",
       "players": [
         {
-          "id": "p7",
-          "name": "dan"
+          "id": "p4",
+          "name": "tart"
         },
         {
-          "id": "p6",
-          "name": "sam"
+          "id": "p1",
+          "name": "frodo"
         }
       ]
     },
@@ -41,8 +41,8 @@
           "name": "grayzee"
         },
         {
-          "id": "p3",
-          "name": "cantlon"
+          "id": "p8",
+          "name": "part"
         }
       ]
     },
@@ -52,209 +52,54 @@
       "tag": "04",
       "players": [
         {
-          "id": "p9",
-          "name": "aatori"
+          "id": "p2",
+          "name": "ribe"
         },
         {
-          "id": "p10",
-          "name": "omni"
-        }
-      ]
-    },
-    {
-      "id": "t5",
-      "name": "Team 05",
-      "tag": "05",
-      "players": [
-        {
-          "id": "p8",
-          "name": "part"
-        },
-        {
-          "id": "p4",
-          "name": "tart"
+          "id": "p6",
+          "name": "sam"
         }
       ]
     }
   ],
-  "groups": [
-    {
-      "id": "A",
-      "teams": [
-        "t4",
-        "t1",
-        "t5",
-        "t2",
-        "t3"
-      ],
-      "tiebreakOrder": []
-    }
-  ],
+  "groups": [],
   "matches": [
     {
-      "id": "a1",
-      "group": "A",
-      "teams": [
-        "t1",
-        "t3"
-      ],
-      "result": {
-        "teams": [
-          "t1",
-          "t3"
-        ],
-        "scores": [
-          7,
-          6
-        ],
-        "players": {
-          "p1": {
-            "kills": 4,
-            "deaths": 3,
-            "assists": 2
-          },
-          "p2": {
-            "kills": 5,
-            "deaths": 2,
-            "assists": 3
-          },
-          "p5": {
-            "kills": 3,
-            "deaths": 4,
-            "assists": 4
-          },
-          "p3": {
-            "kills": 2,
-            "deaths": 5,
-            "assists": 2
-          }
+      "id": "k1-1",
+      "round": 0,
+      "sources": [
+        {
+          "team": "t4"
+        },
+        {
+          "team": "t1"
         }
-      }
+      ],
+      "result": null
     },
     {
-      "id": "a2",
-      "group": "A",
-      "teams": [
-        "t5",
-        "t2"
-      ],
-      "result": {
-        "teams": [
-          "t5",
-          "t2"
-        ],
-        "scores": [
-          6,
-          7
-        ],
-        "players": {
-          "p8": {
-            "kills": 4,
-            "deaths": 5,
-            "assists": 4
-          },
-          "p4": {
-            "kills": 3,
-            "deaths": 3,
-            "assists": 5
-          },
-          "p7": {
-            "kills": 5,
-            "deaths": 2,
-            "assists": 6
-          },
-          "p6": {
-            "kills": 6,
-            "deaths": 1,
-            "assists": 3
-          }
+      "id": "k1-2",
+      "round": 0,
+      "sources": [
+        {
+          "team": "t2"
+        },
+        {
+          "team": "t3"
         }
-      }
-    },
-    {
-      "id": "a3",
-      "group": "A",
-      "teams": [
-        "t4",
-        "t3"
-      ],
-      "result": null
-    },
-    {
-      "id": "a4",
-      "group": "A",
-      "teams": [
-        "t1",
-        "t5"
-      ],
-      "result": null
-    },
-    {
-      "id": "a5",
-      "group": "A",
-      "teams": [
-        "t4",
-        "t2"
-      ],
-      "result": null
-    },
-    {
-      "id": "a6",
-      "group": "A",
-      "teams": [
-        "t3",
-        "t5"
-      ],
-      "result": null
-    },
-    {
-      "id": "a7",
-      "group": "A",
-      "teams": [
-        "t4",
-        "t5"
-      ],
-      "result": null
-    },
-    {
-      "id": "a8",
-      "group": "A",
-      "teams": [
-        "t2",
-        "t1"
-      ],
-      "result": null
-    },
-    {
-      "id": "a9",
-      "group": "A",
-      "teams": [
-        "t4",
-        "t1"
-      ],
-      "result": null
-    },
-    {
-      "id": "a10",
-      "group": "A",
-      "teams": [
-        "t2",
-        "t3"
       ],
       "result": null
     },
     {
       "id": "f1",
       "round": 1,
-      "seeds": [
-        [
-          "A",
-          0
-        ],
-        [
-          "A",
-          1
-        ]
+      "sources": [
+        {
+          "winner": "k1-1"
+        },
+        {
+          "winner": "k1-2"
+        }
       ],
       "result": null
     }
