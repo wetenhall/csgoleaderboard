@@ -51,7 +51,22 @@ function manualRosters(players,assignments,size){
   if(byId.size!==players.length || new Set(assignments).size!==players.length || assignments.some(id=>!byId.has(id)))throw Error('Assign every selected player once, with no empty slots.');
   return Array.from({length:players.length/size},(_,i)=>assignments.slice(i*size,(i+1)*size).map(id=>structuredClone(byId.get(id))));
 }
-if(typeof module!=='undefined')module.exports={validServerAddress,balanceRosters,swapDraftPlayers,discordMatchText,advanceMapVeto,manualRosters};
+function createCaptainCases(players,size,captains,caseOrder){
+  if(![2,5].includes(size) || players.length!==size*2 || new Set(players.map(p=>p.id)).size!==players.length)throw Error('Captain cases need exactly two complete teams.');
+  const byId=new Map(players.map(p=>[p.id,p]));
+  if(captains.length!==2 || captains[0]===captains[1] || captains.some(id=>!byId.has(id)))throw Error('Choose two different captains from the selected players.');
+  const remaining=players.filter(p=>!captains.includes(p.id));
+  if(caseOrder.length!==remaining.length || new Set(caseOrder).size!==remaining.length || caseOrder.some(id=>!remaining.some(p=>p.id===id)))throw Error('Every remaining player needs one case.');
+  return {size,teams:captains.map((id,i)=>({id:'t'+(i+1),name:'Team '+String(i+1).padStart(2,'0'),tag:String(i+1).padStart(2,'0'),captainId:id,players:[structuredClone(byId.get(id))]})),cases:caseOrder.map(id=>({player:structuredClone(byId.get(id)),opened:false})),turn:0};
+}
+function openCaptainCase(state,index){
+  if(!Number.isInteger(index) || !state.cases[index] || state.cases[index].opened || state.turn>=state.cases.length)throw Error('Choose an unopened case.');
+  const next=structuredClone(state),team=next.teams[next.turn%2];
+  if(team.players.length>=next.size)throw Error('This team is already full.');
+  next.cases[index].opened=true;next.cases[index].teamId=team.id;team.players.push(next.cases[index].player);next.turn++;
+  return next;
+}
+if(typeof module!=='undefined')module.exports={validServerAddress,balanceRosters,swapDraftPlayers,discordMatchText,advanceMapVeto,manualRosters,createCaptainCases,openCaptainCase};
 
 function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMaps,beginRematch,notify}) {
   const $=id=>document.getElementById(id);

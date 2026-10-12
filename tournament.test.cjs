@@ -357,7 +357,7 @@ test('draw button accepts solo double elimination without groups and preserves g
  const source=fs.readFileSync('manager.js','utf8');
  const selection=source.slice(source.indexOf('  function selectionCount()'),source.indexOf('  function selectedMaps()'));
  function check({count,size=1,groups=0,format='double',locked=false}){
-  const nodes={'pool-list':{querySelectorAll:()=>Array(count).fill({})},'team-size':{value:String(size)},'group-count':{value:String(groups)},'qualifiers-per-group':{value:'2'},'tournament-format':{value:format},'pool-count':{},'start-draw':{}};
+  const nodes={'team-creation':{value:'wheel'},'pool-list':{querySelectorAll:()=>Array(count).fill({})},'team-size':{value:String(size)},'group-count':{value:String(groups)},'qualifiers-per-group':{value:'2'},'tournament-format':{value:format},'pool-count':{},'start-draw':{}};
   vm.runInNewContext(selection+'\nselectionCount();',{$:id=>nodes[id],locked});
   return nodes['start-draw'].disabled;
  }
@@ -598,4 +598,34 @@ test('manual squads preserve chosen rosters and reject duplicate or missing play
 });
 test('manual duos support arbitrary complete teams',()=>{
   const {manualRosters}=require('./game-night.js');const players=Array.from({length:6},(_,i)=>({id:'p'+i,name:'Player '+i}));const rosters=manualRosters(players,players.map(p=>p.id),2);assert.equal(rosters.length,3);assert.ok(rosters.every(r=>r.length===2));assert.throws(()=>manualRosters(players.slice(1),players.slice(1).map(p=>p.id),2));
+});
+
+test('captain cases alternate picks, include captains and retain every squad player once',()=>{
+  const {createCaptainCases,openCaptainCase}=require('./game-night.js');
+  const players=Array.from({length:10},(_,i)=>({id:'p'+i,name:'Player '+i}));
+  let draft=createCaptainCases(players,5,['p0','p9'],players.slice(1,9).map(p=>p.id));
+  const original=structuredClone(draft);
+  for(const index of [7,0,5,2,1,6,3,4]){
+    const turn=draft.turn,player=draft.cases[index].player.id;
+    draft=openCaptainCase(draft,index);
+    assert.equal(draft.teams[turn%2].players.at(-1).id,player);
+    assert.throws(()=>openCaptainCase(draft,index));
+  }
+  assert.ok(draft.teams.every(t=>t.players.length===5 && t.players[0].id===t.captainId));
+  assert.equal(new Set(draft.teams.flatMap(t=>t.players.map(p=>p.id))).size,10);
+  assert.equal(original.turn,0);assert.equal(original.teams[0].players.length,1);
+  const cup=makeTournament(players,5,{name:'Captain match'},undefined,0,['Cache'],2,'single');cup.teams=draft.teams;
+  assert.deepEqual(resolveTournament(cup).matches[0].ids.slice().sort(),['t1','t2']);
+});
+test('captain duos validate captains, pool and hidden case assignments',()=>{
+  const {createCaptainCases,openCaptainCase}=require('./game-night.js');
+  const players=Array.from({length:4},(_,i)=>({id:'p'+i,name:'Player '+i}));
+  const draft=createCaptainCases(players,2,['p0','p1'],['p3','p2']);
+  const done=openCaptainCase(openCaptainCase(draft,1),0);
+  assert.deepEqual(done.teams.map(t=>t.players.map(p=>p.id)),[['p0','p2'],['p1','p3']]);
+  assert.throws(()=>createCaptainCases(players,2,['p0','p0'],['p3','p2']));
+  assert.throws(()=>createCaptainCases(players,2,['p0','missing'],['p3','p2']));
+  assert.throws(()=>createCaptainCases(players,2,['p0','p1'],['p3','p3']));
+  assert.throws(()=>createCaptainCases(players,5,['p0','p1'],['p3','p2']));
+  assert.throws(()=>openCaptainCase(draft,-1));
 });

@@ -269,7 +269,7 @@ if (typeof document !== 'undefined') (() => {
   const api=repository?.api;
   let current = structuredClone(TOURNAMENT), token = '', fileSha = '', busy = false;
   let featureUI=null,gameNightUI=null,rematchSource=null;
-  let drawnMap=null,manualAssignments=[],manualNames=[],autoSpinTimer=null;
+  let drawnMap=null,manualAssignments=[],manualNames=[],autoSpinTimer=null,captainDraft=null;
   let pool = [], remaining = [], selected = [], draw = null, spinning = false, locked = false, drawOrder = [];
   const tokenStorageKey = 'friends-cup.organiser-token.'+(repository?repository.owner+'/'+repository.repo:'unconfigured');
   function storeToken(value) {
@@ -290,8 +290,15 @@ if (typeof document !== 'undefined') (() => {
   $('auto-spin').onchange=()=>queueAutoSpin(0);
   function controls() {
     const manual=$('team-creation').value==='manual';
+    const captains=$('team-creation').value==='captains';
+    $('captain-case-panel').hidden=!captains || !locked;
+    document.querySelector('.wheel-panel').hidden=captains && (!draw || draw.format!=='single');
+    $('draw-animation').closest('label').hidden=captains && !draw;
+    $('draw-stage').classList.toggle('captain-style',captains);
+    $('captain-choices').querySelectorAll('select,button').forEach(input=>{input.disabled=busy || spinning || !!captainDraft || !token;});
+    $('captain-case-grid').querySelectorAll('button').forEach((button,i)=>{button.disabled=busy || spinning || !token || !!captainDraft?.cases[i].opened;});
     $('team-creation').disabled=busy || locked;
-    $('start-draw').textContent=manual?'Lock players & create teams':$('team-creation').value==='case'?'Lock players & start reel':'Lock players & start draw';
+    $('start-draw').textContent=captains?'Lock players & choose captains':manual?'Lock players & create teams':$('team-creation').value==='case'?'Lock players & start reel':'Lock players & start draw';
     $('manual-teams').hidden=!manual || !locked || !manualAssignments.length;
     $('manual-team-list').querySelectorAll('input,select').forEach(input=>{input.disabled=busy || !token;});
     $('use-manual-teams').disabled=busy || !token || manualAssignments.some(id=>!id) || !manualAssignments.length || new Set(manualAssignments).size!==manualAssignments.length;
@@ -320,8 +327,8 @@ if (typeof document !== 'undefined') (() => {
     $('qualifiers-per-group').closest('label').hidden=$('tournament-format').value!=='groups';
     $('double-note').hidden=$('tournament-format').value!=='double';
     $('single-match-note').hidden=$('tournament-format').value!=='single';
-    $('group-count').disabled = busy || spinning || (locked && Number($('team-size').value)===1);
-    $('map-options').querySelectorAll('input').forEach(input=>{input.disabled=busy || spinning;});
+    $('group-count').disabled = busy || spinning || (!!captainDraft && !draw) || (locked && Number($('team-size').value)===1);
+    $('map-options').querySelectorAll('input').forEach(input=>{input.disabled=busy || spinning || (!!captainDraft && !draw);});
     $('disconnect').hidden = !token;
     $('connect-form').querySelector('button').disabled = busy || !!token || !repository;
     $('refresh-data').disabled = busy;
@@ -329,7 +336,7 @@ if (typeof document !== 'undefined') (() => {
     const mapPending=draw?.format==='single' && !remaining.length && !drawnMap;
     $('spin').textContent=mapPending?'Spin for map':'Spin for next player';
     $('wheel').setAttribute('aria-label',mapPending?'Map selection wheel':'Player selection wheel');
-    $('spin').disabled = busy || spinning || (!remaining.length && !mapPending) || (mapPending && (!selectedMaps().length || draw.mapMethod==='veto'));
+    $('spin').disabled = (captains && (!draw || remaining.length>0)) || busy || spinning || (!remaining.length && !mapPending) || (mapPending && (!selectedMaps().length || draw.mapMethod==='veto'));
     $('disconnect').disabled = busy;
     $('remember-token').disabled = busy;
     $('publish-draw').disabled = busy || spinning || (draw?.format==='single' && !drawnMap) || !draw || !token || draw.format !== $('tournament-format').value || draw.groups.length !== Number($('group-count').value) || draw.qualifiersPerGroup !== Number($('qualifiers-per-group').value) || (Number($('team-size').value)!==1 && !selectedMaps().length);
@@ -439,6 +446,7 @@ if (typeof document !== 'undefined') (() => {
   };
   function resetDrawState() {
     stopAutoSpin();
+    captainDraft=null;$('captain-choices').replaceChildren();$('captain-case-grid').replaceChildren();
     manualAssignments=[];manualNames=[];$('manual-team-list').replaceChildren();rematchSource=null;drawnMap=null;pool=[];remaining=[];selected=[];draw=null;drawOrder=[];lock(false);
     $('pool-input').value='';$('pool-list').replaceChildren();$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();
     $('group-count').value='1';renderMapOptions();gameNightUI?.renderDraft();
@@ -630,6 +638,7 @@ if (typeof document !== 'undefined') (() => {
   function selectionCount() {
     const count=$('pool-list').querySelectorAll('input:checked').length,size=Number($('team-size').value),teams=Math.floor(count/size),extra=count%size,groups=Number($('group-count').value);
     const qualifiers=Number($('qualifiers-per-group').value);
+    if($('team-creation').value==='captains' && count!==size*2){$('pool-count').textContent=count+' / '+(size*2)+' selected · Captain cases create exactly two teams.';$('start-draw').disabled=true;return;}
     if($('tournament-format').value==='single'){
       $('pool-count').textContent=count+' / 10 players selected · One match · Two squads of five'+(count===10?' · Ready to draw.':count<10?' · Select '+(10-count)+' more.':' · Deselect '+(count-10)+' players.');
       $('start-draw').disabled=locked || size!==5 || count!==10;return;
@@ -688,8 +697,9 @@ if (typeof document !== 'undefined') (() => {
   async function prepareSound(){
     try { if(soundEnabled){const Audio=window.AudioContext || window.webkitAudioContext;if(!Audio)throw Error();audioContext ||= new Audio();await audioContext.resume();} }
     catch {soundEnabled=false;}
-    $('sound-toggle').setAttribute('aria-pressed',String(soundEnabled));$('sound-toggle').textContent=soundEnabled?'Sound on · Mute':'Sound off';
+    for(const id of ['sound-toggle','captain-sound']){$(id).setAttribute('aria-pressed',String(soundEnabled));$(id).textContent=soundEnabled?'Sound on · Mute':'Sound off';}
   }
+  $('captain-sound').onclick=()=>$('sound-toggle').click();
   $('sound-toggle').onclick=async()=>{
     soundEnabled=!soundEnabled;await prepareSound();
     if(soundEnabled)playTone(660,0.1);
@@ -736,7 +746,7 @@ if (typeof document !== 'undefined') (() => {
     ctx.fillStyle='#ff9b01';ctx.beginPath();ctx.moveTo(536,12);ctx.lineTo(564,12);ctx.lineTo(550,40);ctx.closePath();ctx.fill();ctx.fillRect(549,40,2,282);ctx.beginPath();ctx.moveTo(536,346);ctx.lineTo(564,346);ctx.lineTo(550,320);ctx.closePath();ctx.fill();
   }
   $('draw-animation').onchange=()=>{
-    const reel=$('draw-animation').value==='case';if($('team-creation').value!=='manual')$('team-creation').value=reel?'case':'wheel';$('case-reel-wrap').hidden=!reel;document.querySelector('.wheel-wrap').hidden=reel;$('draw-stage').classList.toggle('case-style',reel);paintWheel(...wheelFrame);controls();
+    const reel=$('draw-animation').value==='case';if(!['manual','captains'].includes($('team-creation').value))$('team-creation').value=reel?'case':'wheel';$('case-reel-wrap').hidden=!reel;document.querySelector('.wheel-wrap').hidden=reel;$('draw-stage').classList.toggle('case-style',reel);paintWheel(...wheelFrame);controls();
   };
   function resetReveal(){ $('reveal-avatar').textContent='?';$('reveal-label').textContent='NEXT RECRUIT';$('reveal-name').textContent='Who’s joining your team?';$('player-reveal').classList.remove('revealed');$('draw-progress').value=0;$('draw-progress-label').textContent='Load players to start'; }
   function showDrawTeams(latestId=null) {
@@ -757,19 +767,19 @@ if (typeof document !== 'undefined') (() => {
       });
       return;
     }
-    $('draw-progress-label').textContent=total?selected.length+' of '+total+' players selected · '+(remaining.length?'Next: Team '+String(size===5?selected.length%(total/size)+1:Math.floor(selected.length/size)+1).padStart(2,'0'):'All teams complete'):'Load players to start';
-    const drawnTeams=draw?draw.teams.map(t=>t.players):drawTeamMembers(selected,size,total);
+    $('draw-progress-label').textContent=total?selected.length+' of '+total+' players selected · '+(remaining.length?'Next: Team '+String(captainDraft?captainDraft.turn%2+1:size===5?selected.length%(total/size)+1:Math.floor(selected.length/size)+1).padStart(2,'0'):'All teams complete'):'Load players to start';
+    const drawnTeams=draw?draw.teams.map(t=>t.players):captainDraft?captainDraft.teams.map(t=>t.players):drawTeamMembers(selected,size,total);
     for(let i=0;i<total/size;i++){
       const members=drawnTeams[i],complete=members.length===size,latest=members.some(p=>p.id===latestId);
       const card=element('div','draw-team'+(complete?' team-complete':'')+(latest&&complete?' team-flash':''));card.style.setProperty('--team-colour',teamColours[i%teamColours.length]);
       const label=element('label','', 'Team '+String(i+1).padStart(2,'0')),name=element('input');name.value=draw?.teams[i].name || 'Team '+String(i+1).padStart(2,'0');name.maxLength=60;name.disabled=!draw;name.oninput=()=>{draw.teams[i].name=name.value.trim();};label.append(name);card.append(label);
-      for(let j=0;j<size;j++) {const player=members[j],slot=element('div','draft-slot'+(player?' filled':'')+(player?.id===latestId?' player-arrives':''));slot.append(element('span','slot-avatar',player?initials(player.name):String(j+1)),element('span','',player?player.name+(draw?.teams[i].captainId===player.id?' · Captain':''):'Awaiting player'));card.append(slot);}
+      for(let j=0;j<size;j++) {const player=members[j],slot=element('div','draft-slot'+(player?' filled':'')+(player?.id===latestId?' player-arrives':''));slot.append(element('span','slot-avatar',player?initials(player.name):String(j+1)),element('span','',player?player.name+((draw?.teams[i].captainId || captainDraft?.teams[i].captainId)===player.id?' · Captain':''):'Awaiting player'));card.append(slot);}
       card.append(element('p','team-state',complete?'TEAM COMPLETE':members.length+' / '+size+' PLAYERS'));
       if(draw)card.append(element('p','accent',draw.groups.length?'Group '+draw.groups.find(g=>g.teams.includes(draw.teams[i].id)).id:draw.format==='single'?'One match':'Knockout'));
       $('draw-teams').append(card);
     }
   }
-  $('team-creation').onchange=()=>{if($('team-creation').value!=='manual'){$('draw-animation').value=$('team-creation').value;$('draw-animation').onchange();}controls();};
+  $('team-creation').onchange=()=>{if($('team-creation').value==='captains')stopAutoSpin();if(!['manual','captains'].includes($('team-creation').value)){$('draw-animation').value=$('team-creation').value;$('draw-animation').onchange();}selectionCount();controls();};
   function invalidateManualTeams(){draw=null;drawnMap=null;gameNightUI?.renderDraft();$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();$('format-preview').textContent='Assign every selected player, then click Use these teams.';controls();}
   function updateManualSlots(){
     $('manual-team-list').querySelectorAll('select').forEach((select,slot)=>{
@@ -795,15 +805,46 @@ if (typeof document !== 'undefined') (() => {
       draw.teams.forEach((team,i)=>{team.players=rosters[i];team.name=manualNames[i].trim();});drawOrder=draw.teams.map(team=>team.id);configureDraw();$('manual-status').textContent='Teams ready. '+(draw.format==='single'?'Choose your map, then publish.':'Publish when you are ready.');controls();
     }catch(error){$('manual-status').textContent=error.message;}
   };
+  function showCaptainChoices(){
+    const root=$('captain-choices');root.replaceChildren();$('captain-case-status').textContent='Choose two captains. Each captain starts on their own team, then takes turns choosing a numbered case.';
+    const picks=[0,1].map(i=>{const label=element('label','','Team '+String(i+1).padStart(2,'0')+' captain'),select=element('select'),blank=element('option','','Choose captain');blank.value='';select.append(blank);remaining.forEach(player=>{const option=element('option','',player.name);option.value=player.id;select.append(option);});label.append(select);root.append(label);return select;});
+    const start=element('button','','Start captain draft');start.type='button';start.onclick=()=>{
+      if(busy || spinning || !token)return;
+      try{const ids=picks.map(select=>select.value),size=Number($('team-size').value);
+        makeTournament(remaining,size,current,undefined,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value),$('tournament-format').value);
+        captainDraft=createCaptainCases(remaining,size,ids,shuffle(remaining.filter(p=>!ids.includes(p.id)).map(p=>p.id)));
+        selected=captainDraft.teams.map(team=>team.players[0]);remaining=remaining.filter(player=>!ids.includes(player.id));renderCaptainCases();showDrawTeams();controls();
+      }catch(error){$('captain-case-status').textContent=error.message;}
+    };root.append(start);
+  }
+  function renderCaptainCases(){
+    const root=$('captain-case-grid');root.replaceChildren();if(!captainDraft)return;
+    const complete=captainDraft.turn===captainDraft.cases.length,team=captainDraft.teams[captainDraft.turn%2],captain=team.players.find(p=>p.id===team.captainId);
+    $('captain-case-status').textContent=complete?'Both teams are complete. '+($('tournament-format').value==='single'?'Choose the map below, then publish.':'Ready to publish.'):'Next pick: '+captain.name+' · '+team.name+'. Click a case on behalf of the captain.';
+    captainDraft.cases.forEach((item,i)=>{
+      const button=element('button','captain-case'+(item.opened?' case-opened':'')),art=element('span','captain-case-art');button.type='button';art.setAttribute('aria-hidden','true');art.append(element('span','case-lid'),element('span','case-body'),element('span','case-lock','?'));button.append(art,element('span','case-number','CASE '+String(i+1).padStart(2,'0')));
+      if(item.opened){button.append(element('strong','',item.player.name),element('small','',captainDraft.teams.find(team=>team.id===item.teamId).name));}else button.setAttribute('aria-label','Open case '+(i+1));
+      button.onclick=async()=>{
+        if(!token || busy || spinning || captainDraft.cases[i].opened)return;
+        spinning=true;stopAutoSpin();controls();$('reset-draw').disabled=true;button.classList.add('case-opening');$('captain-case-status').textContent='Opening case '+(i+1)+' for '+captain.name+'…';
+        try{await prepareSound();playTone(440,.15);if(!matchMedia('(prefers-reduced-motion: reduce)').matches)await new Promise(resolve=>setTimeout(resolve,900));
+          captainDraft=openCaptainCase(captainDraft,i);const player=captainDraft.cases[i].player;remaining=remaining.filter(p=>p.id!==player.id);selected.push(player);playTone(1046,.24);
+          if(!remaining.length){draw=makeTournament(selected,Number($('team-size').value),current,undefined,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value),$('tournament-format').value);draw.teams=structuredClone(captainDraft.teams);drawOrder=draw.teams.map(team=>team.id);configureDraw();}
+          renderCaptainCases();showDrawTeams(player.id);$('captain-case-status').textContent=player.name+' joins '+team.name+'. '+$('captain-case-status').textContent;
+        }catch(error){$('captain-case-status').textContent=error.message;}finally{spinning=false;$('reset-draw').disabled=false;controls();}
+      };root.append(button);
+    });
+  }
   function lock(value){locked=value;['team-creation','team-size','pool-input','load-pool','start-draw'].forEach(id=>{$(id).disabled=value;});$('pool-list').querySelectorAll('input').forEach(i=>{i.disabled=value;});}
   $('start-draw').onclick=()=>{
     if(busy)return;
     const ids=[...$('pool-list').querySelectorAll('input:checked')].map(i=>i.value),size=Number($('team-size').value);
     if($('tournament-format').value==='single' && (size!==5 || ids.length!==10)){announce('Select exactly 10 players for one 5v5 match.');return;}
     if(Number($('group-count').value)===1 && Number($('qualifiers-per-group').value)===1){announce('Top 1 needs at least two groups to create a knockout stage.');return;}
+    if($('team-creation').value==='captains' && ids.length!==size*2){announce('Select exactly '+(size*2)+' players for two captain-led teams.');return;}
     if(ids.length<size*2 || ids.length%size)return;
     if(size===1 && $('tournament-format').value!=='double'){try{soloDrawGroups(ids.length,Number($('group-count').value));}catch(error){announce(error.message);return;}}
-    manualAssignments=[];manualNames=[];rematchSource=null;drawnMap=null;remaining=pool.filter(p=>ids.includes(p.id));selected=[];draw=null;lock(true);resetReveal();if($('team-creation').value==='manual'){selected=[...remaining];remaining=[];manualAssignments=selected.map(()=>'');manualNames=Array.from({length:selected.length/size},(_,i)=>'Team '+String(i+1).padStart(2,'0'));renderManualTeams();controls();return;}showDrawTeams();paintWheel(remaining);controls();
+    captainDraft=null;$('captain-choices').replaceChildren();$('captain-case-grid').replaceChildren();manualAssignments=[];manualNames=[];rematchSource=null;drawnMap=null;remaining=pool.filter(p=>ids.includes(p.id));selected=[];draw=null;lock(true);resetReveal();if($('team-creation').value==='captains'){stopAutoSpin();showCaptainChoices();showDrawTeams();controls();return;}if($('team-creation').value==='manual'){selected=[...remaining];remaining=[];manualAssignments=selected.map(()=>'');manualNames=Array.from({length:selected.length/size},(_,i)=>'Team '+String(i+1).padStart(2,'0'));renderManualTeams();controls();return;}showDrawTeams();paintWheel(remaining);controls();
     announce(size===1 && $('tournament-format').value!=='double'?'Drawing Group A. Spin to select its first player.':'Drawing Team 01. Spin to select its first player.');
   };
   $('spin').onclick=async()=>{
@@ -872,8 +913,8 @@ if (typeof document !== 'undefined') (() => {
     controls();
   }
   $('group-count').onchange = $('qualifiers-per-group').onchange = ()=>{selectionCount();configureDraw();controls();};
-  $('reset-draw').onclick=()=>{if(spinning || busy)return;if(selected.length && !confirm('Discard this unpublished draw?'))return;stopAutoSpin();manualAssignments=[];manualNames=[];$('manual-team-list').replaceChildren();rematchSource=null;drawnMap=null;selected=[];remaining=[];draw=null;gameNightUI?.renderDraft();lock(false);$('spin').disabled=true;$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();$('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();announce('Select your players to start a new draw.');};
-  $('publish-draw').onclick=async()=>{if(!draw || !token || busy || spinning || (draw.format==='single' && !drawnMap) || draw.groups.length !== Number($('group-count').value) || draw.qualifiersPerGroup !== Number($('qualifiers-per-group').value) || (Number($('team-size').value)!==1 && !selectedMaps().length))return;if(!confirm(`Publish these ${draw.teams.length} ${draw.teamSize===1?'solo':draw.teamSize===2?'duo':'squad'} teams and replace the current tournament, including all existing results and player stats?`))return;try{const next=structuredClone(draw);if(rematchSource && rematchSource!==JSON.stringify(current))throw Error('The saved match changed. Reload it and start the rematch again.');if(current.history)next.history=structuredClone(current.history);else delete next.history;if(rematchSource && completedCup(current,resolveTournament))next.history=archiveCup(current,resolveTournament,emptyTournament,((current.headers?.banner || current.name)+' · '+(current.matches[0].map || '5v5')).slice(0,120)).history;await publish(next,'Publish new player draw and tournament groups');stopAutoSpin();draw=null;selected=[];manualAssignments=[];manualNames=[];rematchSource=null;gameNightUI?.renderDraft();$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();setExpandedDraw(false);selectTab($('tab-leaderboard'),true);$('panel-leaderboard').scrollIntoView({block:'start'});say('Teams published. Your '+(current.format==='single'?'match is ready on the Match tab.':'tournament is ready on the Leader board.'));}catch(error){announce(error.message);}};
+  $('reset-draw').onclick=()=>{if(spinning || busy)return;if(selected.length && !confirm('Discard this unpublished draw?'))return;stopAutoSpin();captainDraft=null;$('captain-choices').replaceChildren();$('captain-case-grid').replaceChildren();manualAssignments=[];manualNames=[];$('manual-team-list').replaceChildren();rematchSource=null;drawnMap=null;selected=[];remaining=[];draw=null;gameNightUI?.renderDraft();lock(false);$('spin').disabled=true;$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();$('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();announce('Select your players to start a new draw.');};
+  $('publish-draw').onclick=async()=>{if(!draw || !token || busy || spinning || (draw.format==='single' && !drawnMap) || draw.groups.length !== Number($('group-count').value) || draw.qualifiersPerGroup !== Number($('qualifiers-per-group').value) || (Number($('team-size').value)!==1 && !selectedMaps().length))return;if(!confirm(`Publish these ${draw.teams.length} ${draw.teamSize===1?'solo':draw.teamSize===2?'duo':'squad'} teams and replace the current tournament, including all existing results and player stats?`))return;try{const next=structuredClone(draw);if(rematchSource && rematchSource!==JSON.stringify(current))throw Error('The saved match changed. Reload it and start the rematch again.');if(current.history)next.history=structuredClone(current.history);else delete next.history;if(rematchSource && completedCup(current,resolveTournament))next.history=archiveCup(current,resolveTournament,emptyTournament,((current.headers?.banner || current.name)+' · '+(current.matches[0].map || '5v5')).slice(0,120)).history;await publish(next,'Publish new player draw and tournament groups');stopAutoSpin();captainDraft=null;draw=null;selected=[];lock(false);$('captain-choices').replaceChildren();$('captain-case-grid').replaceChildren();manualAssignments=[];manualNames=[];rematchSource=null;gameNightUI?.renderDraft();$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();setExpandedDraw(false);selectTab($('tab-leaderboard'),true);$('panel-leaderboard').scrollIntoView({block:'start'});say('Teams published. Your '+(current.format==='single'?'match is ready on the Match tab.':'tournament is ready on the Leader board.'));}catch(error){announce(error.message);}};
   $('publish-expanded').onclick=()=>{if(!$('publish-draw').disabled)$('publish-draw').click();};
   const drawStage=$('draw-stage'),fullscreenButton=$('fullscreen-draw');
   let expandedDraw=false;
