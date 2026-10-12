@@ -308,7 +308,17 @@
         "t11",
         "t3"
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t11",
+          "t3"
+        ],
+        "scores": [
+          6,
+          7
+        ],
+        "players": {}
+      }
     },
     {
       "id": "a10",
