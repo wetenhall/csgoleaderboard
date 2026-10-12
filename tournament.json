@@ -168,7 +168,17 @@
         "t5",
         "t9"
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t5",
+          "t9"
+        ],
+        "scores": [
+          7,
+          6
+        ],
+        "players": {}
+      }
     },
     {
       "id": "a2",
