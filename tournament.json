@@ -514,7 +514,38 @@
           1
         ]
       ],
-      "result": null,
+      "result": {
+        "teams": [
+          "t5",
+          "t4"
+        ],
+        "scores": [
+          5,
+          7
+        ],
+        "players": {
+          "p6": {
+            "kills": 5,
+            "deaths": 4,
+            "assists": 5
+          },
+          "p8": {
+            "kills": 4,
+            "deaths": 5,
+            "assists": 4
+          },
+          "p10": {
+            "kills": 5,
+            "deaths": 4,
+            "assists": 5
+          },
+          "p9": {
+            "kills": 4,
+            "deaths": 5,
+            "assists": 4
+          }
+        }
+      },
       "map": "Eldorado"
     }
   ],
