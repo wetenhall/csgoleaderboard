@@ -138,3 +138,5 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .manual-teams{grid-column:1/-1;padding:22px;border:1px solid var(--border);background:var(--panel)}.manual-teams .teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}.map-draw-options{margin:24px 0}.map-draw-options .veto-panel{border-top:0}
 
 .draw-stage.manual-map{grid-template-columns:1fr}
+
+.draw-toolbar-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}#publish-expanded{display:none}.draw-stage.fullscreen-fallback #publish-expanded{display:inline-block}
