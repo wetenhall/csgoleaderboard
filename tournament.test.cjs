@@ -421,3 +421,19 @@ test('single elimination podium shares third and handles two entrants and empty 
  }
  assert.ok(tournamentPodium(require('./manager.js').emptyTournament(fixture())).every(p=>!p.ids.length));
 });
+
+test('podium records count played results, draws and knockout tiebreaks without counting byes',()=>{
+ const {podiumRecord}=require('./app.js');
+ const players=Array.from({length:4},(_,i)=>({id:'p'+i,name:'P'+i}));
+ let data=makeTournament(players,1,fixture(),['t1','t2','t3','t4'],2,[]);
+ data.matches.filter(m=>m.group).forEach(m=>m.result={teams:m.teams,scores:[4,4]});
+ data.groups.forEach(g=>g.tiebreakOrder=[...g.teams]);
+ const semi=resolveTournament(data).matches.find(m=>m.id==='s1');
+ data=applyResult(data,semi.id,{teams:semi.ids,scores:[6,6],tiebreakWinner:semi.ids[0],players:{}},resolveTournament).next;
+ assert.deepEqual(podiumRecord(resolveTournament(data).matches,semi.ids[0]),{played:2,won:1,lost:0,drawn:1});
+ assert.deepEqual(podiumRecord(resolveTournament(data).matches,semi.ids[1]),{played:2,won:0,lost:1,drawn:1});
+ data=applyResult(data,semi.id,{teams:semi.ids,scores:[4,6],players:{}},resolveTournament).next;
+ assert.deepEqual(podiumRecord(resolveTournament(data).matches,semi.ids[0]),{played:2,won:0,lost:1,drawn:1});
+ const double=makeTournament(players.slice(0,3),1,fixture(),undefined,0,[],2,'double');
+ assert.deepEqual(podiumRecord(resolveTournament(double).matches,'t1'),{played:0,won:0,lost:0,drawn:0});
+});

@@ -119,3 +119,10 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .podium-note{margin:14px 0 0;font:12px/1.5 'Segoe UI',sans-serif;color:var(--muted)}
 .podium-place:not(.confirmed) .podium-names{font-size:18px;color:var(--muted)}
 @media(max-width:600px){.podium{gap:8px}.podium-place{padding:20px 8px 14px}.podium-names{font-size:18px}.podium-rank{font-size:17px}.podium-note{font-size:11px}}
+
+.podium-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin:16px 0 0;padding-top:12px;border-top:1px solid #ffffff1a}
+.podium-stat dt{font:600 11px/1.5 'Segoe UI',sans-serif;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.podium-stat dd{margin:4px 0 0;font:700 25px/1 var(--ui);color:var(--text)}
+.podium-draws{margin:8px 0 0;font:12px/1.4 'Segoe UI',sans-serif;color:var(--muted)}
+.podium-entrant + .podium-entrant{padding-top:14px;border-top:1px solid #ffffff1a}
+@media(max-width:600px){.podium-stat dt{font-size:9px;letter-spacing:0}.podium-stat dd{font-size:21px}}

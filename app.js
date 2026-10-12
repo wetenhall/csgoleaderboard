@@ -116,13 +116,34 @@ function tournamentPodium(data, state = resolveTournament(data)) {
   }
   return places;
 }
+function podiumRecord(matches,id){
+  const record={played:0,won:0,lost:0,drawn:0};
+  for(const match of matches){
+    if(!match.result || match.skipped || !match.ids.includes(id))continue;
+    record.played++;
+    if(match.winner===id)record.won++;
+    else if(match.winner)record.lost++;
+    else record.drawn++;
+  }
+  return record;
+}
 function renderPodium(data,state){
   const root=document.getElementById('podium');root.replaceChildren();
   for(const place of tournamentPodium(data,state)){
     const card=element('article','podium-place podium-'+place.rank+(place.ids.length?' confirmed':''));
     card.append(element('span','podium-medal',place.rank===1?'★':place.rank===2?'◆':'◆'),element('h3','podium-rank',place.rank===1?'1st place':place.rank===2?'2nd place':'3rd place'));
     const names=element('div','podium-names');
-    if(place.ids.length)place.ids.forEach(id=>names.append(element('strong','',teamDisplayName(state.teams.get(id)))));
+    if(place.ids.length)place.ids.forEach(id=>{
+      const entrant=element('div','podium-entrant'),record=podiumRecord(state.matches,id);
+      entrant.append(element('strong','',teamDisplayName(state.teams.get(id))));
+      const stats=element('dl','podium-stats');
+      for(const [key,label] of [['played','Played'],['won','Won'],['lost','Lost']]){
+        const stat=element('div','podium-stat');stat.append(element('dt','',label),element('dd','',String(record[key])));stats.append(stat);
+      }
+      entrant.append(stats);
+      if(record.drawn)entrant.append(element('p','podium-draws',record.drawn+' drawn'));
+      names.append(entrant);
+    });
     else names.append(element('strong','','To be decided'));
     card.append(names,element('p','podium-note',place.note));root.append(card);
   }
@@ -299,4 +320,4 @@ if (typeof document !== 'undefined') {
     alert.textContent = 'Tournament results could not be loaded. Please check back shortly.'; console.error(error);
   }
 }
-if (typeof module !== 'undefined') module.exports = { resolveTournament, teamDisplayName, teamDisplayLabel, bracketLayout, tournamentPodium };
+if (typeof module !== 'undefined') module.exports = { resolveTournament, teamDisplayName, teamDisplayLabel, bracketLayout, tournamentPodium, podiumRecord };
