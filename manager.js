@@ -385,34 +385,57 @@ if (typeof document !== 'undefined') (() => {
         identity.append(element('span','fixture-team',names[i]));versus.append(identity);
       });
       summary.append(meta,versus);
+      summary.append(element('span','fixture-edit-hint',!ready?'Waiting for qualification':token?(match.result?'Edit score & player stats':'Enter score & player stats'):'View match details'));
       if(match.result?.tiebreakWinner)summary.append(element('span','fixture-decision','Tiebreak winner: '+teamDisplayLabel(state.teams.get(match.result.tiebreakWinner))));
       else if(match.result && match.result.scores[0]===match.result.scores[1])summary.append(element('span','fixture-decision','DRAW'));
       details.append(summary);
       const body = element('div','result-body');
       body.append(element('p','rules',`${match.id.toUpperCase()} · ${match.group ? `Group ${match.group}` : knockoutRoundName(match,state.matches)}`));
       if (!ready) { body.append(element('p','','Teams will appear once qualification is confirmed.')); details.append(body); container.append(details); return; }
-      const form = element('form','result-form'); const scores = names.map((name,i) => numeric(`${name} rounds`,match.result?.scores[i],99));
-      const scoreRow = element('div','score-inputs'); scores.forEach(s => {s.input.required=true;scoreRow.append(s.wrap);}); form.append(scoreRow);
-      form.append(element('p','rules','Player stats are optional. Leave all three fields blank if not recorded; enter all three to include that player in averages.'));
-      let tiebreakSelect;
+      const form = element('form','result-form'); const scores = names.map((name,i) => numeric(`${name} — rounds won`,match.result?.scores[i],99));
+      form.append(element('h4','entry-heading','1. Match score'),element('p','entry-help','Enter the final number of rounds won by each side, not kills.'));
+      const scoreRow = element('div','score-inputs');
+      scores.forEach((s,i) => {
+        s.input.required=true;s.input.placeholder='0';s.input.inputMode='numeric';
+        const card=element('div','score-entry-card');card.append(element('strong','score-entry-name',names[i]),s.wrap);scoreRow.append(card);
+      });form.append(scoreRow);
+      const outcome=element('p','score-outcome');outcome.setAttribute('aria-live','polite');form.append(outcome);
+      let tiebreakSelect,tiebreakBox;
       if (!match.group) {
-        const label=element('label','','Tiebreak winner (required only when rounds are equal)');
+        tiebreakBox=element('div','match-tiebreak');
+        tiebreakBox.append(element('p','entry-help','Knockout games need a winner. Play your deciding round or tiebreak, then choose who advances.'));
+        const label=element('label','','Who won the tiebreak?');
         tiebreakSelect=element('select');const placeholder=element('option','','Select winner');placeholder.value='';tiebreakSelect.append(placeholder);
         match.ids.forEach((id,i)=>{const option=element('option','',names[i]);option.value=id;tiebreakSelect.append(option);});
-        tiebreakSelect.value=match.result?.tiebreakWinner || '';label.append(tiebreakSelect);form.append(label);
+        tiebreakSelect.value=match.result?.tiebreakWinner || '';label.append(tiebreakSelect);tiebreakBox.append(label);form.append(tiebreakBox);
       }
+      const updateOutcome=()=>{
+        const entered=scores.every(s=>s.input.value!=='' && s.input.validity.valid),values=scores.map(s=>Number(s.input.value)),tied=entered && values[0]===values[1];
+        if(tiebreakBox){tiebreakBox.hidden=!tied;tiebreakSelect.required=tied;}
+        outcome.textContent=!entered?'Enter both scores to see the result.':tied?(match.group?'Draw — both players or teams receive a drawn game.':tiebreakSelect.value?names[match.ids.indexOf(tiebreakSelect.value)]+' advances after the tiebreak.':'Scores are level — select the tiebreak winner below.'):
+          names[values[0]>values[1]?0:1]+' wins '+Math.max(...values)+'–'+Math.min(...values)+'.';
+      };
+      scores.forEach(s=>s.input.addEventListener('input',updateOutcome));
+      if(tiebreakSelect)tiebreakSelect.addEventListener('change',updateOutcome);
+      updateOutcome();
+      const stats=element('details','stats-entry');
+      stats.open=Boolean(match.result?.players && Object.keys(match.result.players).length);
+      stats.append(element('summary','','2. Player stats · optional'),element('p','entry-help','Kills = opponents eliminated · Deaths = times eliminated · Assists = assisted eliminations. For each player, fill all three fields or leave all three blank.'));
       const inputs = [];
       for (const teamId of match.ids) {
         const team = state.teams.get(teamId);
+        const teamStats=element('fieldset','stats-team');teamStats.append(element('legend','',teamDisplayLabel(team)));
         for (const player of team.players || []) {
-          const row = element('div','player-entry'); row.append(element('strong','',`${player.name} · ${team.name}`));
-          const fields = ['kills','deaths','assists'].map(key => numeric(key,match.result?.players?.[player.id]?.[key])); fields.forEach(field => row.append(field.wrap));
-          form.append(row); inputs.push({id:player.id,fields});
+          const row = element('div','player-entry'); row.append(element('strong','',player.name));
+          const fields = ['kills','deaths','assists'].map(key => numeric(key[0].toUpperCase()+key.slice(1),match.result?.players?.[player.id]?.[key])); fields.forEach(field => {field.input.placeholder='—';field.input.inputMode='numeric';row.append(field.wrap);});
+          teamStats.append(row); inputs.push({id:player.id,fields});
         }
+        if(team.players?.length)stats.append(teamStats);
       }
+      if(inputs.length)form.append(stats);
       const note = element('p','form-note'); note.setAttribute('role','status');
-      const update = element('button','', 'Update & publish result'); update.type='submit';
-      form.append(update,note);
+      const update = element('button','', match.result?'Save corrected result':'Save match result'); update.type='submit';
+      const actions=element('div','result-actions');actions.append(update,element('p','entry-help',token?'Saves the score and any entered stats, then updates standings and knockout places.':'Connect through the settings cog to enter and save results.'));form.append(actions,note);
       form.onsubmit = async event => {
         event.preventDefault(); if (!token || busy) return;
         try {
