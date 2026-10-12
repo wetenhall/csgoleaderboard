@@ -40,3 +40,6 @@ The production bootstrap is generated from tournament.json. tournament.js is a l
 Standard owner.github.io/project hosting can also infer its repository from the URL when build metadata is absent, defaulting to main. Use the workflow or explicit build variables for custom domains, non-main branches or nonstandard hosting paths.
 
 1v1 fixtures have no assigned map: choose maps when you join the server. Each player occupies their own team slot and is shown by name in standings and fixtures. Duos and Squads retain selectable map pools.
+
+The public Register tab embeds the Google Form configured in index.html. Responses remain in Google Forms; they do not automatically enter the tournament player pool. When copying this dashboard, replace both registration URLs with your own published form link.
+
