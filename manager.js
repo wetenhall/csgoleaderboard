@@ -741,7 +741,10 @@ if (typeof document !== 'undefined') (() => {
   $('team-creation').onchange=()=>{controls();};
   function invalidateManualTeams(){draw=null;drawnMap=null;gameNightUI?.renderDraft();$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();$('format-preview').textContent='Assign every selected player, then click Use these teams.';controls();}
   function updateManualSlots(){
-    $('manual-team-list').querySelectorAll('select').forEach(select=>{for(const option of select.options)option.disabled=!!option.value && option.value!==select.value && manualAssignments.includes(option.value);});
+    $('manual-team-list').querySelectorAll('select').forEach((select,slot)=>{
+      const value=manualAssignments[slot],blank=element('option','','Choose player');blank.value='';select.replaceChildren(blank);
+      selected.filter(player=>player.id===value || !manualAssignments.includes(player.id)).forEach(player=>{const option=element('option','',player.name);option.value=player.id;select.append(option);});select.value=value;
+    });
     $('manual-status').textContent=manualAssignments.filter(Boolean).length+' / '+selected.length+' players assigned';controls();
   }
   function renderManualTeams(){
