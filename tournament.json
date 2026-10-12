@@ -329,7 +329,28 @@
           "winner": "de2"
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t10",
+          "t9"
+        ],
+        "scores": [
+          7,
+          8
+        ],
+        "players": {
+          "p7": {
+            "kills": 7,
+            "deaths": 8,
+            "assists": 0
+          },
+          "p5": {
+            "kills": 8,
+            "deaths": 7,
+            "assists": 0
+          }
+        }
+      }
     },
     {
       "id": "de7",
