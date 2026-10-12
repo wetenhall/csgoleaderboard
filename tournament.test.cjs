@@ -23,7 +23,7 @@ test('groups qualify top two into cross-group semi-finals and final', () => {
 test('incomplete groups do not assign seeds and invalid scores fail', () => {
   const data = fixture();
   assert.deepEqual(resolveTournament(data).matches.find(m => m.id === 's1').ids, [null, null]);
-  data.matches[0].result = { teams: ['t1','t2'], scores: [12,12] };
+  data.matches[0].result = { teams: ['t1','t2'], scores: [-1,12] };
   assert.throws(() => resolveTournament(data));
 });
 test('unresolved qualification ties require a recorded tiebreak decision', () => {
@@ -184,4 +184,19 @@ test('player award ties include zero-death K/D and empty tournament states',()=>
  const data={teams:[{id:'a',name:'A',players}],matches:[1,2].map(i=>({id:'m'+i,round:i,result:{teams:['a','b'],scores:[13,7],players:Object.fromEntries(players.map(p=>[p.id,{kills:10,deaths:0,assists:3}]))}}))};
  const awards=tournamentAwards(data);assert.equal(awards.players[0].winners.length,2);assert.match(awards.players[0].metric,/∞/);
  const empty=tournamentAwards({teams:[],matches:[]});assert.ok([...empty.teams,...empty.players].every(a=>!a.winners.length && a.metric==='Awaiting more matches'));
+});
+
+test('group draws count as played with no wins or losses and require qualification tiebreaks',()=>{
+ const data=fixture();for(const m of data.matches.filter(m=>m.group))m.result={teams:m.teams,scores:[12,12]};
+ let state=resolveTournament(data);assert.ok(state.groups.every(g=>g.complete && g.tied));
+ assert.ok(state.groups.every(g=>g.rows.every(r=>r.played===3 && r.draws===3 && r.wins===0 && r.losses===0 && r.difference===0)));
+ data.groups.forEach(g=>g.tiebreakOrder=[...g.teams]);state=resolveTournament(data);assert.ok(state.matches.find(m=>m.id==='s1').ids.every(Boolean));
+});
+test('tied knockout results require a valid winner and propagate corrections',()=>{
+ const data=fixture();completeGroups(data);
+ for(const m of data.matches.filter(m=>!m.group)) {const ids=resolveTournament(data).matches.find(x=>x.id===m.id).ids;m.result={teams:ids,scores:[12,12],tiebreakWinner:ids[0]};}
+ validateData(data,resolveTournament);const semi=data.matches.find(m=>m.id==='s1');
+ const changed=applyResult(data,'s1',{...semi.result,tiebreakWinner:semi.result.teams[1]},resolveTournament);assert.ok(changed.cleared.includes('f1'));
+ delete semi.result.tiebreakWinner;assert.throws(()=>resolveTournament(data),/tiebreak winner/);
+ semi.result.tiebreakWinner='unknown';assert.throws(()=>resolveTournament(data),/tiebreak winner/);
 });

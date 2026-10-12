@@ -1,24 +1,28 @@
 function resolveTournament(data) {
   const teams = new Map(data.teams.map(team => [team.id, team]));
   const resolved = new Map();
-  const groups = data.groups.map(group => ({ ...group, rows: group.teams.map(id => ({ id, played: 0, wins: 0, losses: 0, difference: 0 })) }));
+  const groups = data.groups.map(group => ({ ...group, rows: group.teams.map(id => ({ id, played: 0, wins: 0, draws: 0, losses: 0, difference: 0 })) }));
   function resolve(match, ids) {
     const result = match.result;
-    if (result && (!ids.every(id => teams.has(id)) || !Array.isArray(result.teams) || result.teams.length !== 2 || !result.teams.every((id, i) => id === ids[i]) || !Array.isArray(result.scores) || result.scores.length !== 2 || !result.scores.every(score => Number.isInteger(score) && score >= 0) || result.scores[0] === result.scores[1])) {
+    if (result && (!ids.every(id => teams.has(id)) || !Array.isArray(result.teams) || result.teams.length !== 2 || !result.teams.every((id, i) => id === ids[i]) || !Array.isArray(result.scores) || result.scores.length !== 2 || !result.scores.every(score => Number.isInteger(score) && score >= 0))) {
       throw new Error(`Check result for ${match.id}: participants or scores invalid.`);
     }
-    const item = { ...match, ids, winner: result ? ids[result.scores[0] > result.scores[1] ? 0 : 1] : null };
+    const tied = result && result.scores[0] === result.scores[1];
+    if (tied && !match.group && !ids.includes(result.tiebreakWinner)) throw Error('Select the tiebreak winner for a tied knockout game.');
+    if (result?.tiebreakWinner && (!tied || match.group)) throw Error('Tiebreak winner is only used for tied knockout games.');
+    const item = { ...match, ids, winner: result ? tied ? (match.group ? null : result.tiebreakWinner) : ids[result.scores[0] > result.scores[1] ? 0 : 1] : null };
     resolved.set(match.id, item);
     return item;
   }
   for (const match of data.matches.filter(match => match.group)) {
     const item = resolve(match, match.teams);
     const group = groups.find(group => group.id === match.group);
-    if (item.winner) item.ids.forEach((id, i) => {
+    if (item.result) item.ids.forEach((id, i) => {
       const row = group.rows.find(row => row.id === id);
       row.played++;
       row.wins += Number(id === item.winner);
-      row.losses += Number(id !== item.winner);
+      row.draws += Number(!item.winner);
+      row.losses += Number(!!item.winner && id !== item.winner);
       row.difference += item.result.scores[i] - item.result.scores[1-i];
     });
   }
@@ -87,7 +91,7 @@ function renderTournament(data) {
   document.getElementById('champion-note').textContent = 'Decided in the grand final';
   document.title = `${data.name} · Counter-Strike`;
   document.getElementById('title').replaceChildren(document.createTextNode(data.name), element('span', '', '.'));
-  const completed = matches.filter(match => match.winner).length;
+  const completed = matches.filter(match => match.result).length;
   document.getElementById('progress').replaceChildren(document.createTextNode(`${completed} / ${matches.length} `), element('small', '', 'matches complete'));
   document.getElementById('team-count').textContent = `${data.teams.length} teams entered`;
   document.getElementById('format-name').textContent = `${data.teamSize === 2 ? 'Duos' : data.teamSize === 5 ? 'Squads' : 'Teams'} · ${groups.length === 0 ? 'Knockout' : groups.length === 1 ? 'Group → final' : `${groups.length} groups → playoffs`}`;
@@ -110,7 +114,7 @@ function renderTournament(data) {
     const card = element('article', 'match');
     card.setAttribute('aria-label', `Match ${match.id.toUpperCase()}`);
     const meta = element('div', 'match-meta', match.id.toUpperCase() + (match.map ? ' · ' + match.map : ''));
-    meta.append(element('span', match.winner ? 'finished' : '', match.winner ? 'FINAL SCORE' : match.ids.every(Boolean) ? 'UPCOMING' : 'TO BE DECIDED'));
+    meta.append(element('span', match.result ? 'finished' : '', match.result ? (match.result.tiebreakWinner ? 'TIEBREAK' : match.winner ? 'FINAL SCORE' : 'DRAW') : match.ids.every(Boolean) ? 'UPCOMING' : 'TO BE DECIDED'));
     card.append(meta);
     match.ids.forEach((id, i) => {
       const team = teams.get(id);
@@ -129,12 +133,12 @@ function renderTournament(data) {
     const table = element('table');
     table.setAttribute('aria-label', `Group ${group.id} standings`);
     const head = element('thead'); const labels = element('tr');
-    ['#','Team','P','W','L','RD'].forEach(label => { const cell = element('th','',label); cell.scope='col'; labels.append(cell); });
+    ['#','Team','P','W','D','L','RD'].forEach(label => { const cell = element('th','',label); cell.scope='col'; labels.append(cell); });
     head.append(labels); table.append(head);
     const body = element('tbody');
     group.rows.forEach((row,i) => {
       const tr = element('tr', group.qualified && i < 2 ? 'qualified' : '');
-      [group.complete && !group.tied ? i+1 : '—', teams.get(row.id).name, row.played, row.wins, row.losses, row.difference > 0 ? `+${row.difference}` : row.difference].forEach((value, index) => {
+      [group.complete && !group.tied ? i+1 : '—', teams.get(row.id).name, row.played, row.wins, row.draws, row.losses, row.difference > 0 ? `+${row.difference}` : row.difference].forEach((value, index) => {
         const cell = element('td');
         if (index === 1) cell.append(teamNameNode(teams.get(row.id)));
         else cell.textContent = String(value);

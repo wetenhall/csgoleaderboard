@@ -96,7 +96,7 @@ function tournamentAwards(data) {
   for(const match of orderedMatches(data.matches)) {
     if(!match.result)continue;
     match.result.teams.forEach((id,i)=>{const row=totals.get(id);if(!row)return;
-      const won=match.result.scores[i]>match.result.scores[1-i];
+      const won=match.result.scores[i]>match.result.scores[1-i] || (match.result.scores[i]===match.result.scores[1-i] && match.result.tiebreakWinner===id);
       row.games++;row.wins+=Number(won);row.difference+=match.result.scores[i]-match.result.scores[1-i];row.streak=won?row.streak+1:0;
     });
   }
@@ -296,13 +296,20 @@ if (typeof document !== 'undefined') (() => {
       const ready = match.ids.every(Boolean); const next = !markedNext && !match.result && ready;
       if (next) { markedNext = true; details.classList.add('next-match'); }
       const names = match.ids.map((id,i) => state.teams.has(id) ? teamDisplayLabel(state.teams.get(id)) : matchPlaceholder(match,i));
-      details.append(element('summary','',`${String(index+1).padStart(2,'0')} · ${names.join(' vs ')} · ${match.map || 'Map not assigned'} · ${match.result ? match.result.scores.join(' – ') : next ? 'UP NEXT' : ready ? 'Scheduled' : 'Awaiting qualifiers'}`));
+      details.append(element('summary','',`${String(index+1).padStart(2,'0')} · ${names.join(' vs ')} · ${match.map || 'Map not assigned'} · ${match.result ? match.result.scores.join(' – ') + (match.result.tiebreakWinner ? ' · Tiebreak: '+teamDisplayLabel(state.teams.get(match.result.tiebreakWinner)) : match.result.scores[0]===match.result.scores[1] ? ' · DRAW' : '') : next ? 'UP NEXT' : ready ? 'Scheduled' : 'Awaiting qualifiers'}`));
       const body = element('div','result-body');
       body.append(element('p','rules',`${match.id.toUpperCase()} · ${match.group ? `Group ${match.group}` : knockoutRoundName(match,state.matches)}`));
       if (!ready) { body.append(element('p','','Teams will appear once qualification is confirmed.')); details.append(body); container.append(details); return; }
       const form = element('form','result-form'); const scores = names.map((name,i) => numeric(`${name} rounds`,match.result?.scores[i],99));
       const scoreRow = element('div','score-inputs'); scores.forEach(s => {s.input.required=true;scoreRow.append(s.wrap);}); form.append(scoreRow);
       form.append(element('p','rules','Player stats are optional. Leave all three fields blank if not recorded; enter all three to include that player in averages.'));
+      let tiebreakSelect;
+      if (!match.group) {
+        const label=element('label','','Tiebreak winner (required only when rounds are equal)');
+        tiebreakSelect=element('select');const placeholder=element('option','','Select winner');placeholder.value='';tiebreakSelect.append(placeholder);
+        match.ids.forEach((id,i)=>{const option=element('option','',names[i]);option.value=id;tiebreakSelect.append(option);});
+        tiebreakSelect.value=match.result?.tiebreakWinner || '';label.append(tiebreakSelect);form.append(label);
+      }
       const inputs = [];
       for (const teamId of match.ids) {
         const team = state.teams.get(teamId);
@@ -326,6 +333,10 @@ if (typeof document !== 'undefined') (() => {
             players[id] = Object.fromEntries(['kills','deaths','assists'].map((key,i)=>[key,Number(values[i])]));
           }
           const result = {teams:match.ids,scores:scores.map(s=>Number(s.input.value)),players};
+          if (!match.group && result.scores[0]===result.scores[1]) {
+            if (!tiebreakSelect.value) throw Error('Select the tiebreak winner so a team can advance.');
+            result.tiebreakWinner=tiebreakSelect.value;
+          }
           const {next,cleared} = applyResult(current,match.id,result,resolveTournament);
           if (cleared.length && !confirm(`This changes playoff participants and clears results and player stats for ${cleared.join(', ')}. Publish this correction?`)) return;
           await publish(next,`Update ${match.id.toUpperCase()} result and player stats`);
