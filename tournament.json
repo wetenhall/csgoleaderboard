@@ -232,7 +232,17 @@
         "t11",
         "t7"
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t11",
+          "t7"
+        ],
+        "scores": [
+          6,
+          7
+        ],
+        "players": {}
+      }
     },
     {
       "id": "a6",
