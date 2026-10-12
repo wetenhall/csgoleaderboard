@@ -42,6 +42,7 @@ function resolveTournament(data) {
   for (const match of data.matches.filter(match => !match.group)) {
     const sources = match.sources || (match.seeds ? match.seeds.map(seed => ({seed})) : (match.from || []).map(winner => ({winner})));
     if (sources.length !== 2) throw Error('Invalid knockout participants.');
+    if(match.resetOf){const first=resolved.get(match.resetOf);if(!first)throw Error('Invalid reset final.');if(first.winner!==first.ids[1] || !first.winner){if(match.result)throw Error('Reset final is not active.');resolved.set(match.id,{...match,ids:[null,null],winner:null,skipped:!!first.winner});continue;}}
     const ids = sources.map(source => {
       if (source.team) { if (!teams.has(source.team)) throw Error('Unknown knockout team.'); return source.team; }
       if (source.seed) {
@@ -49,6 +50,7 @@ function resolveTournament(data) {
         if (!group || !Number.isInteger(place) || place < 0 || place >= qualifiers) throw Error('Invalid group seed.');
         return group.qualified ? group.rows[place].id : null;
       }
+      if(source.loser){const previous=resolved.get(source.loser);if(!previous)throw Error('Invalid losers bracket source.');return previous.winner ? previous.ids.find(id=>id!==previous.winner) : null;}
       if (!resolved.has(source.winner)) throw Error('Invalid knockout match order.');
       return resolved.get(source.winner).winner;
     });
@@ -58,9 +60,11 @@ function resolveTournament(data) {
 }
 function matchPlaceholder(match, index) {
   const source = match.sources?.[index] || (match.seeds ? {seed:match.seeds[index]} : {winner:match.from?.[index]});
-  return source.seed ? `Group ${source.seed[0]} · ${source.seed[1] === 0 ? '1st' : '2nd'}` : source.winner ? `Winner ${source.winner.toUpperCase()}` : 'Awaiting team';
+  return source.seed ? `Group ${source.seed[0]} · ${source.seed[1] === 0 ? '1st' : '2nd'}` : source.winner ? `Winner ${source.winner.toUpperCase()}` : source.loser ? `Loser ${source.loser.toUpperCase()}` : 'Awaiting team';
 }
 function knockoutRoundName(match, matches) {
+  if(match.label)return match.label;
+  const labelled=matches.find(m=>m.round===match.round && m.label);if(labelled)return labelled.label;
   const last = Math.max(...matches.filter(m => !m.group).map(m => m.round));
   const remaining = last - match.round;
   return remaining === 0 ? 'Grand final' : remaining === 1 ? 'Semi-finals' : remaining === 2 ? 'Quarter-finals' : `Round of ${2 ** (remaining+1)}`;
@@ -94,7 +98,8 @@ function teamNameNode(team) {
 function renderTournament(data) {
   const qualifiers = data.qualifiersPerGroup ?? 2;
   document.getElementById('qualification-label').textContent = `ROUND ROBIN / TOP ${qualifiers} ADVANCE`;
-  const { teams, groups, matches } = resolveTournament(data);
+  const state = resolveTournament(data);
+  const {teams,groups}=state; const matches=state.matches.filter(m=>!m.skipped);
   ['groups', 'bracket', 'teams'].forEach(id => document.getElementById(id).replaceChildren());
   document.getElementById('champion').textContent = 'One team takes it all.';
   document.getElementById('champion-note').textContent = 'Decided in the grand final';
@@ -111,11 +116,11 @@ function renderTournament(data) {
   document.getElementById('broadcast-status').dataset.state=completed && completed<matches.length?'live':'ready';
   document.getElementById('progress').replaceChildren(document.createTextNode(`${completed} / ${matches.length} `), element('small', '', 'matches complete'));
   document.getElementById('team-count').textContent = `${data.teams.length} teams entered`;
-  document.getElementById('format-name').textContent = `${data.teamSize === 1 ? '1v1' : data.teamSize === 2 ? 'Duos' : data.teamSize === 5 ? 'Squads' : 'Teams'} · ${groups.length === 0 ? 'Knockout' : groups.length === 1 ? 'Group → final' : `${groups.length} groups → playoffs`}`;
+  document.getElementById('format-name').textContent = `${data.teamSize === 1 ? '1v1' : data.teamSize === 2 ? 'Duos' : data.teamSize === 5 ? 'Squads' : 'Teams'} · ${data.format==='double' ? 'Double elimination' : groups.length === 0 ? 'Knockout' : groups.length === 1 ? 'Group → final' : `${groups.length} groups → playoffs`}`;
   document.getElementById('groups-heading').closest('section').hidden = !groups.length;
   document.getElementById('roster-count').textContent = `${data.teams.length} TEAMS / 1 TROPHY`;
   document.getElementById('group-rules').textContent = 'Ranked by wins, then round difference (RD). Remaining ties need a tiebreak decision. Playoff places are confirmed when each team has played every other team in its group.';
-  document.getElementById('schedule-rules').textContent = (groups.length ? `Play group games in numbered order. Top ${qualifiers} from each group advance to the knockout stages.` : 'Straight knockout: winners advance. Teams with a first-round bye enter in the following round.') + ' Connect in Settings to enter or correct results in Fixtures.';
+  document.getElementById('schedule-rules').textContent = (data.format==='double' ? 'Lose once to enter the losers bracket; a second loss eliminates you. If the losers bracket winner wins the grand final, play the reset final.' : groups.length ? `Play group games in numbered order. Top ${qualifiers} from each group advance to the knockout stages.` : 'Straight knockout: winners advance. Teams with a first-round bye enter in the following round.') + ' Connect in Settings to enter or correct results in Fixtures.';
   document.getElementById('status').textContent = completed === matches.length ? 'Tournament complete' : completed ? 'Tournament underway' : 'Awaiting first match';
   if (!data.teams.length) {
     document.getElementById('format-name').textContent='Not configured';
@@ -171,6 +176,10 @@ function renderTournament(data) {
     details.append(fixtures); section.append(details);
     document.getElementById('groups').append(section);
   }
+  const bracketRoot=document.getElementById('bracket');
+  bracketRoot.classList.toggle('double-bracket',data.format==='double');
+  const lanes={};
+  if(data.format==='double')for(const [key,title] of [['upper','Winners bracket'],['lower','Losers bracket'],['final','Finals']]){const lane=element('section','bracket-lane');lane.append(element('h3','',title));const rounds=element('div','bracket-lane-rounds');lane.append(rounds);bracketRoot.append(lane);lanes[key]=rounds;}
   [...new Set(matches.filter(match => !match.group).map(match => match.round))].sort((a,b)=>a-b).forEach(round => {
     const name = knockoutRoundName({round},matches);
     const column = element('div', `round round-${round}`);
@@ -179,14 +188,16 @@ function renderTournament(data) {
     column.append(heading);
     const list = element('div', 'match-list');
     matches.filter(match => match.round === round).forEach(match => list.append(matchCard(match)));
-    column.append(list); document.getElementById('bracket').append(column);
+    column.append(list); (lanes[matches.find(m=>m.round===round)?.bracket] || bracketRoot).append(column);
   });
-  const final = matches.find(match => match.id === 'f1');
-  if (final.winner) {
+  const firstFinal=matches.find(match=>match.id==='f1');
+  const final = data.format==='double' && firstFinal.winner===firstFinal.ids[1] && firstFinal.winner ? matches.find(match=>match.id==='f2') : firstFinal;
+  if (final?.winner) {
     document.getElementById('champion').textContent = teamDisplayLabel(teams.get(final.winner));
     document.getElementById('champion-note').textContent = headers.brand+' champions';
   }
   const eliminated = new Set(matches.filter(match => !match.group && match.winner).flatMap(match => match.ids.filter(id => id !== match.winner)));
+  if(data.format==='double'){for(const id of eliminated){if(matches.filter(m=>m.winner && m.ids.includes(id) && m.winner!==id).length<2)eliminated.delete(id);}}
   groups.filter(group => group.qualified).forEach(group => group.rows.slice(qualifiers).forEach(row => eliminated.add(row.id)));
   data.teams.forEach(team => {
     const card = element('article', 'contender'); const details = element('div');

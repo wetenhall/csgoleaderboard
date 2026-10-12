@@ -325,3 +325,29 @@ test('Top 1 ignores ties below first place but blocks tied winners',()=>{
  delete legacy.qualifiersPerGroup;
  assert.doesNotThrow(()=>validateData(legacy,resolveTournament));
 });
+
+test('double elimination supports uneven fields, both final outcomes and two-loss elimination',()=>{
+ for(const count of [2,3,4,5,7,8,9,10,16,17])for(const reset of [false,true]){
+  const players=Array.from({length:count},(_,i)=>({id:'p'+i,name:'P'+i}));
+  let data=makeTournament(players,1,fixture(),undefined,0,[],2,'double');
+  assert.equal(data.groups.length,0);
+  validateData(data,resolveTournament);
+  const losses=new Map();
+  for(const game of orderedMatches(data.matches)){
+   const match=resolveTournament(data).matches.find(m=>m.id===game.id);
+   if(match.skipped)continue;
+   assert.ok(match.ids.every(Boolean),count+': '+match.id);
+   assert.notEqual(match.ids[0],match.ids[1]);
+   assert.ok(match.ids.every(id=>(losses.get(id)||0)<2));
+   const right=game.id==='f1'?reset:game.round%2===1;
+   const loser=match.ids[right?0:1];losses.set(loser,(losses.get(loser)||0)+1);
+   data=applyResult(data,game.id,{teams:match.ids,scores:right?[4,6]:[6,4],players:{}},resolveTournament).next;
+  }
+  assert.equal([...losses.values()].filter(n=>n===2).length,count-1);
+  assert.equal(data.matches.filter(m=>m.result).length,2*count-2+Number(reset));
+  const first=data.matches[0];
+  const changed=applyResult(data,first.id,{teams:first.result.teams,scores:[first.result.scores[1],first.result.scores[0]],players:{}},resolveTournament);
+  assert.ok(changed.cleared.length>0);
+  assert.doesNotThrow(()=>validateData(changed.next,resolveTournament));
+ }
+});

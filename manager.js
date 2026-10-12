@@ -46,9 +46,39 @@ function soloDrawGroups(total, count) {
   if(!Number.isInteger(count) || count<1 || count>4 || !Number.isInteger(total) || total<count*2)throw Error('Choose 1–4 groups with at least two players per group before starting the draw.');
   return Array.from({length:count},(_,group)=>Array.from({length:Math.floor(total/count)+Number(group<total%count)},(_,slot)=>group+slot*count));
 }
-function makeTournament(players, size, template, groupOrder, groupCount = players.length / size < 6 ? 1 : 2, maps = MAP_POOLS[size], qualifiersPerGroup = 2) {
+function doubleElimination(ids) {
+  const matches=[];let sequence=0,number=0;
+  const capacity=2**Math.ceil(Math.log2(ids.length));
+  let seeds=[1,2];while(seeds.length<capacity)seeds=seeds.flatMap(seed=>[seed,seeds.length*2+1-seed]);
+  let upper=seeds.map(seed=>ids[seed-1]?{team:ids[seed-1]}:null),lower=[];
+  function pair(a,b,bracket,label,round){
+    if(!a||!b)return {winner:a||b,loser:null};
+    const id='de'+(++number);matches.push({id,round,bracket,label,sources:[a,b],result:null});return {winner:{winner:id},loser:{loser:id}};
+  }
+  let stage=0;
+  while(upper.length>1){
+    const next=[],drops=[],round=sequence++;
+    for(let i=0;i<upper.length;i+=2){const game=pair(upper[i],upper[i+1],'upper','Winners · Round '+(stage+1),round);next.push(game.winner);drops.push(game.loser);}
+    upper=next;
+    if(stage===0){
+      if(drops.length===1)lower=drops;
+      else{const r=sequence++;for(let i=0;i<drops.length;i+=2)lower.push(pair(drops[i],drops[i+1],'lower','Losers · Round 1',r).winner);}
+    }else{
+      const r=sequence++;lower=lower.map((source,i)=>pair(source,drops[drops.length-1-i],'lower','Losers · Round '+(stage*2),r).winner);
+      if(upper.length>1){const merged=[],r=sequence++;for(let i=0;i<lower.length;i+=2)merged.push(pair(lower[i],lower[i+1],'lower','Losers · Round '+(stage*2+1),r).winner);lower=merged;}
+    }
+    stage++;
+  }
+  matches.push({id:'f1',round:sequence++,bracket:'final',label:'Grand final',sources:[upper[0],lower[0]],result:null});
+  matches.push({id:'f2',round:sequence,bracket:'final',label:'Grand final reset · if needed',resetOf:'f1',sources:[upper[0],lower[0]],result:null});
+  return matches;
+}
+function makeTournament(players, size, template, groupOrder, groupCount = players.length / size < 6 ? 1 : 2, maps = MAP_POOLS[size], qualifiersPerGroup = 2, format = 'groups') {
   if (![1, 2, 5].includes(size) || players.length < size * 2 || players.length % size || new Set(players.map(p => p.id)).size !== players.length) throw Error('Select enough unique players for at least two complete teams.');
+  if(!['groups','double'].includes(format))throw Error('Invalid tournament format.');
+  if(format==='double')groupCount=0;
   const data = structuredClone(template);
+  data.format=format;
   if(![1,2].includes(qualifiersPerGroup))throw Error('Choose Top 1 or Top 2 from each group.');
   if(groupCount && groupCount*qualifiersPerGroup<2)throw Error('Top 1 needs at least two groups to create a knockout stage.');
   data.qualifiersPerGroup=qualifiersPerGroup;
@@ -83,6 +113,7 @@ function makeTournament(players, size, template, groupOrder, groupCount = player
       slots = next; round++;
     }
   }
+  if(format==='double')data.matches=doubleElimination(ids);
   data.teamSize = size;
   data.mode = size === 1 ? '1v1' : size === 2 ? 'duos' : 'squads';
   return assignMaps(data,maps);
@@ -102,7 +133,7 @@ function orderedMatches(matches) {
   const lists = groups.map(group => matches.filter(m => m.group === group));
   const order = [];
   for (let i = 0; i < Math.max(0,...lists.map(list => list.length)); i++) for (const list of lists) if (list[i]) order.push(list[i]);
-  return order.concat(matches.filter(m => !m.group).sort((a,b) => a.round-b.round));
+  return order.concat(matches.filter(m => !m.group && !m.skipped).sort((a,b) => a.round-b.round));
 }
 function resultPlayerStats(data,result) {
   if(!result)return {};
@@ -161,6 +192,7 @@ function updateHeaders(data, brand, banner) {
 }
 function validateData(data, resolve) {
   if(data?.qualifiersPerGroup!==undefined && ![1,2].includes(data.qualifiersPerGroup))throw Error('Choose Top 1 or Top 2 from each group.');
+  if(data?.format!==undefined && !['groups','double'].includes(data.format))throw Error('Invalid tournament format.');
   if (data?.registrationEnabled !== undefined && typeof data.registrationEnabled !== 'boolean') throw Error('Registration setting must be enabled or disabled.');
   if (!data || typeof data.name !== 'string' || data.name.length > 100 || !Array.isArray(data.teams) || !Array.isArray(data.groups) || data.groups.length > 4 || !Array.isArray(data.matches)) throw Error('Invalid tournament structure.');
   if (data.headers !== undefined) updateHeaders(data,data.headers?.brand,data.headers?.banner);
@@ -240,6 +272,10 @@ if (typeof document !== 'undefined') (() => {
     $('connected-setup').hidden = !token;
     $('team-setup-locked').hidden = !!token;
     $('qualifiers-per-group').disabled = busy || spinning || (locked && !draw) || Number($('group-count').value)===0;
+    $('tournament-format').disabled=busy || locked;
+    $('group-count').closest('label').hidden=$('tournament-format').value==='double';
+    $('qualifiers-per-group').closest('label').hidden=$('tournament-format').value==='double';
+    $('double-note').hidden=$('tournament-format').value!=='double';
     $('group-count').disabled = busy || spinning || (locked && Number($('team-size').value)===1);
     $('map-options').querySelectorAll('input').forEach(input=>{input.disabled=busy || spinning;});
     $('disconnect').hidden = !token;
@@ -249,7 +285,7 @@ if (typeof document !== 'undefined') (() => {
     $('spin').disabled = busy || spinning || !remaining.length;
     $('disconnect').disabled = busy;
     $('remember-token').disabled = busy;
-    $('publish-draw').disabled = busy || !draw || !token || draw.groups.length !== Number($('group-count').value) || draw.qualifiersPerGroup !== Number($('qualifiers-per-group').value) || (Number($('team-size').value)!==1 && !selectedMaps().length);
+    $('publish-draw').disabled = busy || !draw || !token || draw.format !== $('tournament-format').value || draw.groups.length !== Number($('group-count').value) || draw.qualifiersPerGroup !== Number($('qualifiers-per-group').value) || (Number($('team-size').value)!==1 && !selectedMaps().length);
     document.querySelectorAll('.result-form button, .tie-form button').forEach(b => { b.disabled = busy || !token; });
   }
   async function request(method, body, credential = token) {
@@ -553,11 +589,11 @@ if (typeof document !== 'undefined') (() => {
     const solo = Number($('team-size').value) === 1;
     $('map-selection').hidden = solo;
     $('solo-map-note').hidden = !solo;
-    $('solo-group-note').hidden = !solo;
-    $('group-count').querySelector('option[value="0"]').disabled=solo;
-    if(solo && $('group-count').value==='0')$('group-count').value='1';
-    document.querySelector('.draw-roster h3').textContent=solo?'Group draw':'Team draft';
-    document.querySelector('.draw-stage-toolbar>span').textContent=solo?'LIVE GROUP DRAW':'LIVE TEAM DRAW';
+    $('solo-group-note').hidden = !solo || $('tournament-format').value==='double';
+    $('group-count').querySelector('option[value="0"]').disabled=solo && $('tournament-format').value!=='double';
+    if(solo && $('tournament-format').value!=='double' && $('group-count').value==='0')$('group-count').value='1';
+    document.querySelector('.draw-roster h3').textContent=solo && $('tournament-format').value!=='double'?'Group draw':'Team draft';
+    document.querySelector('.draw-stage-toolbar>span').textContent=solo && $('tournament-format').value!=='double'?'LIVE GROUP DRAW':'LIVE TEAM DRAW';
     if (solo) return;
     for (const map of MAP_POOLS[Number($('team-size').value)]) {
       const label=element('label'),input=element('input'); input.type='checkbox'; input.value=map; input.checked=true;
@@ -566,6 +602,7 @@ if (typeof document !== 'undefined') (() => {
     updateMapCount();
   }
   function updateMapCount() { const count=selectedMaps().length; $('map-count').textContent=count ? count+' maps selected' : 'Select at least one map before publishing.'; }
+  $('tournament-format').onchange=()=>{if($('tournament-format').value==='double')$('group-count').value='0';else $('group-count').value='1';renderMapOptions();selectionCount();controls();};
   $('team-size').onchange=()=>{renderMapOptions();selectionCount();controls();};
   $('load-pool').onclick=()=>{
     if(locked || busy)return;
@@ -618,7 +655,7 @@ if (typeof document !== 'undefined') (() => {
   function showDrawTeams(latestId=null) {
     $('draw-teams').replaceChildren();const size=Number($('team-size').value),total=selected.length+remaining.length;
     $('draw-progress').max=Math.max(1,total);$('draw-progress').value=selected.length;
-    if(size===1 && total){
+    if(size===1 && total && $('tournament-format').value!=='double'){
       const count=Number($('group-count').value),groups=soloDrawGroups(total,count);
       $('draw-progress-label').textContent=selected.length+' of '+total+' players drawn · '+(remaining.length?'Next: Group '+String.fromCharCode(65+selected.length%count):'All groups complete');
       groups.forEach((slots,i)=>{
@@ -650,9 +687,9 @@ if (typeof document !== 'undefined') (() => {
     const ids=[...$('pool-list').querySelectorAll('input:checked')].map(i=>i.value),size=Number($('team-size').value);
     if(Number($('group-count').value)===1 && Number($('qualifiers-per-group').value)===1){announce('Top 1 needs at least two groups to create a knockout stage.');return;}
     if(ids.length<size*2 || ids.length%size)return;
-    if(size===1){try{soloDrawGroups(ids.length,Number($('group-count').value));}catch(error){announce(error.message);return;}}
+    if(size===1 && $('tournament-format').value!=='double'){try{soloDrawGroups(ids.length,Number($('group-count').value));}catch(error){announce(error.message);return;}}
     remaining=pool.filter(p=>ids.includes(p.id));selected=[];draw=null;lock(true);resetReveal();showDrawTeams();paintWheel(remaining);controls();
-    announce(size===1?'Drawing Group A. Spin to select its first player.':'Drawing Team 01. Spin to select its first player.');
+    announce(size===1 && $('tournament-format').value!=='double'?'Drawing Group A. Spin to select its first player.':'Drawing Team 01. Spin to select its first player.');
   };
   $('spin').onclick=async()=>{
     if(busy || spinning || !remaining.length)return;
@@ -675,17 +712,17 @@ if (typeof document !== 'undefined') (() => {
       });
       paintWheel(names,target,index);
       remaining.splice(index,1);selected.push(picked);const size=Number($('team-size').value),team=Math.ceil(selected.length/size);
-      const destination=size===1?'Group '+String.fromCharCode(65+(selected.length-1)%Number($('group-count').value)):'Team '+String(team).padStart(2,'0');
+      const destination=size===1 && $('tournament-format').value!=='double'?'Group '+String.fromCharCode(65+(selected.length-1)%Number($('group-count').value)):'Team '+String(team).padStart(2,'0');
       $('reveal-avatar').textContent=initials(picked.name);$('reveal-name').textContent=picked.name;$('reveal-label').textContent='JOINING '+destination.toUpperCase();$('player-reveal').classList.add('revealed');
       playTone(selected.length%size===0?1046:784,0.24);
       announce(picked.name+' joins '+destination+'. '+(size!==1 && selected.length%size===0?'Team complete! ':'')+remaining.length+' players remaining.');
       if(!remaining.length){
-        if(size===1){
+        if(size===1 && $('tournament-format').value!=='double'){
           const count=Number($('group-count').value);
           drawOrder=soloDrawGroups(selected.length,count).flat().map(index=>'t'+(index+1));
           draw=makeTournament(selected,1,current,drawOrder,count,[],Number($('qualifiers-per-group').value));
         }else{draw=makeTournament(selected,size,current);drawOrder=draw.groups.flatMap(g=>g.teams);}
-        configureDraw();announce(size===1?'Draw complete. Review your groups, then publish. Your selected qualifiers from each group advance to knockouts.':'Draw complete. Review team names and tournament format, then publish.');
+        configureDraw();announce(size===1 && $('tournament-format').value!=='double'?'Draw complete. Review your groups, then publish. Your selected qualifiers from each group advance to knockouts.':'Draw complete. Review team names and tournament format, then publish.');
       }
       showDrawTeams(picked.id);
     } finally {spinning=false;$('reset-draw').disabled=false;controls();}
@@ -694,9 +731,9 @@ if (typeof document !== 'undefined') (() => {
     if (!draw) return;
     try {
       const order = drawOrder;
-      const next = makeTournament(selected,draw.teamSize,current,order,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value));
+      const next = makeTournament(selected,draw.teamSize,current,order,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value),$('tournament-format').value);
       next.teams.forEach((team,i)=>{team.name=draw.teams[i].name;}); draw=next;
-      $('format-preview').textContent = draw.groups.length ? draw.groups.map(g=>'Group '+g.id+': '+g.teams.length+' teams').join(' · ') + ' · Top '+draw.qualifiersPerGroup+' advance from each group.' + (draw.groups.length === 3 ? ' Byes fill the knockout bracket automatically.' : '') : 'Straight knockout · '+draw.matches.length+' game'+(draw.matches.length === 1 ? '' : 's')+' · Byes advance automatically.';
+      $('format-preview').textContent = draw.groups.length ? draw.groups.map(g=>'Group '+g.id+': '+g.teams.length+' teams').join(' · ') + ' · Top '+draw.qualifiersPerGroup+' advance from each group.' + (draw.groups.length === 3 ? ' Byes fill the knockout bracket automatically.' : '') : (draw.format==='double'?'Double elimination (includes a reset final if needed) · ':'Straight knockout · ')+draw.matches.length+' game'+(draw.matches.length === 1 ? '' : 's')+' · Byes advance automatically.';
       showDrawTeams();
       $('draw-fixtures').replaceChildren(element('h3','fixture-heading',draw.teamSize===1?'Fixtures · choose maps in server':'Fixture map preview'));
       const list=element('ol','map-preview');
