@@ -808,7 +808,11 @@ if (typeof document !== 'undefined') (() => {
       if (target !== null) { event.preventDefault(); selectTab(visibleTabs[target],true); }
     });
   });
-  featureUI=createTournamentExtras({getData:()=>current,isOrganiser:()=>!!token,isBusy:()=>busy || spinning,save:publish,resetDraw:resetDrawState,notify:say,goToFixtures:()=>selectTab($('tab-fixtures'),true)});
+  featureUI=createTournamentExtras({getData:()=>current,isOrganiser:()=>!!token,isBusy:()=>busy || spinning,isPoolLocked:()=>locked,addNames:names=>{
+    if(locked || busy)return;
+    $('pool-input').value=mergePlayerNames($('pool-input').value,names);
+    $('load-pool').click();
+  },save:publish,resetDraw:resetDrawState,notify:say,goToFixtures:()=>selectTab($('tab-fixtures'),true)});
   let lastViewerCheck=null, viewerChecking=false;
   function viewerStatus(message){$('viewer-update').textContent=message;}
   async function checkViewerUpdates() {

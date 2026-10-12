@@ -1,5 +1,23 @@
 /* Match night, immutable tournament archives and career records. */
 function cupMode(data) { return data.teamSize===1?'1v1':data.teamSize===5?'squads':'duos'; }
+function savedPlayers(history=[]) {
+  const names=new Map();
+  for(const entry of history)for(const team of entry.tournament.teams)for(const player of team.players || []) {
+    const name=player.name.trim(),key=name.normalize('NFKC').toLocaleLowerCase('en');
+    if(!names.has(key))names.set(key,name);
+  }
+  return [...names.values()].sort((a,b)=>a.localeCompare(b));
+}
+function mergePlayerNames(text, added) {
+  const names=new Map();
+  for(const value of [...text.split(/\r?\n/),...added]) {
+    const name=value.trim();if(!name)continue;
+    if(name.length>40)throw Error('Player names must be up to 40 characters each.');
+    const key=name.normalize('NFKC').toLocaleLowerCase('en');if(!names.has(key))names.set(key,name);
+  }
+  const result=[...names.values()].join('\n');if(result.length>6000)throw Error('The player pool is full (maximum 6000 characters).');
+  return result;
+}
 function cupFinal(data, resolve) {
   const state=resolve(data), first=state.matches.find(m=>m.id==='f1');
   return data.format==='double' && first?.winner && first.winner===first.ids[1] ? state.matches.find(m=>m.id==='f2') : first;
@@ -37,9 +55,9 @@ function matchNight(data, resolve, ordered) {
   const active=ready.find(m=>m.id===data.activeMatchId) || null;
   return {state,active,next:ready.filter(m=>m!==active).slice(0,2),pending:pending.length};
 }
-if(typeof module!=='undefined')module.exports={cupMode,cupFinal,completedCup,archiveCup,careerRecords,matchNight};
+if(typeof module!=='undefined')module.exports={cupMode,cupFinal,completedCup,archiveCup,careerRecords,matchNight,savedPlayers,mergePlayerNames};
 
-function createTournamentExtras({getData,isOrganiser,isBusy,save,resetDraw,notify,goToFixtures}) {
+function createTournamentExtras({getData,isOrganiser,isBusy,isPoolLocked,addNames,save,resetDraw,notify,goToFixtures}) {
   const $=id=>document.getElementById(id);
   let mode='duos';
   const label=data=>data.headers?.banner || data.name;
@@ -50,7 +68,32 @@ function createTournamentExtras({getData,isOrganiser,isBusy,save,resetDraw,notif
     document.querySelectorAll('[data-organiser-action]').forEach(b=>{b.hidden=!isOrganiser();b.disabled=isBusy();});
     $('archive-cup').disabled=isBusy() || !completedCup(getData(),resolveTournament);
     $('archive-cup').hidden=!isOrganiser();
+    const frozen=isBusy() || isPoolLocked();
+    $('saved-players').querySelectorAll('input,button').forEach(input=>{input.disabled=frozen;});
+    $('add-saved-players').disabled=frozen || !$('saved-player-list').querySelector('input:checked');
   }
+  function filterSaved() {
+    const search=$('saved-player-search').value.trim().toLocaleLowerCase('en');
+    $('saved-player-list').querySelectorAll('label').forEach(label=>{label.hidden=!label.textContent.toLocaleLowerCase('en').includes(search);});
+    const selected=$('saved-player-list').querySelectorAll('input:checked').length;
+    $('saved-player-count').textContent=selected+' selected · '+$('saved-player-list').querySelectorAll('input').length+' saved players';controls();
+  }
+  function renderSaved(data) {
+    const list=$('saved-player-list'),selected=new Set([...list.querySelectorAll('input:checked')].map(input=>input.value));list.replaceChildren();
+    const names=savedPlayers(data.history);
+    $('saved-player-empty').hidden=!!names.length;
+    $('saved-player-tools').hidden=!names.length;
+    names.forEach(name=>{const label=element('label'),input=element('input');input.type='checkbox';input.value=name;input.checked=selected.has(name);input.onchange=filterSaved;label.append(input,document.createTextNode(name));list.append(label);});
+    filterSaved();
+  }
+  $('saved-player-search').oninput=filterSaved;
+  $('select-saved-players').onclick=()=>{$('saved-player-list').querySelectorAll('label:not([hidden]) input').forEach(input=>{input.checked=true;});filterSaved();};
+  $('clear-saved-players').onclick=()=>{$('saved-player-list').querySelectorAll('input').forEach(input=>{input.checked=false;});filterSaved();};
+  $('add-saved-players').onclick=()=>{
+    if(isBusy() || isPoolLocked() || !isOrganiser())return;
+    try{addNames([...$('saved-player-list').querySelectorAll('input:checked')].map(input=>input.value));}
+    catch(e){$('saved-player-count').textContent=e.message;}
+  };
   function renderNight(data) {
     const root=$('match-night');root.replaceChildren();
     const night=matchNight(data,resolveTournament,orderedMatches);
@@ -122,5 +165,5 @@ function createTournamentExtras({getData,isOrganiser,isBusy,save,resetDraw,notif
     try{const next=archiveCup(getData(),resolveTournament,emptyTournament,$('archive-title').value);await save(next,'Archive completed cup and start a new tournament');resetDraw();$('archive-dialog').close();notify('Cup archived. Load players in Team setup for your next tournament.');}
     catch(e){$('archive-status').textContent=e.message;}finally{$('confirm-archive').disabled=false;}
   };
-  return {controls,render(data){renderNight(data);renderHistory(data);renderCareer(data);$('champion-card').hidden=!cupFinal(data,resolveTournament)?.winner;controls();}};
+  return {controls,render(data){renderSaved(data);renderNight(data);renderHistory(data);renderCareer(data);$('champion-card').hidden=!cupFinal(data,resolveTournament)?.winner;controls();}};
 }

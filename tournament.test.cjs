@@ -501,3 +501,14 @@ test('double elimination archive waits for reset final when the lower finalist w
   const final=resolveTournament(data).matches.find(m=>m.id==='f2');data=applyResult(data,final.id,{teams:final.ids,scores:[5,2]},resolveTournament).next;
   assert.equal(completedCup(data,resolveTournament),true);assert.equal(cupMode(data),'1v1');
 });
+
+test('saved players deduplicate archive rosters by name and merge with new players',()=>{
+ const {savedPlayers,mergePlayerNames}=require('./extras.js');
+ const history=[{tournament:{teams:[{players:[{id:'p1',name:' Sam '},{id:'p2',name:'Dan'}]}]}},{tournament:{teams:[{players:[{id:'p9',name:'sam'},{id:'p1',name:'Alex'}]}]}}];
+ assert.deepEqual(savedPlayers(history),['Alex','Dan','Sam']);
+ assert.equal(mergePlayerNames('New player\n sam\n\n',['Sam','Dan','Alex']),'New player\nsam\nDan\nAlex');
+ assert.deepEqual(savedPlayers(),[]);
+ assert.throws(()=>mergePlayerNames('', ['x'.repeat(41)]),/40/);
+ assert.equal(mergePlayerNames('SAM',['ＳＡＭ']),'SAM');
+ assert.throws(()=>mergePlayerNames('',Array.from({length:200},(_,i)=>('Player '+i).padEnd(40,'x'))),/full/);
+});
