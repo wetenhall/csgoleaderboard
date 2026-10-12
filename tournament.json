@@ -262,7 +262,38 @@
         "t5",
         "t3"
       ],
-      "result": null,
+      "result": {
+        "teams": [
+          "t5",
+          "t3"
+        ],
+        "scores": [
+          7,
+          6
+        ],
+        "players": {
+          "p6": {
+            "kills": 5,
+            "deaths": 6,
+            "assists": 3
+          },
+          "p8": {
+            "kills": 4,
+            "deaths": 5,
+            "assists": 4
+          },
+          "p1": {
+            "kills": 3,
+            "deaths": 6,
+            "assists": 4
+          },
+          "p7": {
+            "kills": 7,
+            "deaths": 5,
+            "assists": 3
+          }
+        }
+      },
       "map": "Debris"
     },
     {
