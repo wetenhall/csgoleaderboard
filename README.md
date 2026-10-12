@@ -16,7 +16,7 @@ Only the default branch deploys. No repository owner or API token needs to be pl
 
 ## Connect as organiser
 
-In Set up, follow the token instructions. Create a fine-grained token as the repository owner, select only your dashboard repository and grant Contents: Read and write. Organisation policies may require approval. A token cannot grant access your account does not already have.
+Open the top-right settings cog and follow the token instructions. Create a fine-grained token as the repository owner, select only your dashboard repository and grant Contents: Read and write. Organisation policies may require approval. A token cannot grant access your account does not already have.
 
 Paste it into the dashboard and connect. Team setup and the header settings cog appear after connection. Remember for this tab uses session storage, scoped to the repository; disconnect clears it. Browser session restoration may retain it. Never commit tokens or include them in URLs.
 
@@ -50,5 +50,5 @@ Link directly to registration by appending #register to your deployed site URL. 
 In the settings cog, Registration open controls whether the Register tab and embedded form appear. Save & publish settings applies it after deployment. Disabled registration links fall back to the leaderboard. The separate Google Forms link remains active unless responses are closed in Google Forms.
 
 
-Registration open also switches the public page mode: on shows registration and hides the tournament summary, leaderboard, fixtures and stats; off shows the tournament pages and hides registration. Setup stays available, with Team setup and settings accessible to connected organisers. Links to hidden tabs fall back to the active mode.
+Registration open also switches the public page mode: on shows registration and hides the tournament summary, leaderboard, fixtures and stats; off shows the tournament pages and hides registration. The settings cog stays available for connection; Team setup and page settings are accessible to connected organisers. Links to hidden tabs fall back to the active mode.
 

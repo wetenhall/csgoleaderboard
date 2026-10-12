@@ -208,12 +208,13 @@ if (typeof document !== 'undefined') (() => {
   const say = text => { $('connection-status').textContent = text; if($('options-dialog').open)$('options-status').textContent=text; };
   const announce = text => { $('draw-announcement').textContent = text; };
   function controls() {
-    $('open-options').hidden = !token;
+    $('open-options').hidden = false;
     $('open-options').disabled = busy;
     $('save-options').disabled = busy || !token;
-    if (!token && $('options-dialog').open) $('options-dialog').close();
+    $('options-form').hidden = !token;
+    document.querySelector('.token-help').hidden = !!token;
     $('tab-team-setup').hidden = !token;
-    if (!token && $('tab-team-setup').getAttribute('aria-selected') === 'true') selectTab($('tab-setup'));
+    if (!token && $('tab-team-setup').getAttribute('aria-selected') === 'true') selectTab(defaultTab());
     $('connected-setup').hidden = !token;
     $('team-setup-locked').hidden = !!token;
     $('group-count').disabled = busy || spinning;
@@ -305,13 +306,13 @@ if (typeof document !== 'undefined') (() => {
     $('option-registration').checked=current.registrationEnabled!==false;
   }
   $('open-options').onclick=()=>{
-    if(!token || busy)return;
+    if(busy)return;
     $('option-brand').value=current.headers?.brand || current.name;
     $('option-banner').value=current.headers?.banner || current.name;
     $('option-registration').checked=current.registrationEnabled!==false;
-    $('options-status').textContent='';
+    $('options-status').textContent=$('connection-status').textContent;
     $('options-dialog').showModal();
-    $('option-brand').focus();
+    (token?$('option-brand'):$('github-token')).focus();
   };
   $('close-options').onclick=()=>$('options-dialog').close();
   $('options-dialog').addEventListener('click',event=>{

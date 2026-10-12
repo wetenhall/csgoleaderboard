@@ -112,7 +112,7 @@ function renderTournament(data) {
   document.getElementById('groups-heading').closest('section').hidden = !groups.length;
   document.getElementById('roster-count').textContent = `${data.teams.length} TEAMS / 1 TROPHY`;
   document.getElementById('group-rules').textContent = 'Ranked by wins, then round difference (RD). Remaining ties need a tiebreak decision. Playoff places are confirmed when each team has played every other team in its group.';
-  document.getElementById('schedule-rules').textContent = (groups.length ? 'Play group games in numbered order. The top two from each group advance to the knockout stages.' : 'Straight knockout: winners advance. Teams with a first-round bye enter in the following round.') + ' Connect in Set up to enter or correct results in Fixtures.';
+  document.getElementById('schedule-rules').textContent = (groups.length ? 'Play group games in numbered order. The top two from each group advance to the knockout stages.' : 'Straight knockout: winners advance. Teams with a first-round bye enter in the following round.') + ' Connect in Settings to enter or correct results in Fixtures.';
   document.getElementById('status').textContent = completed === matches.length ? 'Tournament complete' : completed ? 'Tournament underway' : 'Awaiting first match';
   if (!data.teams.length) {
     document.getElementById('format-name').textContent='Not configured';
