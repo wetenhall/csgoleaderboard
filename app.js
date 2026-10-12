@@ -99,7 +99,7 @@ function renderTournament(data) {
   function matchCard(match) {
     const card = element('article', 'match');
     card.setAttribute('aria-label', `Match ${match.id.toUpperCase()}`);
-    const meta = element('div', 'match-meta', match.id.toUpperCase());
+    const meta = element('div', 'match-meta', match.id.toUpperCase() + (match.map ? ' · ' + match.map : ''));
     meta.append(element('span', match.winner ? 'finished' : '', match.winner ? 'FINAL SCORE' : match.ids.every(Boolean) ? 'UPCOMING' : 'TO BE DECIDED'));
     card.append(meta);
     match.ids.forEach((id, i) => {

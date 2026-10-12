@@ -127,3 +127,24 @@ test('group counts require two teams per group',()=>{
  const players=Array.from({length:10},(_,i)=>({id:'p'+i,name:'Player '+i}));
  for(const count of [-1,3,4,5,1.5])assert.throws(()=>makeTournament(players,2,fixture(),undefined,count),/groups/);
 });
+
+for(const size of [2,5]) test('selected maps rotate across all '+size+' player fixtures and survive score updates',()=>{
+ const players=Array.from({length:size*8},(_,i)=>({id:'p'+i,name:'Player '+i}));
+ const maps=size===2?['Poseidon','Debris','Eldorado']:['Mirage','Dust2','Cache'];
+ const data=makeTournament(players,size,fixture(),undefined,4,maps);
+ validateData(data,resolveTournament); assert.deepEqual(data.mapPool,maps);
+ const schedule=orderedMatches(data.matches);
+ for(let i=0;i<schedule.length;i+=maps.length)assert.equal(new Set(schedule.slice(i,i+maps.length).map(m=>m.map)).size,Math.min(maps.length,schedule.length-i));
+ for(let i=1;i<schedule.length;i++)assert.notEqual(schedule[i].map,schedule[i-1].map);
+ const first=schedule[0]; const next=applyResult(data,first.id,{teams:first.teams,scores:[13,4],players:{}},resolveTournament).next;
+ assert.deepEqual(next.matches.map(m=>m.map),data.matches.map(m=>m.map));
+ const reloaded=JSON.parse(JSON.stringify(next));validateData(reloaded,resolveTournament);
+ assert.deepEqual(reloaded.mapPool,maps);
+});
+test('map selection rejects empty, duplicate and wrong-mode pools; single map covers knockout',()=>{
+ const players=Array.from({length:10},(_,i)=>({id:'p'+i,name:'Player '+i}));
+ for(const maps of [[],['Mirage'],['Inferno','Inferno']])assert.throws(()=>makeTournament(players,2,fixture(),undefined,0,maps),/map/);
+ const data=makeTournament(players,2,fixture(),undefined,0,['Nuke']);
+ assert.ok(data.matches.every(m=>m.map==='Nuke'));validateData(data,resolveTournament);
+ data.matches[0].map='Dust2';assert.throws(()=>validateData(data,resolveTournament),/maps/);
+});

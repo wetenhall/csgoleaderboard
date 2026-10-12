@@ -1,4 +1,21 @@
 /* Tournament editing and GitHub persistence. Optional tab-session credentials. */
+const MAP_POOLS = {
+  2: ['Inferno','Nuke','Vertigo','Overpass','Poseidon','Debris','Eldorado'],
+  5: ['Mirage','Dust2','Inferno','Nuke','Ancient','Anubis','Vertigo','Cache','Train','Overpass','Office','Italy']
+};
+function assignMaps(data, maps) {
+  if (!Array.isArray(maps) || !maps.length || new Set(maps).size !== maps.length || maps.some(map => !MAP_POOLS[data.teamSize]?.includes(map))) throw Error('Select at least one available map for this tournament type.');
+  data.mapPool = [...maps];
+  let bag = [], previous;
+  for (const match of orderedMatches(data.matches)) {
+    if (!bag.length) {
+      bag = shuffle(maps);
+      if (bag.length > 1 && bag[0] === previous) [bag[0],bag[1]] = [bag[1],bag[0]];
+    }
+    match.map = bag.shift(); previous = match.map;
+  }
+  return data;
+}
 function randomIndex(length) {
   const range = 4294967296, limit = range - range % length;
   const value = new Uint32Array(1);
@@ -10,7 +27,7 @@ function shuffle(items) {
   for (let i = copy.length - 1; i > 0; i--) { const j = randomIndex(i + 1); [copy[i], copy[j]] = [copy[j], copy[i]]; }
   return copy;
 }
-function makeTournament(players, size, template, groupOrder, groupCount = players.length / size < 6 ? 1 : 2) {
+function makeTournament(players, size, template, groupOrder, groupCount = players.length / size < 6 ? 1 : 2, maps = MAP_POOLS[size]) {
   if (![2, 5].includes(size) || players.length < size * 2 || players.length % size || new Set(players.map(p => p.id)).size !== players.length) throw Error('Select enough unique players for at least two complete teams.');
   const data = structuredClone(template);
   data.teams = Array.from({ length: players.length / size }, (_, i) => ({ id: `t${i+1}`, name: `Team ${String(i+1).padStart(2,'0')}`, tag: String(i+1).padStart(2,'0'), players: players.slice(i*size,(i+1)*size) }));
@@ -46,7 +63,7 @@ function makeTournament(players, size, template, groupOrder, groupCount = player
   }
   data.teamSize = size;
   data.mode = size === 2 ? 'duos' : 'squads';
-  return data;
+  return assignMaps(data,maps);
 }
 function roundRobinPairs(teams) {
   if (teams.length === 4) return [[0,1],[2,3],[0,2],[1,3],[0,3],[1,2]].map(pair => pair.map(i => teams[i]));
@@ -76,6 +93,8 @@ function playerTotals(data) {
 function validateData(data, resolve) {
   if (!data || typeof data.name !== 'string' || data.name.length > 100 || !Array.isArray(data.teams) || data.teams.length < 2 || !Array.isArray(data.groups) || data.groups.length > 4 || !Array.isArray(data.matches)) throw Error('Invalid tournament structure.');
   const teamIds = data.teams.map(t => t.id);
+  if (data.mapPool !== undefined && (!Array.isArray(data.mapPool) || !data.mapPool.length || new Set(data.mapPool).size !== data.mapPool.length || data.mapPool.some(map => !MAP_POOLS[data.teamSize]?.includes(map)) || data.matches.some(match => !data.mapPool.includes(match.map)))) throw Error('Fixtures must use maps from the selected tournament map pool.');
+  if (data.mapPool === undefined && data.matches.some(match => match.map !== undefined)) throw Error('A selected map pool is required for fixture maps.');
   if (new Set(teamIds).size !== teamIds.length || data.teams.some(t => typeof t.name !== 'string' || !t.name.trim() || t.name.length > 60)) throw Error('Invalid team names or IDs.');
   const assigned = data.groups.flatMap(g => g.teams);
   if (data.groups.length && (assigned.length !== teamIds.length || new Set(assigned).size !== teamIds.length || assigned.some(id => !teamIds.includes(id)) || data.groups.some(g => g.teams.length < 2))) throw Error('Each team must belong to one group.');
@@ -113,7 +132,7 @@ function applyResult(data, id, result, resolve) {
   validateData(next, resolve);
   return { next, cleared };
 }
-if (typeof module !== 'undefined') module.exports = { makeTournament, orderedMatches, playerTotals, validateData, applyResult };
+if (typeof module !== 'undefined') module.exports = { makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps };
 if (typeof document !== 'undefined') (() => {
   const $ = id => document.getElementById(id);
   const api = 'https://api.github.com/repos/wetenhall/csgoleaderboard/contents/tournament.json';
@@ -133,12 +152,13 @@ if (typeof document !== 'undefined') (() => {
     $('connected-setup').hidden = !token;
     $('team-setup-locked').hidden = !!token;
     $('group-count').disabled = busy || spinning;
+    $('map-options').querySelectorAll('input').forEach(input=>{input.disabled=busy || spinning;});
     $('disconnect').hidden = !token;
     $('connect-form').querySelector('button').disabled = busy || !!token;
     $('refresh-data').disabled = busy;
     $('disconnect').disabled = busy;
     $('remember-token').disabled = busy;
-    $('publish-draw').disabled = busy || !draw || !token || draw.groups.length !== Number($('group-count').value);
+    $('publish-draw').disabled = busy || !draw || !token || draw.groups.length !== Number($('group-count').value) || !selectedMaps().length;
     document.querySelectorAll('.result-form button, .tie-form button').forEach(b => { b.disabled = busy || !token; });
   }
   async function request(method, body, credential = token) {
@@ -220,7 +240,7 @@ if (typeof document !== 'undefined') (() => {
       const ready = match.ids.every(Boolean); const next = !markedNext && !match.result && ready;
       if (next) { markedNext = true; details.classList.add('next-match'); }
       const names = match.ids.map((id,i) => state.teams.has(id) ? teamDisplayLabel(state.teams.get(id)) : matchPlaceholder(match,i));
-      details.append(element('summary','',`${String(index+1).padStart(2,'0')} · ${names.join(' vs ')} · ${match.result ? match.result.scores.join(' – ') : next ? 'UP NEXT' : ready ? 'Scheduled' : 'Awaiting qualifiers'}`));
+      details.append(element('summary','',`${String(index+1).padStart(2,'0')} · ${names.join(' vs ')} · ${match.map || 'Map not assigned'} · ${match.result ? match.result.scores.join(' – ') : next ? 'UP NEXT' : ready ? 'Scheduled' : 'Awaiting qualifiers'}`));
       const body = element('div','result-body');
       body.append(element('p','rules',`${match.id.toUpperCase()} · ${match.group ? `Group ${match.group}` : knockoutRoundName(match,state.matches)}`));
       if (!ready) { body.append(element('p','','Teams will appear once qualification is confirmed.')); details.append(body); container.append(details); return; }
@@ -274,7 +294,17 @@ if (typeof document !== 'undefined') (() => {
     }
   }
   function selectionCount() { const count=$('pool-list').querySelectorAll('input:checked').length;const size=Number($('team-size').value),teams=Math.floor(count/size),extra=count%size; $('pool-count').textContent=`${count} selected · ${teams} complete ${size===2?'duo':'squad'} teams`+(extra ? ` · Select ${size-extra} more or deselect ${extra} to make full teams.` : teams<2 ? ' · At least 2 teams needed.' : ' · Choose your group count before publishing.');$('start-draw').disabled=locked || teams<2 || extra!==0; }
-  $('team-size').onchange=selectionCount;
+  function selectedMaps() { return [...$('map-options').querySelectorAll('input:checked')].map(input=>input.value); }
+  function renderMapOptions() {
+    $('map-options').replaceChildren();
+    for (const map of MAP_POOLS[Number($('team-size').value)]) {
+      const label=element('label'),input=element('input'); input.type='checkbox'; input.value=map; input.checked=true;
+      input.onchange=()=>{updateMapCount();configureDraw();controls();}; label.append(input,document.createTextNode(map)); $('map-options').append(label);
+    }
+    updateMapCount();
+  }
+  function updateMapCount() { const count=selectedMaps().length; $('map-count').textContent=count ? count+' maps selected' : 'Select at least one map before publishing.'; }
+  $('team-size').onchange=()=>{selectionCount();renderMapOptions();};
   $('load-pool').onclick=()=>{
     if(locked)return;
     const names=$('pool-input').value.split(/\r?\n/).map(n=>n.trim()).filter(Boolean);
@@ -308,16 +338,20 @@ if (typeof document !== 'undefined') (() => {
     if (!draw) return;
     try {
       const order = drawOrder;
-      const next = makeTournament(selected,draw.teamSize,current,order,Number($('group-count').value));
+      const next = makeTournament(selected,draw.teamSize,current,order,Number($('group-count').value),selectedMaps());
       next.teams.forEach((team,i)=>{team.name=draw.teams[i].name;}); draw=next;
       $('format-preview').textContent = draw.groups.length ? draw.groups.map(g=>'Group '+g.id+': '+g.teams.length+' teams').join(' · ') + ' · Top 2 advance from each group.' + (draw.groups.length === 3 ? ' Group A and B winners receive playoff byes.' : '') : 'Straight knockout · '+draw.matches.length+' game'+(draw.matches.length === 1 ? '' : 's')+' · Byes advance automatically.';
       showDrawTeams();
-    } catch(error) { $('format-preview').textContent = error.message; }
+      $('draw-fixtures').replaceChildren(element('h3','fixture-heading','Fixture map preview'));
+      const list=element('ol','map-preview');
+      orderedMatches(draw.matches).forEach(match=>list.append(element('li','',match.id.toUpperCase()+' · '+match.map)));
+      $('draw-fixtures').append(list);
+    } catch(error) { $('format-preview').textContent = error.message; $('draw-fixtures').replaceChildren(); }
     controls();
   }
   $('group-count').onchange = configureDraw;
-  $('reset-draw').onclick=()=>{if(spinning || busy)return;if(selected.length && !confirm('Discard this unpublished draw?'))return;selected=[];remaining=[];draw=null;lock(false);$('spin').disabled=true;$('draw-teams').replaceChildren();$('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();announce('Select your players to start a new draw.');};
-  $('publish-draw').onclick=async()=>{if(!draw || !token || busy || draw.groups.length !== Number($('group-count').value))return;if(!confirm(`Publish these ${draw.teams.length} ${draw.teamSize===2?'duo':'squad'} teams and replace the current tournament, including all existing results and player stats?`))return;try{await publish(structuredClone(draw),'Publish new player draw and tournament groups');draw=null;selected=[];$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();announce('Teams and groups saved. Open Fixtures to run the tournament.');}catch(error){announce(error.message);}};
+  $('reset-draw').onclick=()=>{if(spinning || busy)return;if(selected.length && !confirm('Discard this unpublished draw?'))return;selected=[];remaining=[];draw=null;lock(false);$('spin').disabled=true;$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();$('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();announce('Select your players to start a new draw.');};
+  $('publish-draw').onclick=async()=>{if(!draw || !token || busy || draw.groups.length !== Number($('group-count').value) || !selectedMaps().length)return;if(!confirm(`Publish these ${draw.teams.length} ${draw.teamSize===2?'duo':'squad'} teams and replace the current tournament, including all existing results and player stats?`))return;try{await publish(structuredClone(draw),'Publish new player draw and tournament groups');draw=null;selected=[];$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();announce('Teams and groups saved. Open Fixtures to run the tournament.');}catch(error){announce(error.message);}};
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
   const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
   function selectTab(tab, focus = false) {
@@ -335,7 +369,7 @@ if (typeof document !== 'undefined') (() => {
       if (target !== null) { event.preventDefault(); selectTab(tabs[target],true); }
     });
   });
-  paintWheel([]);renderAll();
+  renderMapOptions();paintWheel([]);renderAll();
   let rememberedToken = '';
   try { rememberedToken = sessionStorage.getItem(tokenStorageKey) || ''; } catch { /* Storage may be disabled by browser settings. */ }
   if (rememberedToken) { $('remember-token').checked = true; void connect(rememberedToken); }
