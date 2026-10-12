@@ -35,10 +35,30 @@ function resolveTournament(data) {
     group.qualified = group.complete && !group.tied;
   }
   for (const match of data.matches.filter(match => !match.group)) {
-    const ids = match.seeds ? match.seeds.map(([id,place]) => { const group = groups.find(group => group.id === id); return group.qualified ? group.rows[place].id : null; }) : match.from.map(id => resolved.get(id)?.winner ?? null);
+    const sources = match.sources || (match.seeds ? match.seeds.map(seed => ({seed})) : (match.from || []).map(winner => ({winner})));
+    if (sources.length !== 2) throw Error('Invalid knockout participants.');
+    const ids = sources.map(source => {
+      if (source.team) { if (!teams.has(source.team)) throw Error('Unknown knockout team.'); return source.team; }
+      if (source.seed) {
+        const [id,place] = source.seed, group = groups.find(group => group.id === id);
+        if (!group || ![0,1].includes(place)) throw Error('Invalid group seed.');
+        return group.qualified ? group.rows[place].id : null;
+      }
+      if (!resolved.has(source.winner)) throw Error('Invalid knockout match order.');
+      return resolved.get(source.winner).winner;
+    });
     resolve(match, ids);
   }
   return { teams, groups, matches: [...resolved.values()] };
+}
+function matchPlaceholder(match, index) {
+  const source = match.sources?.[index] || (match.seeds ? {seed:match.seeds[index]} : {winner:match.from?.[index]});
+  return source.seed ? `Group ${source.seed[0]} · ${source.seed[1] === 0 ? '1st' : '2nd'}` : source.winner ? `Winner ${source.winner.toUpperCase()}` : 'Awaiting team';
+}
+function knockoutRoundName(match, matches) {
+  const last = Math.max(...matches.filter(m => !m.group).map(m => m.round));
+  const remaining = last - match.round;
+  return remaining === 0 ? 'Grand final' : remaining === 1 ? 'Semi-finals' : remaining === 2 ? 'Quarter-finals' : `Round of ${2 ** (remaining+1)}`;
 }
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -70,10 +90,11 @@ function renderTournament(data) {
   const completed = matches.filter(match => match.winner).length;
   document.getElementById('progress').replaceChildren(document.createTextNode(`${completed} / ${matches.length} `), element('small', '', 'matches complete'));
   document.getElementById('team-count').textContent = `${data.teams.length} teams entered`;
-  document.getElementById('format-name').textContent = `${data.teamSize === 2 ? 'Duos' : data.teamSize === 5 ? 'Squads' : 'Teams'} · ${groups.length === 1 ? 'Group → final' : 'Groups → playoffs'}`;
+  document.getElementById('format-name').textContent = `${data.teamSize === 2 ? 'Duos' : data.teamSize === 5 ? 'Squads' : 'Teams'} · ${groups.length === 0 ? 'Knockout' : groups.length === 1 ? 'Group → final' : `${groups.length} groups → playoffs`}`;
+  document.getElementById('groups-heading').closest('section').hidden = !groups.length;
   document.getElementById('roster-count').textContent = `${data.teams.length} TEAMS / 1 TROPHY`;
   document.getElementById('group-rules').textContent = 'Ranked by wins, then round difference (RD). Remaining ties need a tiebreak decision. Playoff places are confirmed when each team has played every other team in its group.';
-  document.getElementById('schedule-rules').textContent = groups.length === 1 ? 'Play each group match in order, then the top two teams meet in the final. Connect as organiser to enter or correct results.' : 'Group games alternate between A and B, followed by semi-finals and the final. Connect as organiser to enter or correct results.';
+  document.getElementById('schedule-rules').textContent = (groups.length ? 'Play group games in numbered order. The top two from each group advance to the knockout stages.' : 'Straight knockout: winners advance. Teams with a first-round bye enter in the following round.') + ' Connect in Set up to enter or correct results in Fixtures.';
   document.getElementById('status').textContent = completed === matches.length ? 'Tournament complete' : completed ? 'Tournament underway' : 'Awaiting first match';
   function matchCard(match) {
     const card = element('article', 'match');
@@ -83,7 +104,7 @@ function renderTournament(data) {
     card.append(meta);
     match.ids.forEach((id, i) => {
       const team = teams.get(id);
-      const placeholder = match.seeds ? `Group ${match.seeds[i][0]} · ${match.seeds[i][1] === 0 ? '1st' : '2nd'}` : `Winner of ${match.from?.[i].toUpperCase()}`;
+      const placeholder = matchPlaceholder(match,i);
       const row = element('div', `team-row${match.winner === id && id ? ' winner' : ''}${!team ? ' pending' : ''}`);
       row.append(element('span', 'team-tag', team?.tag ?? '—'), team ? teamNameNode(team) : element('span', 'team-name', placeholder), element('span', 'score', match.result ? String(match.result.scores[i]) : '—'));
       card.append(row);
@@ -119,8 +140,8 @@ function renderTournament(data) {
     details.append(fixtures); section.append(details);
     document.getElementById('groups').append(section);
   }
-  ['Semi-finals', 'Grand final'].forEach((name, round) => {
-    if (!matches.some(match => match.round === round)) return;
+  [...new Set(matches.filter(match => !match.group).map(match => match.round))].sort((a,b)=>a-b).forEach(round => {
+    const name = knockoutRoundName({round},matches);
     const column = element('div', `round round-${round}`);
     const heading = element('h3', 'round-heading', name);
     heading.append(element('span', '', `0${round+1}`));
@@ -141,7 +162,7 @@ function renderTournament(data) {
     const group = groups.find(group => group.teams.includes(team.id));
     details.append(element('h3', '', teamDisplayName(team)));
     if (teamDisplayName(team) !== team.name) details.append(element('small', 'team-identifier', team.name));
-    details.append(element('p', '', final.winner === team.id ? 'Champion' : eliminated.has(team.id) ? 'Eliminated' : `Group ${group.id}`));
+    details.append(element('p', '', final.winner === team.id ? 'Champion' : eliminated.has(team.id) ? 'Eliminated' : group ? `Group ${group.id}` : 'Knockout'));
     if (team.players && team.players.length !== 2) details.append(element('p', 'players-list', team.players.map(player => player.name).join(' · ')));
     card.append(element('span', 'roster-tag', team.tag), details); document.getElementById('teams').append(card);
   });

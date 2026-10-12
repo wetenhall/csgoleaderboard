@@ -1,4 +1,4 @@
-/* Tournament editing and GitHub persistence. Credentials are memory-only. */
+/* Tournament editing and GitHub persistence. Optional tab-session credentials. */
 function randomIndex(length) {
   const range = 4294967296, limit = range - range % length;
   const value = new Uint32Array(1);
@@ -10,16 +10,40 @@ function shuffle(items) {
   for (let i = copy.length - 1; i > 0; i--) { const j = randomIndex(i + 1); [copy[i], copy[j]] = [copy[j], copy[i]]; }
   return copy;
 }
-function makeTournament(players, size, template, groupOrder) {
+function makeTournament(players, size, template, groupOrder, groupCount = players.length / size < 6 ? 1 : 2) {
   if (![2, 5].includes(size) || players.length < size * 2 || players.length % size || new Set(players.map(p => p.id)).size !== players.length) throw Error('Select enough unique players for at least two complete teams.');
   const data = structuredClone(template);
   data.teams = Array.from({ length: players.length / size }, (_, i) => ({ id: `t${i+1}`, name: `Team ${String(i+1).padStart(2,'0')}`, tag: String(i+1).padStart(2,'0'), players: players.slice(i*size,(i+1)*size) }));
   const ids = groupOrder || shuffle(data.teams.map(t => t.id));
-  const split = Math.ceil(ids.length / 2);
-  data.groups = (ids.length < 6 ? [ids] : [ids.slice(0,split),ids.slice(split)]).map((teams,i) => ({ id: String.fromCharCode(65+i), teams, tiebreakOrder: [] }));
+  if (!Number.isInteger(groupCount) || groupCount < 0 || groupCount > 4 || ids.length < groupCount * 2) throw Error('Choose 0–4 groups, with at least two teams per group.');
+  if (ids.length !== data.teams.length || new Set(ids).size !== ids.length || ids.some(id => !data.teams.some(t => t.id === id))) throw Error('Invalid team draw order.');
+  let offset = 0;
+  data.groups = Array.from({length:groupCount}, (_,i) => {
+    const count = Math.floor(ids.length/groupCount) + Number(i < ids.length%groupCount);
+    const teams = ids.slice(offset,offset+count); offset += count;
+    return {id:String.fromCharCode(65+i),teams,tiebreakOrder:[]};
+  });
   data.matches = data.groups.flatMap(group => roundRobinPairs(group.teams).map((teams,i) => ({ id: group.id.toLowerCase()+(i+1), group: group.id, teams, result: null })));
   if (data.groups.length === 1) data.matches.push({id:'f1',round:1,seeds:[['A',0],['A',1]],result:null});
-  else data.matches.push({id:'s1',round:0,seeds:[['A',0],['B',1]],result:null},{id:'s2',round:0,seeds:[['B',0],['A',1]],result:null},{id:'f1',round:1,from:['s1','s2'],result:null});
+  else if (data.groups.length === 2) data.matches.push({id:'s1',round:0,seeds:[['A',0],['B',1]],result:null},{id:'s2',round:0,seeds:[['B',0],['A',1]],result:null},{id:'f1',round:1,from:['s1','s2'],result:null});
+  else {
+    // Seed winners above runners-up. Empty seed slots advance as byes, not games.
+    const entrants = groupCount ? [0,1].flatMap(place => data.groups.map(g => ({seed:[g.id,place]}))) : ids.map(team => ({team}));
+    const capacity = 2 ** Math.ceil(Math.log2(entrants.length));
+    let seeds = [1,2];
+    while (seeds.length < capacity) seeds = seeds.flatMap(seed => [seed,seeds.length*2+1-seed]);
+    let slots = seeds.map(seed => entrants[seed-1] || null), round = 0;
+    while (slots.length > 1) {
+      const next = [];
+      for (let i=0;i<slots.length;i+=2) {
+        const sources = slots.slice(i,i+2);
+        if (sources.some(source => !source)) { next.push(sources.find(Boolean) || null); continue; }
+        const id = slots.length === 2 ? 'f1' : `k${round+1}-${i/2+1}`;
+        data.matches.push({id,round,sources,result:null}); next.push({winner:id});
+      }
+      slots = next; round++;
+    }
+  }
   data.teamSize = size;
   data.mode = size === 2 ? 'duos' : 'squads';
   return data;
@@ -50,11 +74,11 @@ function playerTotals(data) {
   return [...totals.values()].sort((a,b) => b.kills-a.kills || a.deaths-b.deaths || a.name.localeCompare(b.name));
 }
 function validateData(data, resolve) {
-  if (!data || typeof data.name !== 'string' || data.name.length > 100 || !Array.isArray(data.teams) || data.teams.length < 2 || !Array.isArray(data.groups) || ![1,2].includes(data.groups.length) || !Array.isArray(data.matches)) throw Error('Invalid tournament structure.');
+  if (!data || typeof data.name !== 'string' || data.name.length > 100 || !Array.isArray(data.teams) || data.teams.length < 2 || !Array.isArray(data.groups) || data.groups.length > 4 || !Array.isArray(data.matches)) throw Error('Invalid tournament structure.');
   const teamIds = data.teams.map(t => t.id);
   if (new Set(teamIds).size !== teamIds.length || data.teams.some(t => typeof t.name !== 'string' || !t.name.trim() || t.name.length > 60)) throw Error('Invalid team names or IDs.');
   const assigned = data.groups.flatMap(g => g.teams);
-  if (assigned.length !== teamIds.length || new Set(assigned).size !== teamIds.length || assigned.some(id => !teamIds.includes(id)) || data.groups.some(g => g.teams.length < 2)) throw Error('Each team must belong to one group.');
+  if (data.groups.length && (assigned.length !== teamIds.length || new Set(assigned).size !== teamIds.length || assigned.some(id => !teamIds.includes(id)) || data.groups.some(g => g.teams.length < 2))) throw Error('Each team must belong to one group.');
   if (new Set(data.matches.map(m => m.id)).size !== data.matches.length) throw Error('Duplicate match IDs.');
   for (const group of data.groups) {
     const games = data.matches.filter(m => m.group === group.id);
@@ -94,7 +118,7 @@ if (typeof document !== 'undefined') (() => {
   const $ = id => document.getElementById(id);
   const api = 'https://api.github.com/repos/wetenhall/csgoleaderboard/contents/tournament.json';
   let current = structuredClone(TOURNAMENT), token = '', fileSha = '', busy = false;
-  let pool = [], remaining = [], selected = [], draw = null, spinning = false, locked = false;
+  let pool = [], remaining = [], selected = [], draw = null, spinning = false, locked = false, drawOrder = [];
   const tokenStorageKey = 'friends-cup.organiser-token';
   function storeToken(value) {
     try {
@@ -107,12 +131,14 @@ if (typeof document !== 'undefined') (() => {
   const announce = text => { $('draw-announcement').textContent = text; };
   function controls() {
     $('connected-setup').hidden = !token;
+    $('team-setup-locked').hidden = !!token;
+    $('group-count').disabled = busy || spinning;
     $('disconnect').hidden = !token;
     $('connect-form').querySelector('button').disabled = busy || !!token;
     $('refresh-data').disabled = busy;
     $('disconnect').disabled = busy;
     $('remember-token').disabled = busy;
-    $('publish-draw').disabled = busy || !draw || !token;
+    $('publish-draw').disabled = busy || !draw || !token || draw.groups.length !== Number($('group-count').value);
     document.querySelectorAll('.result-form button, .tie-form button').forEach(b => { b.disabled = busy || !token; });
   }
   async function request(method, body, credential = token) {
@@ -193,10 +219,10 @@ if (typeof document !== 'undefined') (() => {
       const details = element('details','scheduled-match');
       const ready = match.ids.every(Boolean); const next = !markedNext && !match.result && ready;
       if (next) { markedNext = true; details.classList.add('next-match'); }
-      const names = match.ids.map((id,i) => state.teams.has(id) ? teamDisplayLabel(state.teams.get(id)) : (match.seeds ? `Group ${match.seeds[i][0]} ${match.seeds[i][1]+1}` : `Winner ${match.from[i].toUpperCase()}`));
+      const names = match.ids.map((id,i) => state.teams.has(id) ? teamDisplayLabel(state.teams.get(id)) : matchPlaceholder(match,i));
       details.append(element('summary','',`${String(index+1).padStart(2,'0')} · ${names.join(' vs ')} · ${match.result ? match.result.scores.join(' – ') : next ? 'UP NEXT' : ready ? 'Scheduled' : 'Awaiting qualifiers'}`));
       const body = element('div','result-body');
-      body.append(element('p','rules',`${match.id.toUpperCase()} · ${match.group ? `Group ${match.group}` : match.id === 'f1' ? 'Grand final' : 'Semi-final'}`));
+      body.append(element('p','rules',`${match.id.toUpperCase()} · ${match.group ? `Group ${match.group}` : knockoutRoundName(match,state.matches)}`));
       if (!ready) { body.append(element('p','','Teams will appear once qualification is confirmed.')); details.append(body); container.append(details); return; }
       const form = element('form','result-form'); const scores = names.map((name,i) => numeric(`${name} rounds`,match.result?.scores[i],99));
       const scoreRow = element('div','score-inputs'); scores.forEach(s => {s.input.required=true;scoreRow.append(s.wrap);}); form.append(scoreRow);
@@ -247,7 +273,7 @@ if (typeof document !== 'undefined') (() => {
       const button=element('button','','Publish tiebreak order');const note=element('p');form.append(button,note);form.onsubmit=async e=>{e.preventDefault();try{const ranks=fields.map(f=>Number(f.input.value));if(new Set(ranks).size!==group.rows.length)throw Error(`Use each position from 1 to ${group.rows.length} once.`);const next=structuredClone(current);next.groups.find(g=>g.id===group.id).tiebreakOrder=fields.sort((a,b)=>Number(a.input.value)-Number(b.input.value)).map(f=>f.id);await publish(next,`Resolve Group ${group.id} tiebreak`);}catch(error){note.textContent=error.message;}};$('tie-controls').append(form);
     }
   }
-  function selectionCount() { const count=$('pool-list').querySelectorAll('input:checked').length;const size=Number($('team-size').value),teams=Math.floor(count/size),extra=count%size; $('pool-count').textContent=`${count} selected · ${teams} complete ${size===2?'duo':'squad'} teams`+(extra ? ` · Select ${size-extra} more or deselect ${extra} to make full teams.` : teams<2 ? ' · At least 2 teams needed.' : teams<6 ? ' · One group, then a final.' : ' · Two balanced groups, then playoffs.');$('start-draw').disabled=locked || teams<2 || extra!==0; }
+  function selectionCount() { const count=$('pool-list').querySelectorAll('input:checked').length;const size=Number($('team-size').value),teams=Math.floor(count/size),extra=count%size; $('pool-count').textContent=`${count} selected · ${teams} complete ${size===2?'duo':'squad'} teams`+(extra ? ` · Select ${size-extra} more or deselect ${extra} to make full teams.` : teams<2 ? ' · At least 2 teams needed.' : ' · Choose your group count before publishing.');$('start-draw').disabled=locked || teams<2 || extra!==0; }
   $('team-size').onchange=selectionCount;
   $('load-pool').onclick=()=>{
     if(locked)return;
@@ -264,7 +290,7 @@ if (typeof document !== 'undefined') (() => {
   }
   function showDrawTeams() {
     $('draw-teams').replaceChildren();const size=Number($('team-size').value);
-    for(let i=0;i<(selected.length+remaining.length)/size;i++){const card=element('div','draw-team');const label=element('label','',`Team ${i+1}`);const name=element('input');name.value=draw?.teams[i].name || `Team ${String(i+1).padStart(2,'0')}`;name.maxLength=60;name.disabled=!draw;name.oninput=()=>{draw.teams[i].name=name.value.trim();};label.append(name);card.append(label);selected.slice(i*size,(i+1)*size).forEach(p=>card.append(element('p','',p.name)));if(draw)card.append(element('p','accent',`Group ${draw.groups.find(g=>g.teams.includes(draw.teams[i].id)).id}`));$('draw-teams').append(card);}
+    for(let i=0;i<(selected.length+remaining.length)/size;i++){const card=element('div','draw-team');const label=element('label','',`Team ${i+1}`);const name=element('input');name.value=draw?.teams[i].name || `Team ${String(i+1).padStart(2,'0')}`;name.maxLength=60;name.disabled=!draw;name.oninput=()=>{draw.teams[i].name=name.value.trim();};label.append(name);card.append(label);selected.slice(i*size,(i+1)*size).forEach(p=>card.append(element('p','',p.name)));if(draw)card.append(element('p','accent',draw.groups.length ? `Group ${draw.groups.find(g=>g.teams.includes(draw.teams[i].id)).id}` : 'Knockout'));$('draw-teams').append(card);}
   }
   function lock(value){locked=value;['team-size','pool-input','load-pool','start-draw'].forEach(id=>{$(id).disabled=value;});$('pool-list').querySelectorAll('input').forEach(i=>{i.disabled=value;});}
   $('start-draw').onclick=()=>{const ids=[...$('pool-list').querySelectorAll('input:checked')].map(i=>i.value);const size=Number($('team-size').value);if(ids.length<size*2 || ids.length%size)return;remaining=pool.filter(p=>ids.includes(p.id));selected=[];draw=null;lock(true);showDrawTeams();paintWheel(remaining);$('spin').disabled=false;announce('Drawing Team 01. Spin to select its first player.');};
@@ -275,11 +301,23 @@ if (typeof document !== 'undefined') (() => {
     canvas.style.transition=`transform ${duration}ms cubic-bezier(.12,.6,.12,1)`;canvas.style.transform=`rotate(${1800+360-(index+.5)*360/remaining.length}deg)`;
     await new Promise(resolve=>setTimeout(resolve,duration+30));
     remaining.splice(index,1);selected.push(picked);const size=Number($('team-size').value);announce(`${picked.name} joins Team ${Math.ceil(selected.length/size)}. ${remaining.length} players remaining.`);
-    if(!remaining.length){draw=makeTournament(selected,size,current);announce('Draw complete. Teams have been randomly assigned to groups. Review names below, then publish.');}
+    if(!remaining.length){draw=makeTournament(selected,size,current);drawOrder=draw.groups.flatMap(g=>g.teams);configureDraw();announce('Draw complete. Review team names and tournament format, then publish.');}
     showDrawTeams();spinning=false;$('spin').disabled=!remaining.length;$('reset-draw').disabled=false;controls();
   };
+  function configureDraw() {
+    if (!draw) return;
+    try {
+      const order = drawOrder;
+      const next = makeTournament(selected,draw.teamSize,current,order,Number($('group-count').value));
+      next.teams.forEach((team,i)=>{team.name=draw.teams[i].name;}); draw=next;
+      $('format-preview').textContent = draw.groups.length ? draw.groups.map(g=>'Group '+g.id+': '+g.teams.length+' teams').join(' · ') + ' · Top 2 advance from each group.' + (draw.groups.length === 3 ? ' Group A and B winners receive playoff byes.' : '') : 'Straight knockout · '+draw.matches.length+' game'+(draw.matches.length === 1 ? '' : 's')+' · Byes advance automatically.';
+      showDrawTeams();
+    } catch(error) { $('format-preview').textContent = error.message; }
+    controls();
+  }
+  $('group-count').onchange = configureDraw;
   $('reset-draw').onclick=()=>{if(spinning || busy)return;if(selected.length && !confirm('Discard this unpublished draw?'))return;selected=[];remaining=[];draw=null;lock(false);$('spin').disabled=true;$('draw-teams').replaceChildren();$('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();announce('Select your players to start a new draw.');};
-  $('publish-draw').onclick=async()=>{if(!draw || !token || busy)return;if(!confirm(`Publish these ${draw.teams.length} ${draw.teamSize===2?'duo':'squad'} teams and replace the current tournament, including all existing results and player stats?`))return;try{await publish(structuredClone(draw),'Publish new player draw and tournament groups');draw=null;selected=[];$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();announce('Teams and groups saved. Open Fixtures to run the tournament.');}catch(error){announce(error.message);}};
+  $('publish-draw').onclick=async()=>{if(!draw || !token || busy || draw.groups.length !== Number($('group-count').value))return;if(!confirm(`Publish these ${draw.teams.length} ${draw.teamSize===2?'duo':'squad'} teams and replace the current tournament, including all existing results and player stats?`))return;try{await publish(structuredClone(draw),'Publish new player draw and tournament groups');draw=null;selected=[];$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();announce('Teams and groups saved. Open Fixtures to run the tournament.');}catch(error){announce(error.message);}};
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
   const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
   function selectTab(tab, focus = false) {

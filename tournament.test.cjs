@@ -98,3 +98,32 @@ test('draw rejects incomplete teams and too few players',()=>{
     assert.throws(()=>makeTournament(players,size,fixture()),/complete teams/);
   }
 });
+
+for (const [count,groups] of [[2,0],[3,0],[5,0],[9,0],[5,1],[5,2],[6,3],[9,3],[8,4],[11,4]]) test(count+' teams with '+groups+' groups progress to one champion',()=>{
+  const players=Array.from({length:count*2},(_,i)=>({id:'p'+i,name:'Player '+i}));
+  const ids=Array.from({length:count},(_,i)=>'t'+(i+1));
+  let data=makeTournament(players,2,fixture(),ids,groups);
+  assert.equal(data.groups.length,groups);
+  assert.equal(data.matches.filter(m=>!m.group).length,(groups?groups*2:count)-1);
+  data.groups.forEach(g=>g.tiebreakOrder=[...g.teams]);
+  const losses=new Map();
+  for (const game of orderedMatches(data.matches)) {
+    const resolved=resolveTournament(data).matches.find(m=>m.id===game.id);
+    assert.equal(resolved.ids.length,2); assert.ok(resolved.ids.every(Boolean));
+    assert.notEqual(resolved.ids[0],resolved.ids[1]);
+    data=applyResult(data,game.id,{teams:resolved.ids,scores:[13,7],players:{}},resolveTournament).next;
+    if(!game.group) losses.set(resolved.ids[1],(losses.get(resolved.ids[1])||0)+1);
+  }
+  validateData(data,resolveTournament);
+  const champion=resolveTournament(data).matches.find(m=>m.id==='f1').winner;
+  assert.ok(champion); assert.ok(!losses.has(champion)); assert.ok([...losses.values()].every(n=>n===1));
+  if(!groups) assert.equal(losses.size,count-1);
+  const first=resolveTournament(data).matches.find(m=>!m.group);
+  const corrected=applyResult(data,first.id,{teams:first.ids,scores:[7,13],players:{}},resolveTournament);
+  assert.equal(resolveTournament(corrected.next).matches.find(m=>m.id===first.id).winner,first.ids[1]);
+  if(first.id!=='f1') assert.ok(corrected.cleared.includes('f1'));
+});
+test('group counts require two teams per group',()=>{
+ const players=Array.from({length:10},(_,i)=>({id:'p'+i,name:'Player '+i}));
+ for(const count of [-1,3,4,5,1.5])assert.throws(()=>makeTournament(players,2,fixture(),undefined,count),/groups/);
+});

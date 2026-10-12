@@ -18,29 +18,36 @@
     <section class="overview" aria-label="Tournament summary"><div><span class="label">FORMAT</span><strong id="format-name">Groups → playoffs</strong></div><div><span class="label">TEAMS</span><strong id="team-count">8 teams entered</strong></div><div><span class="label">PROGRESS</span><strong id="progress">0 / 15 <small>matches complete</small></strong></div><div><span class="label">STATUS</span><strong id="status" class="accent">Awaiting first match</strong></div></section>
     <div class="page-tabs" role="tablist" aria-label="Tournament sections">
 <button type="button" id="tab-setup" role="tab" aria-controls="panel-setup" aria-selected="false" tabindex="-1">Set up</button>
+<button type="button" id="tab-team-setup" role="tab" aria-controls="panel-team-setup" aria-selected="false" tabindex="-1">Team setup</button>
 <button type="button" id="tab-leaderboard" role="tab" aria-controls="panel-leaderboard" aria-selected="true" tabindex="0">Leader board</button>
 <button type="button" id="tab-fixtures" role="tab" aria-controls="panel-fixtures" aria-selected="false" tabindex="-1">Fixtures</button>
 <button type="button" id="tab-stats" role="tab" aria-controls="panel-stats" aria-selected="false" tabindex="-1">Stats</button>
 </div>
 <p id="connection-status" class="connection-status" role="status">Viewing the published tournament. Connect in Set up to publish changes.</p>
 <div id="panel-setup" class="tab-panel" role="tabpanel" aria-labelledby="tab-setup" tabindex="0" hidden>
-    <section class="organiser" id="organiser" aria-labelledby="setup-heading"><div class="section-heading"><h2 id="setup-heading">Tournament setup</h2></div>
+    <section class="organiser" id="organiser" aria-labelledby="setup-heading"><div class="section-heading"><h2 id="setup-heading">Organiser connection</h2></div>
       <div class="organiser-body">
         <p>Connect to publish draws and results for everyone. Remember your token for this tab to reconnect after refresh. Disconnect clears it; browsers may retain tab sessions when restoring closed tabs.</p>
         <form id="connect-form" class="connection"><label>GitHub token <input id="github-token" type="password" autocomplete="off" required placeholder="Fine-grained access token"></label><button>Connect organiser</button><button id="disconnect" type="button" hidden>Disconnect</button></form>
         <label class="remember-token"><input id="remember-token" type="checkbox" checked> Remember for this tab</label>
         <details><summary>One-time organiser setup</summary><p>Create a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">fine-grained GitHub token</a> owned by wetenhall, restricted to <strong>csgoleaderboard</strong>, with <strong>Contents: Read and write</strong>. Choose an expiry date. Paste the token above, never into chat. Anyone with this token can change this repository, so keep it private.</p></details>
+      </div>
+    </section>
+</div>
+<div id="panel-team-setup" class="tab-panel" role="tabpanel" aria-labelledby="tab-team-setup" tabindex="0" hidden>
+<p id="team-setup-locked" class="rules">Connect your GitHub token in Set up to create teams and configure the tournament.</p>
+<section class="organiser"><div class="organiser-body">
         <div id="connected-setup" hidden>
         <button id="refresh-data" type="button" class="secondary">Reload latest saved tournament</button>
         <details id="draw-panel" open><summary>Create a new tournament · Wheel draw</summary>
-          <p>Choose Duos or Squads. Any number of complete teams is supported (minimum two). Up to five teams play one group then a final; six or more split into two balanced groups then playoffs. The new draw replaces the current tournament and its results only when you publish it.</p>
+          <p>Choose Duos or Squads. Any number of complete teams is supported (minimum two). Choose 1–4 balanced groups with at least two teams per group; the top two in each advance. Choose 0 for straight knockout. Byes fill uneven brackets automatically. With three groups, Group A and B winners receive the two playoff byes. The new draw replaces the current tournament and its results only when you publish it.</p>
           <div class="draw-layout"><div>
             <label>Tournament type <select id="team-size"><option value="2">Duos · 2 players per team</option><option value="5">Squads · 5 players per team</option></select></label>
             <label>Player pool · one name per line<textarea id="pool-input" rows="7" maxlength="6000" placeholder="Player name&#10;Another player"></textarea></label>
             <button id="load-pool" type="button">Load player pool</button><p id="pool-count">Select at least 4 players for Duos, or 10 for Squads. Full teams only.</p><div id="pool-list" class="pool-list"></div>
             <button id="start-draw" type="button" disabled>Lock players & start draw</button><button id="reset-draw" type="button" class="secondary">Reset draw</button>
           </div><div class="wheel-panel"><div class="wheel-wrap"><span class="wheel-pointer" aria-hidden="true">▼</span><canvas id="wheel" width="640" height="640" role="img" aria-label="Player selection wheel"></canvas></div><p id="draw-announcement" role="status" aria-live="polite">Load your players to begin.</p><button id="spin" type="button" disabled>Spin for next player</button></div></div>
-          <div id="draw-teams" class="teams"></div><button id="publish-draw" type="button" disabled>Publish teams & groups</button>
+          <label>Number of groups<select id="group-count"><option value="0">0 · Straight knockout</option><option value="1" selected>1 group</option><option value="2">2 groups</option><option value="3">3 groups</option><option value="4">4 groups</option></select></label><p id="format-preview" class="rules">Choose the format before publishing. Each group needs at least two teams.</p><div id="draw-teams" class="teams"></div><button id="publish-draw" type="button" disabled>Publish teams & tournament</button>
         </details>
         </div>
       </div>
