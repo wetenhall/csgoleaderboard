@@ -221,7 +221,38 @@
         "t2",
         "t4"
       ],
-      "result": null,
+      "result": {
+        "teams": [
+          "t2",
+          "t4"
+        ],
+        "scores": [
+          7,
+          6
+        ],
+        "players": {
+          "p5": {
+            "kills": 2,
+            "deaths": 5,
+            "assists": 5
+          },
+          "p3": {
+            "kills": 1,
+            "deaths": 4,
+            "assists": 4
+          },
+          "p10": {
+            "kills": 4,
+            "deaths": 3,
+            "assists": 3
+          },
+          "p9": {
+            "kills": 4,
+            "deaths": 2,
+            "assists": 2
+          }
+        }
+      },
       "map": "Overpass"
     },
     {
