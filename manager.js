@@ -159,7 +159,7 @@ if (typeof document !== 'undefined') (() => {
       const details = element('details','scheduled-match');
       const ready = match.ids.every(Boolean); const next = !markedNext && !match.result && ready;
       if (next) { markedNext = true; details.classList.add('next-match'); }
-      const names = match.ids.map((id,i) => state.teams.get(id)?.name || (match.seeds ? `Group ${match.seeds[i][0]} ${match.seeds[i][1]+1}` : `Winner ${match.from[i].toUpperCase()}`));
+      const names = match.ids.map((id,i) => state.teams.has(id) ? teamDisplayLabel(state.teams.get(id)) : (match.seeds ? `Group ${match.seeds[i][0]} ${match.seeds[i][1]+1}` : `Winner ${match.from[i].toUpperCase()}`));
       details.append(element('summary','',`${String(index+1).padStart(2,'0')} · ${names.join(' vs ')} · ${match.result ? match.result.scores.join(' – ') : next ? 'UP NEXT' : ready ? 'Scheduled' : 'Awaiting qualifiers'}`));
       const body = element('div','result-body');
       body.append(element('p','rules',`${match.id.toUpperCase()} · ${match.group ? `Group ${match.group}` : match.id === 'f1' ? 'Grand final' : 'Semi-final'}`));

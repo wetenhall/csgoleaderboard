@@ -46,6 +46,20 @@ function element(tag, className, text) {
   if (text !== undefined) node.textContent = text;
   return node;
 }
+function teamDisplayName(team) {
+  return team.players?.length === 2 ? team.players.map(player => player.name).join(' + ') : team.name;
+}
+function teamDisplayLabel(team) {
+  const display = teamDisplayName(team);
+  return display === team.name ? display : `${display} (${team.name})`;
+}
+function teamNameNode(team) {
+  const node = element('span', 'team-name');
+  const display = teamDisplayName(team);
+  node.append(element('span', 'team-display', display));
+  if (display !== team.name) node.append(element('small', 'team-identifier', team.name));
+  return node;
+}
 function renderTournament(data) {
   const { teams, groups, matches } = resolveTournament(data);
   ['groups', 'bracket', 'teams'].forEach(id => document.getElementById(id).replaceChildren());
@@ -71,7 +85,7 @@ function renderTournament(data) {
       const team = teams.get(id);
       const placeholder = match.seeds ? `Group ${match.seeds[i][0]} · ${match.seeds[i][1] === 0 ? '1st' : '2nd'}` : `Winner of ${match.from?.[i].toUpperCase()}`;
       const row = element('div', `team-row${match.winner === id && id ? ' winner' : ''}${!team ? ' pending' : ''}`);
-      row.append(element('span', 'team-tag', team?.tag ?? '—'), element('span', 'team-name', team?.name ?? placeholder), element('span', 'score', match.result ? String(match.result.scores[i]) : '—'));
+      row.append(element('span', 'team-tag', team?.tag ?? '—'), team ? teamNameNode(team) : element('span', 'team-name', placeholder), element('span', 'score', match.result ? String(match.result.scores[i]) : '—'));
       card.append(row);
     });
     return card;
@@ -89,7 +103,12 @@ function renderTournament(data) {
     const body = element('tbody');
     group.rows.forEach((row,i) => {
       const tr = element('tr', group.qualified && i < 2 ? 'qualified' : '');
-      [group.complete && !group.tied ? i+1 : '—', teams.get(row.id).name, row.played, row.wins, row.losses, row.difference > 0 ? `+${row.difference}` : row.difference].forEach(value => tr.append(element('td','',String(value))));
+      [group.complete && !group.tied ? i+1 : '—', teams.get(row.id).name, row.played, row.wins, row.losses, row.difference > 0 ? `+${row.difference}` : row.difference].forEach((value, index) => {
+        const cell = element('td');
+        if (index === 1) cell.append(teamNameNode(teams.get(row.id)));
+        else cell.textContent = String(value);
+        tr.append(cell);
+      });
       body.append(tr);
     });
     table.append(body); section.append(table);
@@ -112,7 +131,7 @@ function renderTournament(data) {
   });
   const final = matches.find(match => match.id === 'f1');
   if (final.winner) {
-    document.getElementById('champion').textContent = teams.get(final.winner).name;
+    document.getElementById('champion').textContent = teamDisplayLabel(teams.get(final.winner));
     document.getElementById('champion-note').textContent = 'Friends Cup champions';
   }
   const eliminated = new Set(matches.filter(match => !match.group && match.winner).flatMap(match => match.ids.filter(id => id !== match.winner)));
@@ -120,8 +139,10 @@ function renderTournament(data) {
   data.teams.forEach(team => {
     const card = element('article', 'contender'); const details = element('div');
     const group = groups.find(group => group.teams.includes(team.id));
-    details.append(element('h3', '', team.name), element('p', '', final.winner === team.id ? 'Champion' : eliminated.has(team.id) ? 'Eliminated' : `Group ${group.id}`));
-    if (team.players) details.append(element('p', 'players-list', team.players.map(player => player.name).join(' · ')));
+    details.append(element('h3', '', teamDisplayName(team)));
+    if (teamDisplayName(team) !== team.name) details.append(element('small', 'team-identifier', team.name));
+    details.append(element('p', '', final.winner === team.id ? 'Champion' : eliminated.has(team.id) ? 'Eliminated' : `Group ${group.id}`));
+    if (team.players && team.players.length !== 2) details.append(element('p', 'players-list', team.players.map(player => player.name).join(' · ')));
     card.append(element('span', 'roster-tag', team.tag), details); document.getElementById('teams').append(card);
   });
 }
@@ -133,4 +154,4 @@ if (typeof document !== 'undefined') {
     alert.textContent = 'Tournament results could not be loaded. Please check back shortly.'; console.error(error);
   }
 }
-if (typeof module !== 'undefined') module.exports = { resolveTournament };
+if (typeof module !== 'undefined') module.exports = { resolveTournament, teamDisplayName, teamDisplayLabel };
