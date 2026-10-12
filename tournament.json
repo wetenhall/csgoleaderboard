@@ -366,7 +366,28 @@
         "t9",
         "t5"
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t9",
+          "t5"
+        ],
+        "scores": [
+          6,
+          7
+        ],
+        "players": {
+          "p4": {
+            "kills": 6,
+            "deaths": 7,
+            "assists": 0
+          },
+          "p3": {
+            "kills": 7,
+            "deaths": 6,
+            "assists": 0
+          }
+        }
+      }
     },
     {
       "id": "a9",
