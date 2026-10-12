@@ -152,6 +152,8 @@ if (typeof document !== 'undefined') (() => {
   const say = text => { $('connection-status').textContent = text; };
   const announce = text => { $('draw-announcement').textContent = text; };
   function controls() {
+    $('tab-team-setup').hidden = !token;
+    if (!token && $('tab-team-setup').getAttribute('aria-selected') === 'true') selectTab($('tab-setup'));
     $('connected-setup').hidden = !token;
     $('team-setup-locked').hidden = !!token;
     $('group-count').disabled = busy || spinning;
@@ -382,11 +384,12 @@ if (typeof document !== 'undefined') (() => {
     });
     if (focus) tab.focus();
   }
-  tabs.forEach((tab,index) => {
+  tabs.forEach(tab => {
     tab.addEventListener('click', () => selectTab(tab));
     tab.addEventListener('keydown', event => {
-      const target = event.key === 'ArrowRight' ? (index+1)%tabs.length : event.key === 'ArrowLeft' ? (index+tabs.length-1)%tabs.length : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length-1 : null;
-      if (target !== null) { event.preventDefault(); selectTab(tabs[target],true); }
+      const visibleTabs = tabs.filter(item => !item.hidden), index = visibleTabs.indexOf(tab);
+      const target = event.key === 'ArrowRight' ? (index+1)%visibleTabs.length : event.key === 'ArrowLeft' ? (index+visibleTabs.length-1)%visibleTabs.length : event.key === 'Home' ? 0 : event.key === 'End' ? visibleTabs.length-1 : null;
+      if (target !== null) { event.preventDefault(); selectTab(visibleTabs[target],true); }
     });
   });
   renderMapOptions();paintWheel([]);renderAll();
