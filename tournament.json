@@ -139,7 +139,38 @@
         "t4",
         "t3"
       ],
-      "result": null,
+      "result": {
+        "teams": [
+          "t4",
+          "t3"
+        ],
+        "scores": [
+          6,
+          4
+        ],
+        "players": {
+          "p10": {
+            "kills": 2,
+            "deaths": 4,
+            "assists": 2
+          },
+          "p9": {
+            "kills": 1,
+            "deaths": 3,
+            "assists": 3
+          },
+          "p1": {
+            "kills": 2,
+            "deaths": 2,
+            "assists": 4
+          },
+          "p7": {
+            "kills": 3,
+            "deaths": 1,
+            "assists": 1
+          }
+        }
+      },
       "map": "Nuke"
     },
     {
