@@ -454,7 +454,10 @@ if (typeof document !== 'undefined') (() => {
     soundEnabled=!soundEnabled;await prepareSound();
     if(soundEnabled)playTone(660,0.1);
   };
+  let wheelFrame = [[],0,-1];
+  document.fonts?.ready.then(()=>{if(!spinning)paintWheel(...wheelFrame);});
   function paintWheel(names,angle=0,highlight=-1) {
+    wheelFrame = [names,angle,highlight];
     const ctx=$('wheel').getContext('2d'),n=names.length;ctx.clearRect(0,0,640,640);
     ctx.save();ctx.translate(320,320);ctx.rotate(angle*Math.PI/180);
     if(!n){ctx.fillStyle='#23262e';ctx.beginPath();ctx.arc(0,0,302,0,2*Math.PI);ctx.fill();}
@@ -463,14 +466,14 @@ if (typeof document !== 'undefined') (() => {
       ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,302,start,start+2*Math.PI/n);ctx.closePath();
       ctx.fillStyle=active?'#ffe4ad':teamColours[i%teamColours.length];ctx.globalAlpha=active?1:0.78;ctx.fill();ctx.globalAlpha=1;
       ctx.strokeStyle=active?'#fff5df':'#101316';ctx.lineWidth=active?5:2;ctx.stroke();
-      ctx.save();ctx.rotate(start+Math.PI/n);ctx.fillStyle='#101820';ctx.font='bold '+(n>24?12:18)+'px Arial';ctx.textAlign='right';
+      ctx.save();ctx.rotate(start+Math.PI/n);ctx.fillStyle='#101820';ctx.font='bold '+(n>24?12:18)+'px Rajdhani, Arial';ctx.textAlign='right';
       ctx.fillText(p.name.length>19?p.name.slice(0,18)+'…':p.name,278,6);
-      if(n<=18){ctx.beginPath();ctx.arc(112,0,19,0,2*Math.PI);ctx.fillStyle='#111c29';ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 12px Arial';ctx.textAlign='center';ctx.fillText(initials(p.name),112,4);}
+      if(n<=18){ctx.beginPath();ctx.arc(112,0,19,0,2*Math.PI);ctx.fillStyle='#111c29';ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 12px Rajdhani, Arial';ctx.textAlign='center';ctx.fillText(initials(p.name),112,4);}
       ctx.restore();
     });ctx.restore();
     ctx.beginPath();ctx.arc(320,320,302,0,2*Math.PI);ctx.strokeStyle='#ff9b01';ctx.lineWidth=5;ctx.stroke();
     ctx.beginPath();ctx.arc(320,320,64,0,2*Math.PI);ctx.fillStyle='#1e202f';ctx.fill();ctx.strokeStyle='#65717b';ctx.lineWidth=2;ctx.stroke();
-    ctx.fillStyle='#ff9b01';ctx.textAlign='center';ctx.font='bold 19px Arial';ctx.fillText(n?'DRAFT':'PLAYER',320,316);ctx.font='12px Consolas';ctx.fillText(n?n+' LEFT':'DRAW',320,338);
+    ctx.fillStyle='#ff9b01';ctx.textAlign='center';ctx.font='bold 19px Rajdhani, Arial';ctx.fillText(n?'DRAFT':'PLAYER',320,316);ctx.font='500 12px Rajdhani, Arial';ctx.fillText(n?n+' LEFT':'DRAW',320,338);
   }
   function resetReveal(){ $('reveal-avatar').textContent='?';$('reveal-label').textContent='NEXT RECRUIT';$('reveal-name').textContent='Who’s joining your team?';$('player-reveal').classList.remove('revealed');$('draw-progress').value=0;$('draw-progress-label').textContent='Load players to start'; }
   function showDrawTeams(latestId=null) {

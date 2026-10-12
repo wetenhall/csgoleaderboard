@@ -4,6 +4,7 @@ const crypto = require('node:crypto');
 const path = require('node:path');
 const output = path.join(__dirname, '_site');
 fs.mkdirSync(output, { recursive: true });
+fs.cpSync(path.join(__dirname, 'assets'), path.join(output, 'assets'), { recursive: true });
 let html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 const repository = process.env.GITHUB_REPOSITORY || '';
 const branch = process.env.GITHUB_REF_NAME || 'main';

@@ -1,5 +1,7 @@
 # Counter-Strike friends tournament dashboard
 
+Typography uses bundled Rajdhani fonts from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/rajdhani), under the SIL Open Font License included in assets/fonts/OFL.txt. It provides a Counter-Strike-inspired style without requiring Stratum 2 font files or an external font service.
+
 A static GitHub Pages dashboard for Duos (2 players) and Squads (5 players). Draw teams with a wheel, choose maps and 0–4 groups, run fixtures, record scores and player stats, and display standings and awards.
 
 ## Publish your own copy
