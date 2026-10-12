@@ -566,7 +566,17 @@
           "winner": "k2-2"
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t7",
+          "t6"
+        ],
+        "scores": [
+          6,
+          5
+        ],
+        "players": {}
+      }
     }
   ],
   "headers": {
