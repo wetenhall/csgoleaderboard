@@ -1,81 +1,8 @@
 {
   "name": "Friends Cup",
-  "teams": [
-    {
-      "id": "t1",
-      "name": "Team 01",
-      "tag": "01",
-      "captainId": "p1",
-      "players": [
-        {
-          "id": "p1",
-          "name": "aatori"
-        },
-        {
-          "id": "p8",
-          "name": "ribe"
-        },
-        {
-          "id": "p7",
-          "name": "part"
-        },
-        {
-          "id": "p10",
-          "name": "tart"
-        },
-        {
-          "id": "p9",
-          "name": "sam"
-        }
-      ]
-    },
-    {
-      "id": "t2",
-      "name": "Team 02",
-      "tag": "02",
-      "captainId": "p2",
-      "players": [
-        {
-          "id": "p2",
-          "name": "cantlon"
-        },
-        {
-          "id": "p4",
-          "name": "frodo"
-        },
-        {
-          "id": "p3",
-          "name": "dan"
-        },
-        {
-          "id": "p5",
-          "name": "grayzee"
-        },
-        {
-          "id": "p6",
-          "name": "hans"
-        }
-      ]
-    }
-  ],
+  "teams": [],
   "groups": [],
-  "matches": [
-    {
-      "id": "f1",
-      "round": 0,
-      "sources": [
-        {
-          "team": "t1"
-        },
-        {
-          "team": "t2"
-        }
-      ],
-      "result": null,
-      "label": "One match · 5v5",
-      "map": "Dust2"
-    }
-  ],
+  "matches": [],
   "history": [
     {
       "id": "511d98c9-cbf2-4b90-a50b-d96ebb99a22f",
@@ -1063,23 +990,5 @@
   "headers": {
     "brand": "Pull up gang",
     "banner": "Tournament"
-  },
-  "format": "single",
-  "qualifiersPerGroup": 2,
-  "teamSize": 5,
-  "mode": "squads",
-  "mapPool": [
-    "Mirage",
-    "Dust2",
-    "Inferno",
-    "Nuke",
-    "Ancient",
-    "Anubis",
-    "Vertigo",
-    "Cache",
-    "Train",
-    "Overpass",
-    "Office",
-    "Italy"
-  ]
+  }
 }
