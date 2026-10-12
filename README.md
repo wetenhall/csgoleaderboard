@@ -91,3 +91,5 @@ Game-night tools:
 - Copy match details for Discord includes the selected fixture, teams, captains and any score. If clipboard access is unavailable, a dialog offers selectable text.
 - Settings accepts an optional public server hostname/IP and port. Copy server connection copies its console command. Server settings survive tournament clearing and rematches.
 - Recent custom matches displays the current completed 5v5 game and up to eight archived custom matches, with maps, scores and winners. History remains the full record; deleting an archive also removes it from recent results.
+
+Auto spin sits beside the spin button and is off by default. Enabling it starts an available spin and waits two seconds after each completed selection before continuing. It also completes the map wheel for a one-match game, but does not perform map vetoes or publish automatically. Turning it off cancels the next spin; an animation already running finishes normally. Resetting, disconnecting or publishing switches auto spin off.

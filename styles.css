@@ -140,3 +140,5 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .draw-stage.manual-map{grid-template-columns:1fr}
 
 .draw-toolbar-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}#publish-expanded{display:none}.draw-stage.fullscreen-fallback #publish-expanded{display:inline-block}
+
+.auto-spin-toggle{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-right:12px;color:var(--text);font-weight:600;white-space:nowrap}.auto-spin-toggle input{accent-color:var(--accent);width:18px;height:18px;margin:0}
