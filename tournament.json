@@ -720,7 +720,28 @@
         "t2",
         "t4"
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t2",
+          "t4"
+        ],
+        "scores": [
+          7,
+          6
+        ],
+        "players": {
+          "p8": {
+            "kills": 7,
+            "deaths": 6,
+            "assists": 0
+          },
+          "p7": {
+            "kills": 6,
+            "deaths": 7,
+            "assists": 0
+          }
+        }
+      }
     },
     {
       "id": "b10",
