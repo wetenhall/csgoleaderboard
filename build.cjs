@@ -5,8 +5,8 @@ const path = require('node:path');
 const output = path.join(__dirname, '_site');
 fs.mkdirSync(output, { recursive: true });
 let html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
-for (const filename of ['styles.css', 'app.js', 'tournament.js']) {
-  const content = fs.readFileSync(path.join(__dirname, filename));
+for (const filename of ['styles.css', 'app.js', 'tournament.js', 'manager.js']) {
+  const content = filename === 'tournament.js' ? Buffer.from('const TOURNAMENT = ' + fs.readFileSync(path.join(__dirname, 'tournament.json'), 'utf8') + ';') : fs.readFileSync(path.join(__dirname, filename));
   const hash = crypto.createHash('sha256').update(content).digest('hex').slice(0, 12);
   const versioned = filename.replace(/(\.[^.]+)$/, `.${hash}$1`);
   fs.writeFileSync(path.join(output, versioned), content);
@@ -14,3 +14,4 @@ for (const filename of ['styles.css', 'app.js', 'tournament.js']) {
 }
 fs.writeFileSync(path.join(output, 'index.html'), html);
 fs.writeFileSync(path.join(output, '.nojekyll'), '');
+fs.copyFileSync(path.join(__dirname, 'tournament.json'), path.join(output, 'tournament.json'));

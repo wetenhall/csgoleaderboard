@@ -1,27 +1,25 @@
 # Friends Cup
 
-A single-page Counter-Strike tournament: two groups of four, round-robin group matches, cross-group semi-finals (A1 vs B2, B1 vs A2), and a final. Fifteen matches total. No dependencies, accounts, database, or build step. Open `index.html` locally.
+GitHub Pages tournament manager: eight teams, two round-robin groups, cross-group semi-finals and a final. Supports two-player teams (16 players) and five-player teams (40 players).
 
-## Updates through Codex
+## Run a tournament from the website
 
-Give Codex team names or results, for example: “Team 01 beat Team 02, 13–9 in A1. Update the tournament and push.” Edit `tournament.js`; standings and progression calculate automatically. Team names are placeholders until provided.
+1. Open Organiser tools. Connect using a GitHub fine-grained personal access token owned by an account with write access to `wetenhall/csgoleaderboard`, restricted to this repository with **Contents: Read and write**. The token is kept only in tab memory; disconnect or close the tab to clear it. Never commit it or send it in chat.
+2. Open Create a new tournament. Enter one unique player name per line, load the pool, choose team size, and tick exactly 16 or 40 players.
+3. Lock the pool and spin once per player. Selected players are removed from the pool. Teams fill sequentially; once complete, teams are shuffled into two groups of four. Team names can then be edited.
+4. Publish teams & groups. This replaces the current tournament and its results after confirmation.
+5. Follow Match order: alternating group games, semi-finals, final. Open a game and enter both round scores. Optionally enter kills, deaths and assists for each player. Click Update & publish result.
 
-Keep team IDs stable when renaming teams. To record a completed match, replace its `result: null` with:
+Scores cannot be tied. Player stats must be all three values or all blank per player. Player totals include only games with recorded individual stats. Correcting an earlier result replaces its stats; if playoff opponents change, the site asks before clearing affected playoff results. Unresolved qualification ties expose a finishing-order form.
 
-```js
-result: { teams: ['t1', 't2'], scores: [13, 9] }
-```
+`Update` commits `tournament.json` to the main branch using GitHub's Contents API. It does not upload credentials. The organiser sees the new state immediately after GitHub confirms the save; other viewers see it after Pages deploys and they reload. Concurrent changes are rejected using the file SHA. Reload latest saved tournament before retrying a conflicting edit. Failed saves retain form entries. A new draw remains unpublished until confirmed; refreshing during a draw loses it.
 
-Participant order must match the fixture. Scores are final rounds won in a single-map match, including overtime. Draws are not accepted. Group ranking is wins, then round difference. After all six group matches, top two qualify. If teams remain tied for either qualifying position, decide a tiebreak, then list the tied team IDs in finishing order in that group's `tiebreakOrder` array. It only breaks equal wins and round difference; it never overrides them.
+## Data and deployment
 
-For playoffs, record the actual advancing participant IDs with the result. If an earlier correction changes playoff participants, clear affected later results before entering replacements. Invalid or stale results prevent publishing via the data check.
+`tournament.json` is the canonical shared data file. `tournament.js` is the original blank tournament fixture for regression tests and local fallback; production builds generate the bootstrap from JSON. Do not edit the fixture to update live results.
 
-## GitHub Pages
+Run `node --test tournament.test.cjs` and `node build.cjs`. The build produces content-versioned assets in `_site/`. The Pages workflow validates and deploys on every main-branch push, including in-site result updates. GitHub Settings → Pages uses GitHub Actions.
 
-Repository: https://github.com/wetenhall/csgoleaderboard
+Public site: https://wetenhall.github.io/csgoleaderboard/
 
-In repository **Settings → Pages**, choose **GitHub Actions** as the source. The included workflow validates tournament results and deploys the static page on pushes to `main`. Run the workflow manually after enabling Pages if needed.
-
-## Validation
-
-Run `node --test tournament.test.cjs` before publishing results. The tests cover group standings, cross-group seeding, ties, result validation and progression to a champion.
+GitHub tokens need only Contents access; no Actions or Workflows write permission is required to update tournament data. GitHub branch protection or token policies may independently restrict direct updates. All published player names and stats are public.

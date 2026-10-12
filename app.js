@@ -48,6 +48,9 @@ function element(tag, className, text) {
 }
 function renderTournament(data) {
   const { teams, groups, matches } = resolveTournament(data);
+  ['groups', 'bracket', 'teams'].forEach(id => document.getElementById(id).replaceChildren());
+  document.getElementById('champion').textContent = 'One team takes it all.';
+  document.getElementById('champion-note').textContent = 'Decided in the grand final';
   document.title = `${data.name} · Counter-Strike`;
   document.getElementById('title').replaceChildren(document.createTextNode(data.name), element('span', '', '.'));
   const completed = matches.filter(match => match.winner).length;
@@ -112,6 +115,7 @@ function renderTournament(data) {
     const card = element('article', 'contender'); const details = element('div');
     const group = groups.find(group => group.teams.includes(team.id));
     details.append(element('h3', '', team.name), element('p', '', final.winner === team.id ? 'Champion' : eliminated.has(team.id) ? 'Eliminated' : `Group ${group.id}`));
+    if (team.players) details.append(element('p', 'players-list', team.players.map(player => player.name).join(' · ')));
     card.append(element('span', 'roster-tag', team.tag), details); document.getElementById('teams').append(card);
   });
 }
