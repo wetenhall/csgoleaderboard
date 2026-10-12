@@ -203,6 +203,8 @@ function renderConnectedBracket(root,matches,teams) {
   viewport.append(canvas);root.append(viewport);
 }
 function renderTournament(data) {
+  document.getElementById('bracket-heading').textContent=data.format==='single'?'Custom match':'Playoffs';
+  document.getElementById('bracket-heading').nextElementSibling.textContent=data.format==='single'?'TWO SQUADS / ONE GAME':'WIN AND ADVANCE';
   const qualifiers = data.qualifiersPerGroup ?? 2;
   document.getElementById('qualification-label').textContent = `ROUND ROBIN / TOP ${qualifiers} ADVANCE`;
   const state = resolveTournament(data);
@@ -224,11 +226,11 @@ function renderTournament(data) {
   document.getElementById('broadcast-status').dataset.state=completed && completed<matches.length?'live':'ready';
   document.getElementById('progress').replaceChildren(document.createTextNode(`${completed} / ${matches.length} `), element('small', '', 'matches complete'));
   document.getElementById('team-count').textContent = `${data.teams.length} teams entered`;
-  document.getElementById('format-name').textContent = `${data.teamSize === 1 ? '1v1' : data.teamSize === 2 ? 'Duos' : data.teamSize === 5 ? 'Squads' : 'Teams'} · ${data.format==='double' ? 'Double elimination' : groups.length === 0 ? 'Knockout' : groups.length === 1 ? 'Group → final' : `${groups.length} groups → playoffs`}`;
+  document.getElementById('format-name').textContent = `${data.teamSize === 1 ? '1v1' : data.teamSize === 2 ? 'Duos' : data.teamSize === 5 ? 'Squads' : 'Teams'} · ${data.format==='single' ? 'One match' : data.format==='double' ? 'Double elimination' : groups.length === 0 ? 'Knockout' : groups.length === 1 ? 'Group → final' : `${groups.length} groups → playoffs`}`;
   document.getElementById('groups-heading').closest('section').hidden = !groups.length;
   document.getElementById('roster-count').textContent = `${data.teams.length} TEAMS / 1 TROPHY`;
   document.getElementById('group-rules').textContent = 'Ranked by wins, then round difference (RD). Remaining ties need a tiebreak decision. Playoff places are confirmed when each team has played every other team in its group.';
-  document.getElementById('schedule-rules').textContent = (data.format==='double' ? 'Lose once to enter the losers bracket; a second loss eliminates you. If the losers bracket winner wins the grand final, play the reset final.' : groups.length ? `Play group games in numbered order. Top ${qualifiers} from each group advance to the knockout stages.` : 'Straight knockout: winners advance. Teams with a first-round bye enter in the following round.') + ' Connect in Settings to enter or correct results in Fixtures.';
+  document.getElementById('schedule-rules').textContent = (data.format==='single' ? 'One custom 5v5 game between your two drawn squads.' : data.format==='double' ? 'Lose once to enter the losers bracket; a second loss eliminates you. If the losers bracket winner wins the grand final, play the reset final.' : groups.length ? `Play group games in numbered order. Top ${qualifiers} from each group advance to the knockout stages.` : 'Straight knockout: winners advance. Teams with a first-round bye enter in the following round.') + ' Connect in Settings to enter or correct results in Fixtures.';
   document.getElementById('status').textContent = completed === matches.length ? 'Tournament complete' : completed ? 'Tournament underway' : 'Awaiting first match';
   if (!data.teams.length) {
     document.getElementById('format-name').textContent='Not configured';

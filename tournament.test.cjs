@@ -549,3 +549,20 @@ test('squad wheel assigns one player to each team in rotation and preserves rost
  const duos=Array.from({length:6},(_,i)=>({id:'p'+i,name:'P'+i}));
  assert.deepEqual(drawTeamMembers(duos,2).map(t=>t.map(p=>p.id)),[['p0','p1'],['p2','p3'],['p4','p5']]);
 });
+
+test('one match format is squads only, requires ten players and publishes one rotating-team fixture',()=>{
+ const {makeTournament,applyResult,validateData}=require('./manager.js');
+ const players=Array.from({length:10},(_,i)=>({id:'p'+i,name:'Player '+i}));
+ const cup=makeTournament(players,5,{name:'Custom game'},['t1','t2'],4,['Nuke'],1,'single');
+ assert.equal(cup.format,'single');assert.deepEqual(cup.groups,[]);assert.equal(cup.matches.length,1);
+ assert.equal(cup.matches[0].id,'f1');assert.equal(cup.matches[0].map,'Nuke');
+ assert.deepEqual(cup.teams[0].players.map(p=>p.id),['p0','p2','p4','p6','p8']);
+ assert.deepEqual(cup.teams[1].players.map(p=>p.id),['p1','p3','p5','p7','p9']);
+ const state=resolveTournament(cup);assert.deepEqual(state.matches[0].ids,['t1','t2']);validateData(cup,resolveTournament);
+ const done=applyResult(cup,'f1',{teams:['t1','t2'],scores:[13,9]},resolveTournament).next;
+ assert.equal(completedCup(done,resolveTournament),true);
+ assert.throws(()=>makeTournament(players,2,{name:'Bad'},undefined,0,['Nuke'],2,'single'),/exactly 10/);
+ assert.throws(()=>makeTournament(players.slice(0,2),1,{name:'Bad'},undefined,0,[],2,'single'),/exactly 10/);
+ assert.throws(()=>makeTournament([...players,...players.map(p=>({...p,id:p.id+'x'}))],5,{name:'Bad'},undefined,0,['Nuke'],2,'single'),/exactly 10/);
+ const bad=structuredClone(cup);bad.matches.push({...bad.matches[0],id:'f2'});assert.throws(()=>validateData(bad,resolveTournament),/exactly one/);
+});
