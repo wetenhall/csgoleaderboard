@@ -290,3 +290,38 @@ test('1v1 scores automatically produce mirrored kills and deaths, including old 
  const saved=applyResult(duo,dg.id,{teams:dg.teams,scores:[4,6],players:manual},resolveTournament).next;
  assert.deepEqual(saved.matches.find(m=>m.id===dg.id).result.players,manual);
 });
+
+test('Top 1 and Top 2 qualifiers generate playable brackets for every team size',()=>{
+ for(const size of [1,2,5])for(const count of [2,3,4])for(const qualifiers of [1,2]){
+  const players=Array.from({length:count*3*size},(_,i)=>({id:'p'+i,name:'Player '+i}));
+  let data=makeTournament(players,size,fixture(),undefined,count,undefined,qualifiers);
+  assert.equal(data.qualifiersPerGroup,qualifiers);
+  assert.equal(data.matches.filter(m=>!m.group).length,count*qualifiers-1);
+  completeGroups(data);
+  data.groups.forEach(g=>g.tiebreakOrder=[...g.teams]);
+  validateData(data,resolveTournament);
+  const state=resolveTournament(data),eligible=new Set(state.groups.flatMap(g=>g.rows.slice(0,qualifiers).map(r=>r.id)));
+  for(const game of orderedMatches(data.matches).filter(m=>!m.group)){
+   const match=resolveTournament(data).matches.find(m=>m.id===game.id);
+   assert.ok(match.ids.every(id=>eligible.has(id)));
+   data=applyResult(data,game.id,{teams:match.ids,scores:[6,4],players:{}},resolveTournament).next;
+  }
+  assert.ok(resolveTournament(data).matches.find(m=>m.id==='f1').winner);
+ }
+});
+
+test('Top 1 ignores ties below first place but blocks tied winners',()=>{
+ const players=Array.from({length:6},(_,i)=>({id:'p'+i,name:'P'+i}));
+ const data=makeTournament(players,1,fixture(),['t1','t2','t3','t4','t5','t6'],2,[],1);
+ data.matches.filter(m=>m.group).forEach(m=>{m.result={teams:m.teams,scores:m.teams.includes('t1')||m.teams.includes('t4')?[6,0]:[0,0]};});
+ assert.ok(resolveTournament(data).groups.every(g=>g.qualified));
+ data.matches.filter(m=>m.group==='A').forEach(m=>m.result.scores=[0,0]);
+ assert.equal(resolveTournament(data).groups[0].tied,true);
+ data.groups[0].tiebreakOrder=[...data.groups[0].teams];
+ assert.equal(resolveTournament(data).groups[0].qualified,true);
+ assert.throws(()=>makeTournament(players,1,fixture(),undefined,1,[],1),/at least two groups/);
+ assert.throws(()=>makeTournament(players,1,fixture(),undefined,2,[],3),/Top 1 or Top 2/);
+ const legacy=makeTournament(players,1,fixture(),undefined,2,[]);
+ delete legacy.qualifiersPerGroup;
+ assert.doesNotThrow(()=>validateData(legacy,resolveTournament));
+});
