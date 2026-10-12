@@ -344,7 +344,38 @@
         "t5",
         "t4"
       ],
-      "result": null,
+      "result": {
+        "teams": [
+          "t5",
+          "t4"
+        ],
+        "scores": [
+          5,
+          4
+        ],
+        "players": {
+          "p6": {
+            "kills": 5,
+            "deaths": 5,
+            "assists": 5
+          },
+          "p8": {
+            "kills": 4,
+            "deaths": 4,
+            "assists": 4
+          },
+          "p10": {
+            "kills": 3,
+            "deaths": 3,
+            "assists": 3
+          },
+          "p9": {
+            "kills": 4,
+            "deaths": 4,
+            "assists": 2
+          }
+        }
+      },
       "map": "Inferno"
     },
     {
