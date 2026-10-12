@@ -153,7 +153,7 @@ test('clearing a tournament removes all match and player data and supports a new
  const {emptyTournament}=require('./manager.js');
  const original=JSON.parse(fs.readFileSync('tournament.json','utf8'));
  const snapshot=JSON.stringify(original); const empty=emptyTournament(original);
- assert.deepEqual(empty,{name:original.name,teams:[],groups:[],matches:[]});
+ assert.deepEqual(empty,{name:original.name,teams:[],groups:[],matches:[],...(original.headers?{headers:original.headers}:{})});
  assert.equal(JSON.stringify(original),snapshot);validateData(empty,resolveTournament);
  assert.equal(resolveTournament(empty).matches.length,0);assert.deepEqual(playerTotals(empty),[]);
  const players=Array.from({length:4},(_,i)=>({id:'p'+i,name:'Player '+i}));
@@ -199,4 +199,13 @@ test('tied knockout results require a valid winner and propagate corrections',()
  const changed=applyResult(data,'s1',{...semi.result,tiebreakWinner:semi.result.teams[1]},resolveTournament);assert.ok(changed.cleared.includes('f1'));
  delete semi.result.tiebreakWinner;assert.throws(()=>resolveTournament(data),/tiebreak winner/);
  semi.result.tiebreakWinner='unknown';assert.throws(()=>resolveTournament(data),/tiebreak winner/);
+});
+
+test('header options validate text and persist through clear and new draws',()=>{
+ const {updateHeaders,emptyTournament}=require('./manager.js');const data=fixture();const original=JSON.stringify(data);
+ const updated=updateHeaders(data,' Pull up gang cup ',' 12 October 2026 · Friends Cup ');
+ assert.equal(updated.headers.brand,'Pull up gang cup');assert.equal(JSON.stringify(data),original);assert.deepEqual(updated.matches,data.matches);
+ assert.deepEqual(emptyTournament(updated).headers,updated.headers);
+ const players=Array.from({length:4},(_,i)=>({id:'p'+i,name:'Player '+i}));assert.deepEqual(makeTournament(players,2,updated).headers,updated.headers);
+ for(const [brand,banner] of [['','Test'],['Test',' '],['x'.repeat(81),'Test'],['Test','x'.repeat(121)]])assert.throws(()=>updateHeaders(data,brand,banner),/headings/);
 });

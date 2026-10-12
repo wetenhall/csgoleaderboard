@@ -49,3 +49,5 @@ body{background:radial-gradient(ellipse at 95% 0,#36506444,transparent 50%),repe
 @media(prefers-reduced-motion:reduce){.result-saved .overview{animation:none}}
 
 .team-emblem,.qualified .team-emblem,.fixture-side:last-child .team-emblem{background:linear-gradient(135deg,#ffffff12,#00000066),var(--emblem-colour);color:#111820;border-color:var(--emblem-colour)}
+
+.options-form{max-width:720px;padding:24px;background:var(--panel);border:1px solid var(--border)}.intro>div:first-child{min-width:0}.intro h1,.brand,#broadcast-caption{overflow-wrap:anywhere}.brand{text-transform:uppercase}.broadcast-state{max-width:240px}#broadcast-caption{text-align:right;line-height:1.5}@media(max-width:700px){.intro{flex-wrap:wrap}.page-tabs button{font-size:9px}.options-form{padding:16px}}

@@ -95,8 +95,12 @@ function renderTournament(data) {
   ['groups', 'bracket', 'teams'].forEach(id => document.getElementById(id).replaceChildren());
   document.getElementById('champion').textContent = 'One team takes it all.';
   document.getElementById('champion-note').textContent = 'Decided in the grand final';
-  document.title = `${data.name} · Counter-Strike`;
-  document.getElementById('title').replaceChildren(document.createTextNode(data.name), element('span', '', '.'));
+  const headers=data.headers || {brand:data.name,banner:data.name};
+  document.title = `${headers.brand} · Counter-Strike`;
+  document.getElementById('brand-title').textContent=headers.brand;
+  document.getElementById('footer-brand').textContent=headers.brand;
+  document.getElementById('broadcast-caption').textContent='COUNTER-STRIKE / '+headers.brand;
+  document.getElementById('title').replaceChildren(document.createTextNode(headers.banner), element('span', '', '.'));
   const completed = matches.filter(match => match.result).length;
   document.getElementById('broadcast-status').textContent=matches.length && completed===matches.length?'COMPLETE':completed?'LIVE':'READY';
   document.getElementById('broadcast-status').dataset.state=completed && completed<matches.length?'live':'ready';
@@ -175,7 +179,7 @@ function renderTournament(data) {
   const final = matches.find(match => match.id === 'f1');
   if (final.winner) {
     document.getElementById('champion').textContent = teamDisplayLabel(teams.get(final.winner));
-    document.getElementById('champion-note').textContent = 'Friends Cup champions';
+    document.getElementById('champion-note').textContent = headers.brand+' champions';
   }
   const eliminated = new Set(matches.filter(match => !match.group && match.winner).flatMap(match => match.ids.filter(id => id !== match.winner)));
   groups.filter(group => group.qualified).forEach(group => group.rows.slice(2).forEach(row => eliminated.add(row.id)));

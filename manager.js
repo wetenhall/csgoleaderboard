@@ -124,8 +124,13 @@ function tournamentAwards(data) {
     ]
   };
 }
+function updateHeaders(data, brand, banner) {
+  if(typeof brand!=='string' || !brand.trim() || brand.trim().length>80 || typeof banner!=='string' || !banner.trim() || banner.trim().length>120) throw Error('Enter both headings: top header up to 80 characters and banner up to 120.');
+  return {...data,headers:{brand:brand.trim(),banner:banner.trim()}};
+}
 function validateData(data, resolve) {
   if (!data || typeof data.name !== 'string' || data.name.length > 100 || !Array.isArray(data.teams) || !Array.isArray(data.groups) || data.groups.length > 4 || !Array.isArray(data.matches)) throw Error('Invalid tournament structure.');
+  if (data.headers !== undefined) updateHeaders(data,data.headers?.brand,data.headers?.banner);
   if (!data.teams.length && !data.groups.length && !data.matches.length && data.mapPool === undefined) return data;
   if (data.teams.length < 2) throw Error('Invalid tournament structure.');
   const teamIds = data.teams.map(t => t.id);
@@ -168,8 +173,8 @@ function applyResult(data, id, result, resolve) {
   validateData(next, resolve);
   return { next, cleared };
 }
-function emptyTournament(data) { return {name:data.name,teams:[],groups:[],matches:[]}; }
-if (typeof module !== 'undefined') module.exports = { makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament, tournamentAwards };
+function emptyTournament(data) { return {name:data.name,teams:[],groups:[],matches:[],...(data.headers?{headers:structuredClone(data.headers)}:{})}; }
+if (typeof module !== 'undefined') module.exports = { makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament, tournamentAwards, updateHeaders };
 if (typeof document !== 'undefined') (() => {
   const $ = id => document.getElementById(id);
   const api = 'https://api.github.com/repos/wetenhall/csgoleaderboard/contents/tournament.json';
@@ -186,6 +191,9 @@ if (typeof document !== 'undefined') (() => {
   const say = text => { $('connection-status').textContent = text; };
   const announce = text => { $('draw-announcement').textContent = text; };
   function controls() {
+    $('tab-options').hidden = !token;
+    $('save-options').disabled = busy || !token;
+    if (!token && $('tab-options').getAttribute('aria-selected') === 'true') selectTab($('tab-setup'));
     $('tab-team-setup').hidden = !token;
     if (!token && $('tab-team-setup').getAttribute('aria-selected') === 'true') selectTab($('tab-setup'));
     $('connected-setup').hidden = !token;
@@ -258,7 +266,18 @@ if (typeof document !== 'undefined') (() => {
   };
   function renderAll() {
     renderTournament(current); renderAwards(); renderSchedule(); renderStats(); renderTies(); controls();
+    $('option-brand').value=current.headers?.brand || current.name;
+    $('option-banner').value=current.headers?.banner || current.name;
   }
+  $('options-form').onsubmit=async event=>{
+    event.preventDefault();if(busy || !token)return;
+    try {
+      const next=updateHeaders(current,$('option-brand').value,$('option-banner').value);
+      await publish(next,'Update page header text');
+      if(draw)draw.headers=structuredClone(current.headers);
+      say('Headers saved to GitHub. The public page updates after deployment.');
+    } catch(error){say(error.message);}
+  };
   $('clear-tournament').onclick = async () => {
     if (busy || spinning || !token) return;
     if (!confirm('Clear the published tournament for everyone? This removes all teams, groups, fixtures, results, player stats and map assignments, and discards this tab’s unfinished draw. Your organiser connection will stay active.')) return;
