@@ -70,3 +70,7 @@ body{background:radial-gradient(ellipse at 90% 0,#db984817,transparent 50%),#0b0
 .intro .eyebrow,.intro .subtitle,.intro .broadcast-state .label,.intro #broadcast-caption{font-family:'Segoe UI',Arial,sans-serif;font-weight:600;color:#171923;opacity:1;line-height:1.5}
 .intro .eyebrow{font-size:13px;letter-spacing:.8px}.intro .subtitle{font-size:16px;letter-spacing:0}.intro .broadcast-state .label{font-size:12px;letter-spacing:.8px}.intro #broadcast-caption{font-size:13px;letter-spacing:0}
 @media(max-width:700px){.intro .eyebrow{font-size:12px}.intro .subtitle{font-size:15px}}
+/* Decorative artwork stays behind the opaque dashboard panels. */
+body{position:relative;isolation:isolate;background:#101216}
+body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:url('assets/images/counter-strike-background.jpg') center center/cover no-repeat;filter:grayscale(1);opacity:.22}
+@media(max-width:700px){body::before{opacity:.16}}
