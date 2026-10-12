@@ -98,7 +98,38 @@
         "t2",
         "t5"
       ],
-      "result": null,
+      "result": {
+        "teams": [
+          "t2",
+          "t5"
+        ],
+        "scores": [
+          8,
+          7
+        ],
+        "players": {
+          "p4": {
+            "kills": 6,
+            "deaths": 5,
+            "assists": 6
+          },
+          "p6": {
+            "kills": 5,
+            "deaths": 4,
+            "assists": 5
+          },
+          "p10": {
+            "kills": 4,
+            "deaths": 3,
+            "assists": 3
+          },
+          "p8": {
+            "kills": 5,
+            "deaths": 5,
+            "assists": 4
+          }
+        }
+      },
       "map": "Poseidon"
     },
     {
