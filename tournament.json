@@ -797,7 +797,28 @@
           "winner": "de18"
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t3",
+          "t7"
+        ],
+        "scores": [
+          7,
+          8
+        ],
+        "players": {
+          "p4": {
+            "kills": 7,
+            "deaths": 8,
+            "assists": 0
+          },
+          "p1": {
+            "kills": 8,
+            "deaths": 7,
+            "assists": 0
+          }
+        }
+      }
     },
     {
       "id": "de20",
