@@ -98,7 +98,38 @@
         "t1",
         "t3"
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t1",
+          "t3"
+        ],
+        "scores": [
+          7,
+          6
+        ],
+        "players": {
+          "p1": {
+            "kills": 4,
+            "deaths": 3,
+            "assists": 2
+          },
+          "p2": {
+            "kills": 5,
+            "deaths": 2,
+            "assists": 3
+          },
+          "p5": {
+            "kills": 3,
+            "deaths": 45,
+            "assists": 4
+          },
+          "p3": {
+            "kills": 2,
+            "deaths": 5,
+            "assists": 2
+          }
+        }
+      }
     },
     {
       "id": "a2",
