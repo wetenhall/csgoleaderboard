@@ -467,7 +467,38 @@
         "t3",
         "t1"
       ],
-      "result": null,
+      "result": {
+        "teams": [
+          "t3",
+          "t1"
+        ],
+        "scores": [
+          7,
+          6
+        ],
+        "players": {
+          "p1": {
+            "kills": 5,
+            "deaths": 6,
+            "assists": 4
+          },
+          "p7": {
+            "kills": 4,
+            "deaths": 5,
+            "assists": 3
+          },
+          "p4": {
+            "kills": 5,
+            "deaths": 6,
+            "assists": 3
+          },
+          "p2": {
+            "kills": 4,
+            "deaths": 5,
+            "assists": 4
+          }
+        }
+      },
       "map": "Overpass"
     },
     {
