@@ -287,6 +287,9 @@ function renderTournament(data) {
     document.getElementById('groups').append(section);
   }
   const singleSquads=data.format==='single' && data.teamSize===5;
+  const leaderboardTab=document.getElementById('tab-leaderboard');
+  leaderboardTab.textContent=singleSquads?'Match':'Leader board';
+  leaderboardTab.setAttribute('aria-label',singleSquads?'Match':'Leader board');
   document.getElementById('teams').closest('section').hidden=singleSquads;
   document.getElementById('team-awards-heading').closest('section').hidden=singleSquads;
   const bracketRoot=document.getElementById('bracket');
@@ -294,7 +297,7 @@ function renderTournament(data) {
   bracketRoot.classList.toggle('double-bracket',data.format==='double');
   if(singleSquads){
     const match=matches[0],hero=element('div','single-match-map');
-    hero.append(element('span','eyebrow','SELECTED MAP / CUSTOM 5V5'),element('h3','',match.map || 'Map pending'),element('p','rules',match.result?'FINAL SCORE':'READY TO PLAY'));
+    hero.append(element('span','eyebrow','SELECTED MAP / CUSTOM 5V5'),element('h3','',match.map || 'Map pending'));
     bracketRoot.append(hero);
     const squads=element('div','single-match-squads');
     match.ids.forEach((id,i)=>{
