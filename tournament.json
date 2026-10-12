@@ -156,7 +156,28 @@
         "t1",
         "t11"
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t1",
+          "t11"
+        ],
+        "scores": [
+          6,
+          7
+        ],
+        "players": {
+          "p1": {
+            "kills": 6,
+            "deaths": 7,
+            "assists": 0
+          },
+          "p6": {
+            "kills": 7,
+            "deaths": 6,
+            "assists": 0
+          }
+        }
+      }
     },
     {
       "id": "a2",
