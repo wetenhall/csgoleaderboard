@@ -7,8 +7,8 @@
       "tag": "01",
       "players": [
         {
-          "id": "p9",
-          "name": "aatori"
+          "id": "p3",
+          "name": "cantlon"
         }
       ]
     },
@@ -18,8 +18,8 @@
       "tag": "02",
       "players": [
         {
-          "id": "p6",
-          "name": "sam"
+          "id": "p11",
+          "name": "omni"
         }
       ]
     },
@@ -29,8 +29,8 @@
       "tag": "03",
       "players": [
         {
-          "id": "p1",
-          "name": "frodo"
+          "id": "p2",
+          "name": "ribe"
         }
       ]
     },
@@ -40,8 +40,8 @@
       "tag": "04",
       "players": [
         {
-          "id": "p10",
-          "name": "hans"
+          "id": "p6",
+          "name": "sam"
         }
       ]
     },
@@ -51,8 +51,8 @@
       "tag": "05",
       "players": [
         {
-          "id": "p4",
-          "name": "tart"
+          "id": "p10",
+          "name": "hans"
         }
       ]
     },
@@ -62,8 +62,8 @@
       "tag": "06",
       "players": [
         {
-          "id": "p7",
-          "name": "dan"
+          "id": "p8",
+          "name": "part"
         }
       ]
     },
@@ -73,8 +73,8 @@
       "tag": "07",
       "players": [
         {
-          "id": "p11",
-          "name": "omni"
+          "id": "p9",
+          "name": "aatori"
         }
       ]
     },
@@ -84,8 +84,8 @@
       "tag": "08",
       "players": [
         {
-          "id": "p3",
-          "name": "cantlon"
+          "id": "p4",
+          "name": "tart"
         }
       ]
     },
@@ -95,8 +95,8 @@
       "tag": "09",
       "players": [
         {
-          "id": "p2",
-          "name": "ribe"
+          "id": "p1",
+          "name": "frodo"
         }
       ]
     },
@@ -117,8 +117,8 @@
       "tag": "11",
       "players": [
         {
-          "id": "p8",
-          "name": "part"
+          "id": "p7",
+          "name": "dan"
         }
       ]
     }
