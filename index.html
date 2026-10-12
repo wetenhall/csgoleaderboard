@@ -76,9 +76,16 @@
 <div id="panel-register" class="tab-panel" role="tabpanel" aria-labelledby="tab-register" tabindex="0" hidden>
   <section aria-labelledby="register-heading">
     <div class="section-heading"><h2 id="register-heading">Register to play</h2><span>JOIN THE NEXT TOURNAMENT</span></div>
-    <p class="registration-intro">Complete the form below to register. No organiser connection or GitHub access is needed.</p>
-    <p class="registration-link">Form not loading? <a href="https://docs.google.com/forms/d/e/1FAIpQLSd0rNnpKSl5wJ6Dws_w59VMS2rRWcubW2oupCNp2z85D2Ng2g/viewform" target="_blank" rel="noopener noreferrer">Open the registration form in a new tab</a>.</p>
-    <iframe id="registration-frame" class="registration-form" title="Tournament registration form" data-src="https://docs.google.com/forms/d/e/1FAIpQLSd0rNnpKSl5wJ6Dws_w59VMS2rRWcubW2oupCNp2z85D2Ng2g/viewform?embedded=true" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <p class="registration-intro">Enter your player name to register for the next tournament.</p>
+    <form id="registration-form" class="player-registration" action="https://api.web3forms.com/submit" method="POST">
+      <input type="hidden" name="access_key" value="7ae62ed3-d493-4369-9038-1b573799dfa7">
+      <input type="hidden" name="subject" value="Pull Up Gang tournament registration">
+      <input type="checkbox" name="botcheck" hidden tabindex="-1" aria-hidden="true">
+      <label for="registration-name">Player name</label>
+      <input id="registration-name" name="name" type="text" placeholder="Enter your player name" maxlength="80" required>
+      <button id="registration-submit" type="submit">Register to play</button>
+      <p id="registration-status" role="status" aria-live="polite"></p>
+    </form>
   </section>
 </div>
 <dialog id="archive-dialog" class="options-dialog" aria-labelledby="archive-heading"><div class="section-heading"><h2 id="archive-heading">Archive this cup</h2><button type="button" id="close-archive" class="options-close" aria-label="Close archive">&#215;</button></div><form id="archive-form"><label>Cup name<input id="archive-title" required maxlength="120"></label><p class="rules">Save this completed tournament, its champion, fixtures and player stats to History, then clear the current teams and results for a new draw. Your headers and previous archives are kept. Any unfinished wheel draw will be discarded.</p><p id="archive-status" role="alert"></p><button id="confirm-archive" type="submit">Archive &amp; start new tournament</button></form></dialog>
@@ -107,7 +114,7 @@
       </div>
     </section>
 </div>
-<form id="options-form" class="options-form" hidden><h3>Page settings</h3><label>Top header text<input id="option-brand" maxlength="80" required></label><label>Large banner heading<input id="option-banner" maxlength="120" required></label><p class="rules">Include the event date in the banner text, for example: 12 October 2026 · Friends Cup. Saving publishes these headings for everyone.</p><label class="registration-toggle"><input id="option-registration" type="checkbox" checked> Registration open</label><p class="rules">On: visitors see registration; connected organisers can also view Leader board, Fixtures and Stats. Off: play mode shows the tournament tabs and hides registration. Organiser setup remains available. This does not close the separate Google form link.</p><label>Game server address<input id="option-server" maxlength="253" placeholder="server.example.com:27015"></label><p class="rules">Optional. Published for everyone; use only the server address, without a password. Players can copy its connection command from the match page.</p><button id="save-options" type="submit">Save & publish settings</button></form></section></dialog>
+<form id="options-form" class="options-form" hidden><h3>Page settings</h3><label>Top header text<input id="option-brand" maxlength="80" required></label><label>Large banner heading<input id="option-banner" maxlength="120" required></label><p class="rules">Include the event date in the banner text, for example: 12 October 2026 · Friends Cup. Saving publishes these headings for everyone.</p><label class="registration-toggle"><input id="option-registration" type="checkbox" checked> Registration open</label><p class="rules">On: visitors see registration; connected organisers can also view Leader board, Fixtures and Stats. Off: play mode shows the tournament tabs and hides registration. Organiser setup remains available.</p><label>Game server address<input id="option-server" maxlength="253" placeholder="server.example.com:27015"></label><p class="rules">Optional. Published for everyone; use only the server address, without a password. Players can copy its connection command from the match page.</p><button id="save-options" type="submit">Save & publish settings</button></form></section></dialog>
     <p id="error" role="alert" hidden></p>
     <noscript><p>Please enable JavaScript to view the tournament bracket and results.</p></noscript>
   </main>

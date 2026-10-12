@@ -401,12 +401,9 @@ if (typeof document !== 'undefined') (() => {
       $('broadcast-status').textContent='REGISTRATION OPEN';
       $('broadcast-status').dataset.state='registration';
     }
-    if(!registrationOpen){
-      $('registration-frame').removeAttribute('src');
-    }
+    $('registration-submit').disabled=!registrationOpen || registrationSubmitting;
     const activeTab=tabs.find(tab=>tab.getAttribute('aria-selected')==='true');
     if(!activeTab || activeTab.hidden)selectTab(defaultTab(),false,false);
-    else if(activeTab===$('tab-register'))loadRegistration();
     $('option-brand').value=current.headers?.brand || current.name;
     $('option-banner').value=current.headers?.banner || current.name;
     $('option-server').value=current.serverAddress || '';
@@ -868,10 +865,27 @@ if (typeof document !== 'undefined') (() => {
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
   const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
   function defaultTab(){return current.registrationEnabled!==false && !token ? $('tab-register') : $('tab-leaderboard');}
-  function loadRegistration(){
-    const frame=$('registration-frame');
-    if(current.registrationEnabled!==false && !frame.hasAttribute('src'))frame.src=frame.dataset.src;
-  }
+  let registrationSubmitting=false;
+  $('registration-form').addEventListener('submit',async event=>{
+    event.preventDefault();
+    if(registrationSubmitting || current.registrationEnabled===false)return;
+    const form=event.currentTarget,input=$('registration-name'),status=$('registration-status'),button=$('registration-submit');
+    input.value=input.value.trim();
+    if(!form.reportValidity())return;
+    registrationSubmitting=true;button.disabled=true;button.textContent='Registering…';
+    status.dataset.state='pending';status.textContent='Sending your registration…';
+    try{
+      const response=await fetch(form.action,{method:'POST',body:new FormData(form),signal:AbortSignal.timeout(20000)});
+      const result=await response.json();
+      if(!response.ok || !result.success)throw Error('Registration failed');
+      status.dataset.state='success';status.textContent='You’re registered! Your player name has been sent to the organiser.';
+      form.reset();
+    }catch{
+      status.dataset.state='error';status.textContent='We couldn’t confirm your registration. Please try again, or contact the organiser on Discord if this keeps happening.';
+    }finally{
+      registrationSubmitting=false;button.disabled=current.registrationEnabled===false;button.textContent='Register to play';
+    }
+  });
   function selectTab(tab, focus = false, updateUrl = true) {
     if(!tab || tab.hidden)tab=defaultTab();
     tabs.forEach(item => {
@@ -879,7 +893,6 @@ if (typeof document !== 'undefined') (() => {
       item.setAttribute('aria-selected', String(active)); item.tabIndex = active ? 0 : -1;
       $(item.getAttribute('aria-controls')).hidden = !active;
     });
-    if(tab===$('tab-register'))loadRegistration();
     if (updateUrl) history.replaceState(null,'','#'+tab.id.slice(4));
     if (focus) tab.focus();
   }
