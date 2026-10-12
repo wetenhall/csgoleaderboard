@@ -205,7 +205,17 @@
         "t6",
         "t10"
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t6",
+          "t10"
+        ],
+        "scores": [
+          7,
+          5
+        ],
+        "players": {}
+      }
     },
     {
       "id": "b2",
