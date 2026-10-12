@@ -504,7 +504,17 @@
         "t8",
         "t4"
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t8",
+          "t4"
+        ],
+        "scores": [
+          6,
+          7
+        ],
+        "players": {}
+      }
     },
     {
       "id": "b9",
