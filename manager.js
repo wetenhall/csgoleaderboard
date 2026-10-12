@@ -233,7 +233,7 @@ if (typeof document !== 'undefined') (() => {
       $('pool-input').value='';$('pool-list').replaceChildren();$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();
       $('group-count').value='1';renderMapOptions();
       $('format-preview').textContent='Choose the format before publishing. Each group needs at least two teams.';
-      $('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();
+      $('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);resetReveal();selectionCount();controls();
       announce('Tournament cleared. Load players to start a new draw.');
       say('Tournament cleared and saved to GitHub. The public page updates after deployment. Your organiser connection is still active.');
     } catch(error) { say(error.message); }
@@ -334,27 +334,84 @@ if (typeof document !== 'undefined') (() => {
     pool=names.map((name,i)=>({id:`p${i+1}`,name}));$('pool-list').replaceChildren();
     pool.forEach(p=>{const label=element('label');const box=element('input');box.type='checkbox';box.value=p.id;box.checked=true;box.onchange=selectionCount;label.append(box,document.createTextNode(p.name));$('pool-list').append(label);});selectionCount();announce('Select your players, then lock the pool.');
   };
-  function paintWheel(names) {
-    const canvas=$('wheel'),ctx=canvas.getContext('2d'),n=names.length;ctx.clearRect(0,0,640,640);
-    if(!n){ctx.fillStyle='#222c35';ctx.beginPath();ctx.arc(320,320,304,0,2*Math.PI);ctx.fill();ctx.fillStyle='#ffad32';ctx.font='bold 28px Arial';ctx.textAlign='center';ctx.fillText('PLAYER DRAW',320,328);return;}
-    names.forEach((p,i)=>{const start=-Math.PI/2+i*2*Math.PI/n;ctx.beginPath();ctx.moveTo(320,320);ctx.arc(320,320,304,start,start+2*Math.PI/n);ctx.closePath();ctx.fillStyle=['#eaa33b','#325875','#d2b27c','#243c51'][i%4];ctx.fill();ctx.strokeStyle='#101316';ctx.lineWidth=2;ctx.stroke();ctx.save();ctx.translate(320,320);ctx.rotate(start+Math.PI/n);ctx.fillStyle=i%2?'#ffffff':'#12181d';ctx.font=`bold ${n>24?13:17}px Arial`;ctx.textAlign='right';ctx.fillText(p.name.length>19?p.name.slice(0,18)+'…':p.name,288,6);ctx.restore();});
-    ctx.beginPath();ctx.arc(320,320,34,0,2*Math.PI);ctx.fillStyle='#101316';ctx.fill();
+  const teamColours=['#ffad32','#79b9df','#b6a0ee','#73d1a9','#f18e97','#e1cf80'];
+  let soundEnabled=false,audioContext=null;
+  function initials(name) { return name.trim().split(/\s+/).map(part=>part[0]).join('').slice(0,2).toUpperCase(); }
+  function playTone(frequency,duration=0.035) {
+    if(!soundEnabled || !audioContext || audioContext.state!=='running')return;
+    try { const oscillator=audioContext.createOscillator(),gain=audioContext.createGain();
+      oscillator.type='sine';oscillator.frequency.value=frequency;gain.gain.setValueAtTime(0.045,audioContext.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,audioContext.currentTime+duration);
+      oscillator.connect(gain);gain.connect(audioContext.destination);oscillator.start();oscillator.stop(audioContext.currentTime+duration);
+    } catch { /* Sound is optional. */ }
   }
-  function showDrawTeams() {
-    $('draw-teams').replaceChildren();const size=Number($('team-size').value);
-    for(let i=0;i<(selected.length+remaining.length)/size;i++){const card=element('div','draw-team');const label=element('label','',`Team ${i+1}`);const name=element('input');name.value=draw?.teams[i].name || `Team ${String(i+1).padStart(2,'0')}`;name.maxLength=60;name.disabled=!draw;name.oninput=()=>{draw.teams[i].name=name.value.trim();};label.append(name);card.append(label);selected.slice(i*size,(i+1)*size).forEach(p=>card.append(element('p','',p.name)));if(draw)card.append(element('p','accent',draw.groups.length ? `Group ${draw.groups.find(g=>g.teams.includes(draw.teams[i].id)).id}` : 'Knockout'));$('draw-teams').append(card);}
+  $('sound-toggle').onclick=async()=>{
+    soundEnabled=!soundEnabled;
+    try { if(soundEnabled){const Audio=window.AudioContext || window.webkitAudioContext;if(!Audio)throw Error();audioContext ||= new Audio();await audioContext.resume();} }
+    catch {soundEnabled=false;}
+    $('sound-toggle').setAttribute('aria-pressed',String(soundEnabled));$('sound-toggle').textContent=soundEnabled?'Sound on · Mute':'Sound off';
+    if(soundEnabled)playTone(660,0.1);
+  };
+  function paintWheel(names,angle=0,highlight=-1) {
+    const ctx=$('wheel').getContext('2d'),n=names.length;ctx.clearRect(0,0,640,640);
+    ctx.save();ctx.translate(320,320);ctx.rotate(angle*Math.PI/180);
+    if(!n){ctx.fillStyle='#222c35';ctx.beginPath();ctx.arc(0,0,302,0,2*Math.PI);ctx.fill();}
+    names.forEach((p,i)=>{
+      const start=-Math.PI/2+i*2*Math.PI/n,active=i===highlight;
+      ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,302,start,start+2*Math.PI/n);ctx.closePath();
+      ctx.fillStyle=active?'#ffe4ad':teamColours[i%teamColours.length];ctx.globalAlpha=active?1:0.78;ctx.fill();ctx.globalAlpha=1;
+      ctx.strokeStyle=active?'#fff5df':'#101316';ctx.lineWidth=active?5:2;ctx.stroke();
+      ctx.save();ctx.rotate(start+Math.PI/n);ctx.fillStyle='#101820';ctx.font='bold '+(n>24?12:18)+'px Arial';ctx.textAlign='right';
+      ctx.fillText(p.name.length>19?p.name.slice(0,18)+'…':p.name,278,6);
+      if(n<=18){ctx.beginPath();ctx.arc(112,0,19,0,2*Math.PI);ctx.fillStyle='#111c29';ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 12px Arial';ctx.textAlign='center';ctx.fillText(initials(p.name),112,4);}
+      ctx.restore();
+    });ctx.restore();
+    ctx.beginPath();ctx.arc(320,320,302,0,2*Math.PI);ctx.strokeStyle='#ffad32';ctx.lineWidth=5;ctx.stroke();
+    ctx.beginPath();ctx.arc(320,320,64,0,2*Math.PI);ctx.fillStyle='#10161c';ctx.fill();ctx.strokeStyle='#65717b';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='#ffad32';ctx.textAlign='center';ctx.font='bold 19px Arial';ctx.fillText(n?'DRAFT':'PLAYER',320,316);ctx.font='12px Consolas';ctx.fillText(n?n+' LEFT':'DRAW',320,338);
+  }
+  function resetReveal(){ $('reveal-avatar').textContent='?';$('reveal-label').textContent='NEXT RECRUIT';$('reveal-name').textContent='Who’s joining your team?';$('player-reveal').classList.remove('revealed');$('draw-progress').value=0;$('draw-progress-label').textContent='Load players to start'; }
+  function showDrawTeams(latestId=null) {
+    $('draw-teams').replaceChildren();const size=Number($('team-size').value),total=selected.length+remaining.length;
+    $('draw-progress').max=Math.max(1,total);$('draw-progress').value=selected.length;
+    $('draw-progress-label').textContent=total?selected.length+' of '+total+' players selected · '+(remaining.length?'Filling Team '+String(Math.floor(selected.length/size)+1).padStart(2,'0'):'All teams complete'):'Load players to start';
+    for(let i=0;i<total/size;i++){
+      const members=selected.slice(i*size,(i+1)*size),complete=members.length===size,latest=members.some(p=>p.id===latestId);
+      const card=element('div','draw-team'+(complete?' team-complete':'')+(latest&&complete?' team-flash':''));card.style.setProperty('--team-colour',teamColours[i%teamColours.length]);
+      const label=element('label','', 'Team '+String(i+1).padStart(2,'0')),name=element('input');name.value=draw?.teams[i].name || 'Team '+String(i+1).padStart(2,'0');name.maxLength=60;name.disabled=!draw;name.oninput=()=>{draw.teams[i].name=name.value.trim();};label.append(name);card.append(label);
+      for(let j=0;j<size;j++) {const player=members[j],slot=element('div','draft-slot'+(player?' filled':'')+(player?.id===latestId?' player-arrives':''));slot.append(element('span','slot-avatar',player?initials(player.name):String(j+1)),element('span','',player?player.name:'Awaiting player'));card.append(slot);}
+      card.append(element('p','team-state',complete?'TEAM COMPLETE':members.length+' / '+size+' PLAYERS'));
+      if(draw)card.append(element('p','accent',draw.groups.length?'Group '+draw.groups.find(g=>g.teams.includes(draw.teams[i].id)).id:'Knockout'));
+      $('draw-teams').append(card);
+    }
   }
   function lock(value){locked=value;['team-size','pool-input','load-pool','start-draw'].forEach(id=>{$(id).disabled=value;});$('pool-list').querySelectorAll('input').forEach(i=>{i.disabled=value;});}
-  $('start-draw').onclick=()=>{if(busy)return;const ids=[...$('pool-list').querySelectorAll('input:checked')].map(i=>i.value);const size=Number($('team-size').value);if(ids.length<size*2 || ids.length%size)return;remaining=pool.filter(p=>ids.includes(p.id));selected=[];draw=null;lock(true);showDrawTeams();paintWheel(remaining);$('spin').disabled=false;announce('Drawing Team 01. Spin to select its first player.');};
+  $('start-draw').onclick=()=>{if(busy)return;const ids=[...$('pool-list').querySelectorAll('input:checked')].map(i=>i.value);const size=Number($('team-size').value);if(ids.length<size*2 || ids.length%size)return;remaining=pool.filter(p=>ids.includes(p.id));selected=[];draw=null;lock(true);resetReveal();showDrawTeams();paintWheel(remaining);$('spin').disabled=false;announce('Drawing Team 01. Spin to select its first player.');};
   $('spin').onclick=async()=>{
-    if(busy || spinning || !remaining.length)return;spinning=true;$('spin').disabled=true;$('reset-draw').disabled=true;
-    const index=randomIndex(remaining.length),picked=remaining[index],canvas=$('wheel');canvas.style.transition='none';canvas.style.transform='rotate(0deg)';paintWheel(remaining);void canvas.offsetWidth;
-    const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:2400;
-    canvas.style.transition=`transform ${duration}ms cubic-bezier(.12,.6,.12,1)`;canvas.style.transform=`rotate(${1800+360-(index+.5)*360/remaining.length}deg)`;
-    await new Promise(resolve=>setTimeout(resolve,duration+30));
-    remaining.splice(index,1);selected.push(picked);const size=Number($('team-size').value);announce(`${picked.name} joins Team ${Math.ceil(selected.length/size)}. ${remaining.length} players remaining.`);
-    if(!remaining.length){draw=makeTournament(selected,size,current);drawOrder=draw.groups.flatMap(g=>g.teams);configureDraw();announce('Draw complete. Review team names and tournament format, then publish.');}
-    showDrawTeams();spinning=false;$('spin').disabled=!remaining.length;$('reset-draw').disabled=false;controls();
+    if(busy || spinning || !remaining.length)return;
+    spinning=true;controls();$('reset-draw').disabled=true;$('player-reveal').classList.remove('revealed');
+    $('reveal-name').textContent='Selecting a player…';$('reveal-label').textContent='DRAFT IN PROGRESS';$('reveal-avatar').textContent='?';
+    const index=randomIndex(remaining.length),picked=remaining[index],names=[...remaining];
+    const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:4400;
+    const target=2160+360-(index+.5)*360/names.length;
+    let previous=-1,lastTick=0;
+    try {
+      if(duration)await new Promise(resolve=>{
+        const start=performance.now();
+        function frame(now){const fraction=Math.min(1,(now-start)/duration),angle=target*(1-Math.pow(1-fraction,4));
+          const active=Math.floor(((360-angle%360)%360)/360*names.length)%names.length;
+          paintWheel(names,angle,active);
+          if(active!==previous && now-lastTick>65){playTone(850,0.025);lastTick=now;}previous=active;
+          if(fraction<1)requestAnimationFrame(frame);else resolve();
+        }requestAnimationFrame(frame);
+      });
+      paintWheel(names,target,index);
+      remaining.splice(index,1);selected.push(picked);const size=Number($('team-size').value),team=Math.ceil(selected.length/size);
+      $('reveal-avatar').textContent=initials(picked.name);$('reveal-name').textContent=picked.name;$('reveal-label').textContent='JOINING TEAM '+String(team).padStart(2,'0');$('player-reveal').classList.add('revealed');
+      playTone(selected.length%size===0?1046:784,0.24);
+      announce(picked.name+' joins Team '+String(team).padStart(2,'0')+'. '+(selected.length%size===0?'Team complete! ':'')+remaining.length+' players remaining.');
+      if(!remaining.length){draw=makeTournament(selected,size,current);drawOrder=draw.groups.flatMap(g=>g.teams);configureDraw();announce('Draw complete. Review team names and tournament format, then publish.');}
+      showDrawTeams(picked.id);
+    } finally {spinning=false;$('reset-draw').disabled=false;controls();}
   };
   function configureDraw() {
     if (!draw) return;
