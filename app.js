@@ -286,9 +286,28 @@ function renderTournament(data) {
     details.append(fixtures); section.append(details);
     document.getElementById('groups').append(section);
   }
+  const singleSquads=data.format==='single' && data.teamSize===5;
+  document.getElementById('teams').closest('section').hidden=singleSquads;
   const bracketRoot=document.getElementById('bracket');
+  bracketRoot.classList.toggle('single-squads',singleSquads);
   bracketRoot.classList.toggle('double-bracket',data.format==='double');
-  if(data.format==='double')renderConnectedBracket(bracketRoot,matches,teams);
+  if(singleSquads){
+    const match=matches[0],hero=element('div','single-match-map');
+    hero.append(element('span','eyebrow','SELECTED MAP / CUSTOM 5V5'),element('h3','',match.map || 'Map pending'),element('p','rules',match.result?'FINAL SCORE':'READY TO PLAY'));
+    bracketRoot.append(hero);
+    const squads=element('div','single-match-squads');
+    match.ids.forEach((id,i)=>{
+      const team=teams.get(id),card=element('article','single-squad'+(match.winner===id?' is-winner':''));
+      const heading=element('div','single-squad-heading');
+      heading.append(teamEmblem(team),element('h3','',team.name),element('strong','single-squad-score',match.result?String(match.result.scores[i]):'—'));
+      card.append(heading,element('p','eyebrow',match.winner===id?'WINNERS':'5 PLAYERS'));
+      const roster=element('ol','single-squad-players');
+      team.players.forEach(player=>roster.append(element('li','',player.name)));
+      card.append(roster);squads.append(card);
+    });
+    bracketRoot.append(squads);
+  }
+  else if(data.format==='double')renderConnectedBracket(bracketRoot,matches,teams);
   else [...new Set(matches.filter(match => !match.group).map(match => match.round))].sort((a,b)=>a-b).forEach(round => {
     const column=element('div', 'round round-'+round),heading=element('h3','round-heading',data.format==='single'?'5v5 · '+(matches[0].map || 'Map pending'):knockoutRoundName({round},matches));
     heading.append(element('span','',String(round+1).padStart(2,'0')));column.append(heading);
