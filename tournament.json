@@ -142,7 +142,12 @@
         "t8",
         "t11"
       ],
-      "tiebreakOrder": []
+      "tiebreakOrder": [
+        "t2",
+        "t11",
+        "t5",
+        "t8"
+      ]
     },
     {
       "id": "C",
