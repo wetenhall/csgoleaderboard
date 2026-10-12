@@ -725,7 +725,28 @@
           "loser": "de16"
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t2",
+          "t3"
+        ],
+        "scores": [
+          7,
+          8
+        ],
+        "players": {
+          "p12": {
+            "kills": 7,
+            "deaths": 8,
+            "assists": 0
+          },
+          "p4": {
+            "kills": 8,
+            "deaths": 7,
+            "assists": 0
+          }
+        }
+      }
     },
     {
       "id": "de18",
