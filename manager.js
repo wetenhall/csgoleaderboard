@@ -90,6 +90,40 @@ function playerTotals(data) {
   }
   return [...totals.values()].sort((a,b) => b.kills-a.kills || a.deaths-b.deaths || a.name.localeCompare(b.name));
 }
+function tournamentAwards(data) {
+  const totals=new Map(data.teams.map(team=>[team.id,{...team,games:0,wins:0,difference:0,streak:0}]));
+  // Streaks follow fixture order, so correcting an older result recomputes them.
+  for(const match of orderedMatches(data.matches)) {
+    if(!match.result)continue;
+    match.result.teams.forEach((id,i)=>{const row=totals.get(id);if(!row)return;
+      const won=match.result.scores[i]>match.result.scores[1-i];
+      row.games++;row.wins+=Number(won);row.difference+=match.result.scores[i]-match.result.scores[1-i];row.streak=won?row.streak+1:0;
+    });
+  }
+  const teams=[...totals.values()].filter(row=>row.games>=2),players=playerTotals(data).filter(row=>row.games>=2);
+  function award(title,icon,rule,rows,rank,metric,empty='Awaiting more matches') {
+    function compare(a,b){const x=rank(a),y=rank(b);for(let i=0;i<x.length;i++){if(x[i]!==y[i])return x[i]>y[i]?-1:1;}return 0;}
+    const sorted=[...rows].sort(compare),winners=sorted.length?sorted.filter(row=>compare(row,sorted[0])===0):[];
+    return {title,icon,rule,winners,metric:winners.length?metric(winners[0]):empty};
+  }
+  const difference=row=>(row.difference>0?'+':'')+row.difference+' round difference';
+  const winRate=row=>(100*row.wins/row.games).toFixed(0)+'% wins · '+difference(row);
+  const kd=row=>row.deaths?row.kills/row.deaths:row.kills?Infinity:0;
+  return {
+    teams:[
+      award('Top Dogs','🏆','Highest win rate, then round difference.',teams,r=>[r.wins/r.games,r.difference],winRate),
+      award('On a Roll','🔥','Longest current winning streak in fixture order.',teams.filter(r=>r.streak>0),r=>[r.streak],r=>r.streak+' consecutive win'+(r.streak===1?'':'s'),teams.length?'No active winning streak':'Awaiting more matches'),
+      award('Round Bullies','💥','Best rounds won minus rounds lost.',teams,r=>[r.difference],difference),
+      award('Wooden Spoon','🥔','Lowest win rate, then worst round difference.',teams,r=>[-r.wins/r.games,-r.difference],winRate)
+    ],
+    players:[
+      award('MVP','👑','Highest kills per recorded game, then K/D.',players,r=>[r.kills/r.games,kd(r)],r=>(r.kills/r.games).toFixed(1)+' kills/game · '+(kd(r)===Infinity?'∞':kd(r).toFixed(2))+' K/D'),
+      award('Top Fragger','🎯','Most total recorded kills.',players,r=>[r.kills],r=>r.kills+' kills'),
+      award('Wingman','🤝','Most assists per recorded game.',players,r=>[r.assists/r.games],r=>(r.assists/r.games).toFixed(1)+' assists/game'),
+      award('Respawn Regular','💀','Most deaths per recorded game.',players,r=>[r.deaths/r.games],r=>(r.deaths/r.games).toFixed(1)+' deaths/game')
+    ]
+  };
+}
 function validateData(data, resolve) {
   if (!data || typeof data.name !== 'string' || data.name.length > 100 || !Array.isArray(data.teams) || !Array.isArray(data.groups) || data.groups.length > 4 || !Array.isArray(data.matches)) throw Error('Invalid tournament structure.');
   if (!data.teams.length && !data.groups.length && !data.matches.length && data.mapPool === undefined) return data;
@@ -135,7 +169,7 @@ function applyResult(data, id, result, resolve) {
   return { next, cleared };
 }
 function emptyTournament(data) { return {name:data.name,teams:[],groups:[],matches:[]}; }
-if (typeof module !== 'undefined') module.exports = { makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament };
+if (typeof module !== 'undefined') module.exports = { makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament, tournamentAwards };
 if (typeof document !== 'undefined') (() => {
   const $ = id => document.getElementById(id);
   const api = 'https://api.github.com/repos/wetenhall/csgoleaderboard/contents/tournament.json';
@@ -222,7 +256,7 @@ if (typeof document !== 'undefined') (() => {
     } catch(error) { say(error.message); } finally { busy = false; controls(); }
   };
   function renderAll() {
-    renderTournament(current); renderSchedule(); renderStats(); renderTies(); controls();
+    renderTournament(current); renderAwards(); renderSchedule(); renderStats(); renderTies(); controls();
   }
   $('clear-tournament').onclick = async () => {
     if (busy || spinning || !token) return;
@@ -299,6 +333,18 @@ if (typeof document !== 'undefined') (() => {
       };
       body.append(form); details.append(body); container.append(details);
     });
+  }
+  function renderAwards() {
+    const awards=tournamentAwards(current);
+    for(const type of ['teams','players']) {
+      const container=$(type==='teams'?'team-awards':'player-awards');container.replaceChildren();
+      for(const award of awards[type]) {
+        const card=element('article','award-card'+(!award.winners.length?' award-pending':''));
+        const heading=element('h3','award-title');const icon=element('span','award-icon',award.icon);icon.setAttribute('aria-hidden','true');heading.append(icon,document.createTextNode(award.title));card.append(heading);
+        card.append(element('p','award-winner',award.winners.length?award.winners.map(row=>type==='teams'?teamDisplayLabel(row):row.name+' ('+row.team+')').join(' / '):'Still up for grabs'));
+        card.append(element('p','award-metric',(award.winners.length>1?'Joint award · ':'')+award.metric),element('p','award-rule',award.rule));container.append(card);
+      }
+    }
   }
   function renderStats() {
     $('player-stats').replaceChildren(); const rows = playerTotals(current);

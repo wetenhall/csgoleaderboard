@@ -161,3 +161,27 @@ test('clearing a tournament removes all match and player data and supports a new
  assert.throws(()=>validateData({...empty,groups:[{id:'A',teams:['t1']}]},resolveTournament));
  assert.throws(()=>validateData({...empty,matches:[{id:'f1'}]},resolveTournament));
 });
+
+test('awards use two-game eligibility, averages, streaks and recorded stats',()=>{
+ const {tournamentAwards}=require('./manager.js');
+ const data={teams:[{id:'a',name:'A',players:[{id:'p1',name:'One'}]},{id:'b',name:'B',players:[{id:'p2',name:'Two'}]},{id:'c',name:'C',players:[{id:'p3',name:'Three'}]}],matches:[]};
+ const stats=(kills,deaths,assists)=>({kills,deaths,assists});
+ const game=(id,teams,players)=>({id,group:'A',result:{teams,scores:[13,7],players}});
+ data.matches.push(game('a1',['a','b'],{p1:stats(10,0,1),p2:stats(30,10,2)}));
+ assert.ok(tournamentAwards(data).teams.every(a=>!a.winners.length));
+ assert.ok(tournamentAwards(data).players.every(a=>!a.winners.length));
+ data.matches.push(game('a2',['a','c'],{p1:stats(10,0,1),p3:stats(5,20,10)}),game('a3',['b','c'],{p2:stats(10,10,2),p3:stats(5,20,10)}));
+ let awards=tournamentAwards(data);
+ assert.deepEqual(awards.teams.map(a=>a.winners.map(w=>w.id)),[['a'],['a'],['a'],['c']]);
+ assert.deepEqual(awards.players.map(a=>a.winners.map(w=>w.id)),[['p2'],['p2'],['p3'],['p3']]);
+ data.matches[0].result.scores=[7,13];awards=tournamentAwards(data);
+ assert.equal(awards.teams[0].winners[0].id,'b');assert.equal(awards.teams[1].winners[0].streak,2);
+ delete data.matches[2].result.players.p2;
+ assert.ok(tournamentAwards(data).players.every(a=>a.winners.every(w=>w.id!=='p2')));
+});
+test('player award ties include zero-death K/D and empty tournament states',()=>{
+ const {tournamentAwards}=require('./manager.js');const players=[{id:'x',name:'X'},{id:'y',name:'Y'}];
+ const data={teams:[{id:'a',name:'A',players}],matches:[1,2].map(i=>({id:'m'+i,round:i,result:{teams:['a','b'],scores:[13,7],players:Object.fromEntries(players.map(p=>[p.id,{kills:10,deaths:0,assists:3}]))}}))};
+ const awards=tournamentAwards(data);assert.equal(awards.players[0].winners.length,2);assert.match(awards.players[0].metric,/∞/);
+ const empty=tournamentAwards({teams:[],matches:[]});assert.ok([...empty.teams,...empty.players].every(a=>!a.winners.length && a.metric==='Awaiting more matches'));
+});
