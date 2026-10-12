@@ -5,26 +5,27 @@
       "id": "t1",
       "name": "Team 01",
       "tag": "01",
+      "captainId": "p1",
       "players": [
         {
           "id": "p1",
           "name": "aatori"
         },
         {
-          "id": "p10",
-          "name": "tart"
-        },
-        {
-          "id": "p3",
-          "name": "dan"
+          "id": "p8",
+          "name": "ribe"
         },
         {
           "id": "p7",
           "name": "part"
         },
         {
-          "id": "p2",
-          "name": "cantlon"
+          "id": "p10",
+          "name": "tart"
+        },
+        {
+          "id": "p9",
+          "name": "sam"
         }
       ]
     },
@@ -32,26 +33,27 @@
       "id": "t2",
       "name": "Team 02",
       "tag": "02",
+      "captainId": "p2",
       "players": [
         {
-          "id": "p6",
-          "name": "hans"
-        },
-        {
-          "id": "p9",
-          "name": "sam"
+          "id": "p2",
+          "name": "cantlon"
         },
         {
           "id": "p4",
           "name": "frodo"
         },
         {
+          "id": "p3",
+          "name": "dan"
+        },
+        {
           "id": "p5",
           "name": "grayzee"
         },
         {
-          "id": "p8",
-          "name": "ribe"
+          "id": "p6",
+          "name": "hans"
         }
       ]
     }
@@ -71,7 +73,7 @@
       ],
       "result": null,
       "label": "One match · 5v5",
-      "map": "Overpass"
+      "map": "Dust2"
     }
   ],
   "history": [
