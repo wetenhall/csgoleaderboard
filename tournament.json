@@ -279,7 +279,17 @@
         "t4",
         "t8"
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t4",
+          "t8"
+        ],
+        "scores": [
+          7,
+          6
+        ],
+        "players": {}
+      }
     },
     {
       "id": "k1-1",
