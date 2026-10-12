@@ -291,7 +291,7 @@ if (typeof document !== 'undefined') (() => {
   function controls() {
     const manual=$('team-creation').value==='manual';
     $('team-creation').disabled=busy || locked;
-    $('start-draw').textContent=manual?'Lock players & create teams':'Lock players & start draw';
+    $('start-draw').textContent=manual?'Lock players & create teams':$('team-creation').value==='case'?'Lock players & start reel':'Lock players & start draw';
     $('manual-teams').hidden=!manual || !locked || !manualAssignments.length;
     $('manual-team-list').querySelectorAll('input,select').forEach(input=>{input.disabled=busy || !token;});
     $('use-manual-teams').disabled=busy || !token || manualAssignments.some(id=>!id) || !manualAssignments.length || new Set(manualAssignments).size!==manualAssignments.length;
@@ -736,7 +736,7 @@ if (typeof document !== 'undefined') (() => {
     ctx.fillStyle='#ff9b01';ctx.beginPath();ctx.moveTo(536,12);ctx.lineTo(564,12);ctx.lineTo(550,40);ctx.closePath();ctx.fill();ctx.fillRect(549,40,2,282);ctx.beginPath();ctx.moveTo(536,346);ctx.lineTo(564,346);ctx.lineTo(550,320);ctx.closePath();ctx.fill();
   }
   $('draw-animation').onchange=()=>{
-    const reel=$('draw-animation').value==='case';$('case-reel-wrap').hidden=!reel;document.querySelector('.wheel-wrap').hidden=reel;$('draw-stage').classList.toggle('case-style',reel);paintWheel(...wheelFrame);
+    const reel=$('draw-animation').value==='case';if($('team-creation').value!=='manual')$('team-creation').value=reel?'case':'wheel';$('case-reel-wrap').hidden=!reel;document.querySelector('.wheel-wrap').hidden=reel;$('draw-stage').classList.toggle('case-style',reel);paintWheel(...wheelFrame);controls();
   };
   function resetReveal(){ $('reveal-avatar').textContent='?';$('reveal-label').textContent='NEXT RECRUIT';$('reveal-name').textContent='Who’s joining your team?';$('player-reveal').classList.remove('revealed');$('draw-progress').value=0;$('draw-progress-label').textContent='Load players to start'; }
   function showDrawTeams(latestId=null) {
@@ -769,7 +769,7 @@ if (typeof document !== 'undefined') (() => {
       $('draw-teams').append(card);
     }
   }
-  $('team-creation').onchange=()=>{controls();};
+  $('team-creation').onchange=()=>{if($('team-creation').value!=='manual'){$('draw-animation').value=$('team-creation').value;$('draw-animation').onchange();}controls();};
   function invalidateManualTeams(){draw=null;drawnMap=null;gameNightUI?.renderDraft();$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();$('format-preview').textContent='Assign every selected player, then click Use these teams.';controls();}
   function updateManualSlots(){
     $('manual-team-list').querySelectorAll('select').forEach((select,slot)=>{
@@ -943,7 +943,7 @@ if (typeof document !== 'undefined') (() => {
     if(!token || busy || spinning || current.format!=='single')return;
     if((draw || remaining.length) && !confirm('Replace the unpublished draw with a rematch?'))return;
     const source=structuredClone(current);resetDrawState();rematchSource=JSON.stringify(current);
-    $('team-creation').value='wheel';$('team-size').value='5';$('tournament-format').value='single';$('group-count').value='0';renderMapOptions();
+    $('team-creation').value=$('draw-animation').value;$('team-size').value='5';$('tournament-format').value='single';$('group-count').value='0';renderMapOptions();
     $('map-options').querySelectorAll('input').forEach(input=>{input.checked=source.mapPool.includes(input.value);});updateMapCount();
     selected=Array.from({length:5},(_,i)=>source.teams.map(team=>structuredClone(team.players[i]))).flat();remaining=[];draw=source;delete draw.activeMatchId;delete draw.mapVeto;delete draw.mapMethod;draw.matches.forEach(match=>{match.result=null;});drawOrder=source.teams.map(t=>t.id);drawnMap=null;lock(true);$('pool-count').textContent='10 players retained · Two squads of five · Rematch';configureDraw();controls();selectTab($('tab-team-setup'),true);$('draw-stage').scrollIntoView({block:'start'});announce('Same squads are ready. Spin for a new map or use map vetoes. A completed previous match is archived when you publish.');
   }});
