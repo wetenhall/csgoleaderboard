@@ -7,12 +7,24 @@
       "tag": "01",
       "players": [
         {
-          "id": "p4",
-          "name": "dan"
+          "id": "p8",
+          "name": "cantlon"
         },
         {
-          "id": "p6",
-          "name": "test"
+          "id": "p1",
+          "name": "malice"
+        },
+        {
+          "id": "p4",
+          "name": "ribe"
+        },
+        {
+          "id": "p10",
+          "name": "spongo"
+        },
+        {
+          "id": "p3",
+          "name": "finesse"
         }
       ]
     },
@@ -22,26 +34,23 @@
       "tag": "02",
       "players": [
         {
+          "id": "p2",
+          "name": "goro"
+        },
+        {
+          "id": "p9",
+          "name": "froppo"
+        },
+        {
           "id": "p5",
+          "name": "aiden"
+        },
+        {
+          "id": "p7",
           "name": "lukinss"
         },
         {
-          "id": "p1",
-          "name": "cantlon"
-        }
-      ]
-    },
-    {
-      "id": "t3",
-      "name": "Team 03",
-      "tag": "03",
-      "players": [
-        {
-          "id": "p2",
-          "name": "spongo"
-        },
-        {
-          "id": "p3",
+          "id": "p6",
           "name": "sam"
         }
       ]
@@ -50,85 +59,19 @@
   "groups": [],
   "matches": [
     {
-      "id": "de1",
+      "id": "f1",
       "round": 0,
-      "bracket": "upper",
-      "label": "Winners · Round 1",
-      "sources": [
-        {
-          "team": "t2"
-        },
-        {
-          "team": "t3"
-        }
-      ],
-      "result": null,
-      "map": "Eldorado"
-    },
-    {
-      "id": "de2",
-      "round": 2,
-      "bracket": "upper",
-      "label": "Winners · Round 2",
       "sources": [
         {
           "team": "t1"
         },
         {
-          "winner": "de1"
+          "team": "t2"
         }
       ],
       "result": null,
-      "map": "Poseidon"
-    },
-    {
-      "id": "de3",
-      "round": 3,
-      "bracket": "lower",
-      "label": "Losers · Round 2",
-      "sources": [
-        {
-          "loser": "de1"
-        },
-        {
-          "loser": "de2"
-        }
-      ],
-      "result": null,
-      "map": "Vertigo"
-    },
-    {
-      "id": "f1",
-      "round": 4,
-      "bracket": "final",
-      "label": "Grand final",
-      "sources": [
-        {
-          "winner": "de2"
-        },
-        {
-          "winner": "de3"
-        }
-      ],
-      "result": null,
-      "map": "Debris"
-    },
-    {
-      "id": "f2",
-      "round": 5,
-      "bracket": "final",
-      "label": "Grand final reset · if needed",
-      "resetOf": "f1",
-      "sources": [
-        {
-          "winner": "de2"
-        },
-        {
-          "winner": "de3"
-        }
-      ],
-      "result": null,
-      "map": "Overpass"
+      "label": "One match · 5v5",
+      "map": "Nuke"
     }
   ],
   "history": [],
@@ -136,18 +79,19 @@
     "brand": "Pull up gang",
     "banner": "Tournament"
   },
-  "format": "double",
+  "format": "single",
   "qualifiersPerGroup": 2,
-  "teamSize": 2,
-  "mode": "duos",
+  "teamSize": 5,
+  "mode": "squads",
   "mapPool": [
+    "Mirage",
+    "Dust2",
     "Inferno",
     "Nuke",
+    "Ancient",
+    "Anubis",
     "Vertigo",
-    "Overpass",
-    "Poseidon",
-    "Debris",
-    "Eldorado"
+    "Cache"
   ],
   "registrationEnabled": true,
   "serverAddress": ""
