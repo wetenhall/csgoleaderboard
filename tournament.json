@@ -502,9 +502,10 @@
     "brand": "Pull up gang",
     "banner": "Tournament"
   },
-  "registrationEnabled": true,
+  "registrationEnabled": false,
   "format": "double",
   "qualifiersPerGroup": 2,
   "teamSize": 1,
-  "mode": "1v1"
+  "mode": "1v1",
+  "serverAddress": ""
 }
