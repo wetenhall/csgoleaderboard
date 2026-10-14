@@ -19,19 +19,27 @@
       "id": "t1",
       "name": "Team 01",
       "tag": "01",
-      "captainId": "p1",
+      "captainId": "p3",
       "players": [
         {
-          "id": "p1",
-          "name": "LilRibe"
+          "id": "p3",
+          "name": "Don"
         },
         {
           "id": "p4",
-          "name": "lukinss"
+          "name": "Finesse"
         },
         {
-          "id": "p6",
-          "name": "Coach Goro"
+          "id": "p5",
+          "name": "Froppo"
+        },
+        {
+          "id": "p2",
+          "name": "Cantlon"
+        },
+        {
+          "id": "p8",
+          "name": "Kzy"
         }
       ]
     },
@@ -39,19 +47,27 @@
       "id": "t2",
       "name": "Team 02",
       "tag": "02",
-      "captainId": "p2",
+      "captainId": "p9",
       "players": [
         {
-          "id": "p2",
-          "name": "Spongoat"
+          "id": "p9",
+          "name": "Lukinss"
         },
         {
-          "id": "p5",
-          "name": "Aatori"
-        },
-        {
-          "id": "p3",
+          "id": "p6",
           "name": "Grayzee"
+        },
+        {
+          "id": "p7",
+          "name": "Hans"
+        },
+        {
+          "id": "p10",
+          "name": "Omnii"
+        },
+        {
+          "id": "p1",
+          "name": "Aatori"
         }
       ]
     }
@@ -59,10 +75,8 @@
   "groups": [],
   "matches": [
     {
-      "id": "de1",
+      "id": "f1",
       "round": 0,
-      "bracket": "upper",
-      "label": "Winners · Round 1",
       "sources": [
         {
           "team": "t1"
@@ -72,39 +86,7 @@
         }
       ],
       "result": null,
-      "map": "Dust2"
-    },
-    {
-      "id": "f1",
-      "round": 1,
-      "bracket": "final",
-      "label": "Grand final",
-      "sources": [
-        {
-          "winner": "de1"
-        },
-        {
-          "loser": "de1"
-        }
-      ],
-      "result": null,
-      "map": "Ancient"
-    },
-    {
-      "id": "f2",
-      "round": 2,
-      "bracket": "final",
-      "label": "Grand final reset · if needed",
-      "resetOf": "f1",
-      "sources": [
-        {
-          "winner": "de1"
-        },
-        {
-          "loser": "de1"
-        }
-      ],
-      "result": null,
+      "label": "One match · 5v5",
       "map": "Office"
     }
   ],
@@ -114,10 +96,10 @@
     "banner": "playtest2"
   },
   "registrationEnabled": false,
-  "format": "double",
+  "format": "single",
   "qualifiersPerGroup": 2,
-  "teamSize": 3,
-  "mode": "trios",
+  "teamSize": 5,
+  "mode": "squads",
   "mapPool": [
     "Mirage",
     "Dust2",
