@@ -864,8 +864,8 @@ if (typeof document !== 'undefined') (() => {
     await prepareSound();$('player-reveal').classList.remove('revealed');
     $('reveal-name').textContent='Selecting a player…';$('reveal-label').textContent='DRAFT IN PROGRESS';$('reveal-avatar').textContent='?';
     const index=randomIndex(remaining.length),picked=remaining[index],names=[...remaining];
-    const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:4400;
-    const target=2160+360-(index+.5)*360/names.length;
+    const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:6800;
+    const target=2880+360-(index+.5)*360/names.length;
     let previous=-1,lastTick=0;
     try {
       if(duration)await new Promise(resolve=>{
@@ -897,11 +897,11 @@ if (typeof document !== 'undefined') (() => {
   };
   async function spinMap(){
     if(busy || spinning || !draw || drawnMap || draw.mapMethod==='veto' || !selectedMaps().length)return;
-    const names=selectedMaps().map(name=>({name})),index=randomIndex(names.length),target=2160+360-(index+.5)*360/names.length;
+    const names=selectedMaps().map(name=>({name})),index=randomIndex(names.length),target=2880+360-(index+.5)*360/names.length;
     spinning=true;controls();$('reset-draw').disabled=true;
     try{
       await prepareSound();$('reveal-label').textContent='MAP DRAW IN PROGRESS';$('reveal-name').textContent='Selecting a map…';
-      const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:4400;
+      const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:6800;
       if(duration)await new Promise(resolve=>{const start=performance.now();let previous=-1;function frame(now){const fraction=Math.min(1,(now-start)/duration),angle=target*(1-Math.pow(1-fraction,4)),active=Math.floor(((360-angle%360)%360)/360*names.length)%names.length;paintWheel(names,angle,active);if(active!==previous)playTone(850);previous=active;if(fraction<1)requestAnimationFrame(frame);else resolve();}requestAnimationFrame(frame);});
       drawnMap=names[index].name;configureDraw();paintWheel(names,target,index);$('player-reveal').classList.add('revealed');playTone(1046,0.24);announce(drawnMap+' selected. Publish your squads and map to show the custom match on the leaderboard.');
     }finally{spinning=false;$('reset-draw').disabled=false;controls();}
