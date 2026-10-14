@@ -72,12 +72,14 @@ function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMap
   const $=id=>document.getElementById(id);
   const draftRoot=element('section','map-draw-options'),methodRoot=element('div','map-method-control'),publicRoot=element('section','match-tools');
   methodRoot.hidden=true;$('sound-toggle').after(methodRoot);
-  draftRoot.hidden=true;draftRoot.id='map-draw-options';publicRoot.id='match-tools';$('publish-draw').before(draftRoot);$('panel-leaderboard').append(publicRoot);
+  draftRoot.hidden=true;draftRoot.id='map-draw-options';publicRoot.id='match-tools';methodRoot.parentElement.after(draftRoot);$('panel-leaderboard').append(publicRoot);
   const makeButton=(label,action)=>{const b=element('button','secondary',label);b.type='button';b.onclick=async()=>{try{await action();}catch(e){notify(e.message);}};return b;};
   async function copy(text){try{await navigator.clipboard.writeText(text);notify('Copied to clipboard.');}catch{const dialog=element('dialog','options-dialog'),field=element('textarea');field.value=text;field.rows=12;field.readOnly=true;dialog.append(element('h2','','Copy match details'),field,makeButton('Close',()=>{dialog.close();dialog.remove();}));document.body.append(dialog);dialog.showModal();field.select();}}
   function controls(){[draftRoot,methodRoot].forEach(root=>root.querySelectorAll('input,select,button').forEach(el=>el.disabled=isBusy() || !isOrganiser()));publicRoot.querySelectorAll('[data-rematch]').forEach(el=>{el.hidden=!isOrganiser();el.disabled=isBusy();});}
   function renderDraft(){
-    draftRoot.replaceChildren();methodRoot.replaceChildren();const draft=getDraft();methodRoot.hidden=!draft || draft.format!=='single';draftRoot.hidden=true;if(methodRoot.hidden)return;
+    draftRoot.replaceChildren();methodRoot.replaceChildren();const draft=getDraft();methodRoot.hidden=!draft || draft.format!=='single';draftRoot.hidden=true;
+    $('draw-stage').classList.toggle('map-veto',!methodRoot.hidden && draft.mapMethod==='veto');
+    if(methodRoot.hidden)return;
     if(draft.format==='single'){
       const maps=getMaps(),section=element('section','veto-panel'),methodLabel=element('label','','Map selection'),method=element('select');
       for(const [value,label] of [['wheel','Spin the wheel'],['veto','Teams ban maps']]){const option=element('option','',label);option.value=value;method.append(option);}method.value=draft.mapMethod || 'wheel';method.onchange=()=>{draft.mapMethod=method.value;draft.mapVeto=[];setMap(null);};methodLabel.append(method);methodRoot.append(methodLabel);
