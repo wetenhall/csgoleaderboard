@@ -4,6 +4,17 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const { resolveTournament } = require('./app.js');
 const { cupMode, cupFinal, completedCup, archiveCup, careerRecords, matchNight } = require('./extras.js');
+test('skip finishes required 5v5 map selection and leaves veto decisions intact',async()=>{
+  const source=fs.readFileSync('manager.js','utf8');
+  const handler=source.slice(source.indexOf("  $('skip-animation').onclick="),source.indexOf("  $('spin').onclick="));
+  for(const veto of [false,true]){
+    let mapSelections=0;
+    const nodes={'skip-animation':{disabled:false},spin:{onclick:async()=>context.remaining.pop()}};
+    const context={$:id=>nodes[id],remaining:[1,2],token:'test',busy:false,skippingAnimation:false,draw:{format:'single',mapMethod:veto?'veto':'wheel'},drawnMap:null,selectedMaps:()=>['Nuke'],stopAutoSpin(){},controls(){},announce(){},spinMap:async()=>{assert.equal(context.skippingAnimation,true);mapSelections++;context.drawnMap='Nuke';}};
+    vm.runInNewContext(handler,context);await nodes['skip-animation'].onclick();
+    assert.equal(context.remaining.length,0);assert.equal(mapSelections,veto?0:1);assert.equal(context.skippingAnimation,false);
+  }
+});
 test('completed five-duo knockout draw is publishable and explains blocked settings',()=>{
   const {makeTournament,drawPublishReason}=require('./manager.js');
   const players=Array.from({length:10},(_,i)=>({id:'p'+i,name:'Player '+i}));

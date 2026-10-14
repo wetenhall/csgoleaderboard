@@ -303,7 +303,7 @@ if (typeof document !== 'undefined') (() => {
   $('auto-spin').onchange=()=>queueAutoSpin(0);
   function controls() {
     discordEventUI?.render();
-    $('skip-animation').disabled=busy || spinning || skippingAnimation || !token || !remaining.length || ['manual','captains'].includes($('team-creation').value);
+    $('skip-animation').disabled=busy || spinning || skippingAnimation || !token || (!remaining.length && !(draw?.format==='single' && !drawnMap && draw.mapMethod!=='veto' && selectedMaps().length)) || (remaining.length>0 && ['manual','captains'].includes($('team-creation').value));
     const manual=$('team-creation').value==='manual';
     const captains=$('team-creation').value==='captains';
     $('captain-case-panel').hidden=!captains || !locked;
@@ -874,9 +874,12 @@ if (typeof document !== 'undefined') (() => {
     announce(size===1 && $('tournament-format').value!=='double'?'Drawing Group A. Spin to select its first player.':'Drawing Team 01. Spin to select its first player.');
   };
   $('skip-animation').onclick=async()=>{
-    if(busy || spinning || skippingAnimation || !token || !remaining.length || ['manual','captains'].includes($('team-creation').value))return;
+    if($('skip-animation').disabled)return;
     stopAutoSpin();skippingAnimation=true;controls();
-    try{while(remaining.length && token && !busy)await $('spin').onclick();}
+    try{
+      while(remaining.length && token && !busy)await $('spin').onclick();
+      if(draw?.format==='single' && !drawnMap && draw.mapMethod!=='veto' && selectedMaps().length && token && !busy)await spinMap();
+    }
     catch(error){announce(error.message);}
     finally{skippingAnimation=false;controls();}
   };
@@ -927,7 +930,7 @@ if (typeof document !== 'undefined') (() => {
     spinning=true;controls();$('reset-draw').disabled=true;
     try{
       await prepareSound();$('reveal-label').textContent='MAP DRAW IN PROGRESS';$('reveal-name').textContent='Selecting a map…';
-      const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:6800;
+      const duration=skippingAnimation || matchMedia('(prefers-reduced-motion: reduce)').matches?0:6800;
       if(duration)await new Promise(resolve=>{const start=performance.now();let previous=-1;function frame(now){const fraction=Math.min(1,(now-start)/duration),angle=target*(1-Math.pow(1-fraction,4)),active=Math.floor(((360-angle%360)%360)/360*names.length)%names.length;paintWheel(names,angle,active);if(active!==previous)playTone(850);previous=active;if(fraction<1)requestAnimationFrame(frame);else resolve();}requestAnimationFrame(frame);});
       drawnMap=names[index].name;configureDraw();paintWheel(names,target,index);$('player-reveal').classList.add('revealed');playTone(1046,0.24);announce(drawnMap+' selected. Publish your squads and map to show the custom match on the leaderboard.');
     }finally{spinning=false;$('reset-draw').disabled=false;controls();}
