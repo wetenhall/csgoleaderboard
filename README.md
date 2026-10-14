@@ -1,5 +1,7 @@
 # Counter-Strike friends tournament dashboard
 
+Team setup now uses four stages: Game (Custom game or Discord event), Options (team size, format and maps), Players (load/select and confirm the roster), and Create teams (draw method, team creation and publishing). Only the active stage is displayed. Going back from an active draw requires discarding it; changing confirmed options or players requires confirmation again. Saved tournament management is collapsed below the stages.
+
 Team setup supports 1v1, 2v2, 3v3, 4v4 and 5v5. Choose Groups → playoffs or Knockout → single elimination for any size. Random teams assigns the selected players instantly; wheel and case reel draws remain available. 3v3 and 4v4 also support manual teams, captain drafts and separate career records. Each tournament needs at least two complete teams. The existing 5v5 One match and double elimination options remain available.
 
 Discord event registration is supported through the companion [bot setup guide](discord-bot/README.md). Published events appear in the organiser's Team setup dropdown; select an event to load its roster automatically before drawing teams. The bot runs separately from GitHub Pages.

@@ -170,3 +170,20 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 
 /* The same publishing controls remain available in normal and expanded draws. */
 .draw-stage .draw-publish-actions{display:block}.draw-stage #publish-expanded{display:inline-block}
+
+/* Team setup progresses through four compact stages. */
+.setup-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:20px 0}
+.setup-steps button{display:flex;align-items:center;gap:10px;justify-content:flex-start;background:var(--panel);color:var(--muted);border:1px solid var(--border);padding:12px 16px}
+.setup-steps button span{border:1px solid currentColor;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;flex-shrink:0}
+.setup-steps button[aria-current=step]{color:var(--accent);border-color:var(--accent);background:#ff9b0112}
+.setup-stage{margin-top:20px}.setup-stage[hidden]{display:none!important}
+#setup-stage-1,#setup-stage-2,#setup-stage-3{max-width:850px;margin-left:auto;margin-right:auto}
+#setup-stage-2{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px}
+#setup-stage-2>p,#setup-stage-2>fieldset,#setup-stage-2>.setup-navigation{grid-column:1/-1}
+.setup-navigation{display:flex;justify-content:flex-end;gap:12px;border-top:1px solid var(--border);padding-top:20px;margin-top:24px}
+#setup-stage-4>.draw-layout{display:block;margin-top:24px}#setup-stage-4>#team-creation-label{max-width:550px}
+#setup-stage-4 .draw-stage{margin-top:20px}#setup-stage-4>#reset-draw{margin-left:12px}
+#setup-status:empty{display:none}.setup-stage .saved-players{margin-top:0}
+@media(max-width:650px){.setup-steps{grid-template-columns:1fr 1fr}.setup-steps button{font-size:13px;padding:10px}#setup-stage-2{display:block}.setup-navigation{flex-wrap:wrap}}
+
+.setup-maintenance{margin-top:24px;border-top:1px solid var(--border);padding-top:16px}.setup-maintenance>summary{cursor:pointer;color:var(--muted)}

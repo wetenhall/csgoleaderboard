@@ -4,6 +4,22 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const { resolveTournament } = require('./app.js');
 const { cupMode, cupFinal, completedCup, archiveCup, careerRecords, matchNight } = require('./extras.js');
+test('setup stages validate forward progress, invalidate changed players and protect active draws',()=>{
+  const source=fs.readFileSync('setup.js','utf8'),nodes={};
+  for(const prefix of ['setup-stage-','setup-tab-','setup-next-','setup-back-'])for(let i=1;i<=4;i++)nodes[prefix+i]={hidden:true,setAttribute(){},removeAttribute(){},focus(){}};
+  nodes['setup-status']={};nodes['setup-summary']={};
+  let invalidOptions=true,invalidPlayers=true,locked=false,roster='first',allowReset=false;
+  const context={document:{getElementById:id=>nodes[id]}};vm.createContext(context);vm.runInContext(source,context);
+  const ui=context.createSetupStages({isBusy:()=>false,isLocked:()=>locked,validateOptions:()=>invalidOptions?'Choose maps':'',validatePlayers:()=>invalidPlayers?'Choose players':'',signature:()=>roster,summary:()=>roster,resetDraw:()=>{if(allowReset)locked=false;}});
+  assert.equal(nodes['setup-stage-1'].hidden,false);assert.equal(nodes['setup-tab-4'].disabled,true);
+  nodes['setup-next-1'].onclick();nodes['setup-next-2'].onclick();assert.equal(nodes['setup-stage-2'].hidden,false);assert.equal(nodes['setup-status'].textContent,'Choose maps');
+  invalidOptions=false;nodes['setup-next-2'].onclick();nodes['setup-next-3'].onclick();assert.equal(nodes['setup-stage-3'].hidden,false);
+  invalidPlayers=false;nodes['setup-next-3'].onclick();assert.equal(nodes['setup-stage-4'].hidden,false);
+  locked=true;nodes['setup-back-4'].onclick();assert.equal(nodes['setup-stage-4'].hidden,false);
+  allowReset=true;nodes['setup-back-4'].onclick();assert.equal(nodes['setup-stage-3'].hidden,false);assert.equal(nodes['setup-tab-4'].disabled,true);
+  nodes['setup-next-3'].onclick();roster='changed';ui.render();assert.equal(nodes['setup-stage-3'].hidden,false);
+  ui.reset();assert.equal(nodes['setup-stage-1'].hidden,false);
+});
 test('all five sizes support groups and knockout with complete rosters and separate career modes',()=>{
   const {makeTournament,validateData}=require('./manager.js');
   for(const size of [1,2,3,4,5])for(const format of ['groups','knockout']){
