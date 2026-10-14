@@ -676,7 +676,14 @@ if (typeof document !== 'undefined') (() => {
   }
   function updateMapCount() { const count=selectedMaps().length; $('map-count').textContent=count ? count+' maps selected' : 'Select at least one map before publishing.'; }
   $('tournament-format').onchange=()=>{if($('tournament-format').value!=='groups')$('group-count').value='0';else $('group-count').value='1';renderMapOptions();selectionCount();controls();};
-  $('team-size').onchange=()=>{renderMapOptions();selectionCount();controls();};
+  $('team-size').onchange=()=>{
+    if(Number($('team-size').value)===5){
+      const singleOption=$('tournament-format').querySelector('option[value="single"]');
+      singleOption.hidden=singleOption.disabled=false;
+      $('tournament-format').value='single';$('group-count').value='0';
+    }
+    renderMapOptions();selectionCount();controls();
+  };
   $('load-pool').onclick=()=>{
     if(locked || busy)return;
     const names=$('pool-input').value.split(/\r?\n/).map(n=>n.trim()).filter(Boolean);
