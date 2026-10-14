@@ -4,6 +4,27 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const { resolveTournament } = require('./app.js');
 const { cupMode, cupFinal, completedCup, archiveCup, careerRecords, matchNight } = require('./extras.js');
+test('all five sizes support groups and knockout with complete rosters and separate career modes',()=>{
+  const {makeTournament,validateData}=require('./manager.js');
+  for(const size of [1,2,3,4,5])for(const format of ['groups','knockout']){
+    const players=Array.from({length:size*4},(_,i)=>({id:'p'+i,name:'Player '+i}));
+    const cup=makeTournament(players,size,{name:'Cup'},undefined,format==='groups'?2:0,undefined,2,format);
+    validateData(cup,resolveTournament);
+    assert.equal(cup.teams.length,4);assert.ok(cup.teams.every(t=>t.players.length===size));
+    assert.equal(cup.groups.length,format==='groups'?2:0);
+    assert.equal(new Set(cup.teams.flatMap(t=>t.players.map(p=>p.id))).size,size*4);
+    assert.equal(cupMode(cup),['','1v1','duos','trios','quads','squads'][size]);
+    if(size>1)assert.ok(cup.matches.every(m=>m.map));
+  }
+  const {manualRosters,createCaptainCases,openCaptainCase}=require('./game-night.js');
+  for(const size of [3,4]){
+    const players=Array.from({length:size*2},(_,i)=>({id:'p'+i,name:'Player '+i}));
+    assert.ok(manualRosters(players,players.map(p=>p.id),size).every(t=>t.length===size));
+    let draft=createCaptainCases(players,size,['p0','p1'],players.slice(2).map(p=>p.id));
+    for(let i=0;i<draft.cases.length;i++)draft=openCaptainCase(draft,i);
+    assert.ok(draft.teams.every(t=>t.players.length===size));
+  }
+});
 test('skip finishes required 5v5 map selection and leaves veto decisions intact',async()=>{
   const source=fs.readFileSync('manager.js','utf8');
   const handler=source.slice(source.indexOf("  $('skip-animation').onclick="),source.indexOf("  $('spin').onclick="));

@@ -1,5 +1,5 @@
 /* Match night, immutable tournament archives and career records. */
-function cupMode(data) { return data.teamSize===1?'1v1':data.teamSize===5?'squads':'duos'; }
+function cupMode(data) { return data.teamSize===1?'1v1':data.teamSize===5?'squads':data.teamSize===3?'trios':data.teamSize===4?'quads':'duos'; }
 function savedPlayers(history=[],roster) {
   if(roster!==undefined)return [...roster].sort((a,b)=>a.localeCompare(b));
   const names=new Map();
@@ -74,7 +74,7 @@ function createTournamentExtras({getData,isOrganiser,isBusy,isPoolLocked,addName
   const $=id=>document.getElementById(id);
   let mode='duos';
   const label=data=>data.headers?.banner || data.name;
-  const modeLabel=value=>value==='1v1'?'1v1':value==='squads'?'Squads':'Duos';
+  const modeLabel=value=>value==='1v1'?'1v1':value==='squads'?'5v5':value==='trios'?'3v3':value==='quads'?'4v4':'2v2';
   const teamLabel=(state,id)=>teamDisplayLabel(state.teams.get(id));
   const button=(text,action)=>{const b=element('button','secondary',text);b.type='button';b.dataset.organiserAction='';b.onclick=async()=>{try{await action();}catch(e){notify(e.message);}};return b;};
   function controls() {

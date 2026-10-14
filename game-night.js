@@ -46,13 +46,13 @@ function advanceMapVeto(maps,teams,bans,map){
   return {bans:next,selected:left.length===1?left[0]:null};
 }
 function manualRosters(players,assignments,size){
-  if(![2,5].includes(size) || players.length<size*2 || players.length%size || assignments.length!==players.length)throw Error('Select enough players for complete teams.');
+  if(![2,3,4,5].includes(size) || players.length<size*2 || players.length%size || assignments.length!==players.length)throw Error('Select enough players for complete teams.');
   const byId=new Map(players.map(p=>[p.id,p]));
   if(byId.size!==players.length || new Set(assignments).size!==players.length || assignments.some(id=>!byId.has(id)))throw Error('Assign every selected player once, with no empty slots.');
   return Array.from({length:players.length/size},(_,i)=>assignments.slice(i*size,(i+1)*size).map(id=>structuredClone(byId.get(id))));
 }
 function createCaptainCases(players,size,captains,caseOrder){
-  if(![2,5].includes(size) || players.length!==size*2 || new Set(players.map(p=>p.id)).size!==players.length)throw Error('Captain cases need exactly two complete teams.');
+  if(![2,3,4,5].includes(size) || players.length!==size*2 || new Set(players.map(p=>p.id)).size!==players.length)throw Error('Captain cases need exactly two complete teams.');
   const byId=new Map(players.map(p=>[p.id,p]));
   if(captains.length!==2 || captains[0]===captains[1] || captains.some(id=>!byId.has(id)))throw Error('Choose two different captains from the selected players.');
   const remaining=players.filter(p=>!captains.includes(p.id));
