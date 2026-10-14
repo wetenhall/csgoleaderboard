@@ -1,103 +1,4 @@
 {
-  "name": "Friends Cup",
-  "teams": [
-    {
-      "id": "t1",
-      "name": "Team 01",
-      "tag": "01",
-      "players": [
-        {
-          "id": "p2",
-          "name": "Cantlon"
-        },
-        {
-          "id": "p4",
-          "name": "Finesse"
-        },
-        {
-          "id": "p9",
-          "name": "Lukinss"
-        },
-        {
-          "id": "p1",
-          "name": "Aatori"
-        },
-        {
-          "id": "p10",
-          "name": "Omnii"
-        }
-      ]
-    },
-    {
-      "id": "t2",
-      "name": "Team 02",
-      "tag": "02",
-      "players": [
-        {
-          "id": "p8",
-          "name": "Kzy"
-        },
-        {
-          "id": "p6",
-          "name": "Grayzee"
-        },
-        {
-          "id": "p5",
-          "name": "Froppo"
-        },
-        {
-          "id": "p7",
-          "name": "Hans"
-        },
-        {
-          "id": "p3",
-          "name": "Don"
-        }
-      ]
-    }
-  ],
-  "groups": [],
-  "matches": [
-    {
-      "id": "f1",
-      "round": 0,
-      "sources": [
-        {
-          "team": "t2"
-        },
-        {
-          "team": "t1"
-        }
-      ],
-      "result": null,
-      "label": "One match · 5v5",
-      "map": "Mirage"
-    }
-  ],
-  "history": [],
-  "headers": {
-    "brand": "Pull up gang",
-    "banner": "Tournament"
-  },
-  "registrationEnabled": true,
-  "format": "single",
-  "qualifiersPerGroup": 2,
-  "teamSize": 5,
-  "mode": "squads",
-  "mapPool": [
-    "Mirage",
-    "Dust2",
-    "Inferno",
-    "Nuke",
-    "Ancient",
-    "Anubis",
-    "Vertigo",
-    "Cache",
-    "Train",
-    "Overpass",
-    "Office",
-    "Italy"
-  ],
   "savedPlayers": [
     "Aatori",
     "Cantlon",
@@ -111,5 +12,15 @@
     "Omnii",
     "Part",
     "Sam"
-  ]
+  ],
+  "name": "Friends Cup",
+  "teams": [],
+  "groups": [],
+  "matches": [],
+  "history": [],
+  "headers": {
+    "brand": "Pull up gang",
+    "banner": "Tournament"
+  },
+  "registrationEnabled": true
 }
