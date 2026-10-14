@@ -889,7 +889,10 @@ if (typeof document !== 'undefined') (() => {
           const count=Number($('group-count').value);
           drawOrder=soloDrawGroups(selected.length,count).flat().map(index=>'t'+(index+1));
           draw=makeTournament(selected,1,current,drawOrder,count,[],Number($('qualifiers-per-group').value));
-        }else{draw=makeTournament(selected,size,current);drawOrder=draw.groups.flatMap(g=>g.teams);}
+        }else{
+          draw=makeTournament(selected,size,current,undefined,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value),$('tournament-format').value);
+          drawOrder=draw.groups.length?draw.groups.flatMap(g=>g.teams):draw.teams.map(team=>team.id);
+        }
         configureDraw();announce(draw.format==='single'?'Squads complete. Spin again to select the map before publishing.':size===1 && $('tournament-format').value!=='double'?'Draw complete. Review your groups, then publish. Your selected qualifiers from each group advance to knockouts.':'Draw complete. Review team names and tournament format, then publish.');
       }
       showDrawTeams(picked.id);
