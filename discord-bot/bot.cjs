@@ -21,8 +21,8 @@ client.once(Events.ClientReady,async()=>{
   const command=new SlashCommandBuilder().setName('playgame').setDescription('Create a tournament registration event').setDMPermission(false).addStringOption(o=>o.setName('title').setDescription('Event title').setRequired(true).setMaxLength(100)).addIntegerOption(o=>o.setName('players').setDescription('Required players').setRequired(true).setMinValue(2).setMaxValue(64));
   await client.application.commands.create(command,process.env.DISCORD_GUILD_ID);
   const commands=await client.application.commands.fetch({guildId:process.env.DISCORD_GUILD_ID});
-  for(const old of commands.values())if(old.name==='event')await client.application.commands.delete(old.id,process.env.DISCORD_GUILD_ID);
-  await client.application.commands.create(new SlashCommandBuilder().setName('event-admin').setDescription('Open your private event publishing panel').setDMPermission(false),process.env.DISCORD_GUILD_ID);
+  for(const old of commands.values())if(['event','event-admin'].includes(old.name))await client.application.commands.delete(old.id,process.env.DISCORD_GUILD_ID);
+  await client.application.commands.create(new SlashCommandBuilder().setName('playpublish').setDescription('Open your private event publishing panel').setDMPermission(false),process.env.DISCORD_GUILD_ID);
   for(const event of data.events){try{await update(event);}catch{console.error('Could not refresh an existing event card. Check channel permissions.');}}
   console.log('Registration bot ready.');
 });
@@ -30,7 +30,7 @@ let queue=Promise.resolve();
 client.on(Events.InteractionCreate,async i=>{
   if(i.guildId!==process.env.DISCORD_GUILD_ID)return;
   try{
-    if(i.isChatInputCommand() && i.commandName==='event-admin'){
+    if(i.isChatInputCommand() && i.commandName==='playpublish'){
       if(!admin(i))return i.reply({content:'Only event organisers can open this panel.',flags:MessageFlags.Ephemeral});
       const events=data.events.filter(e=>!e.publishedAt).slice(-25).reverse();
       if(!events.length)return i.reply({content:'No unpublished events. Create one with /playgame.',flags:MessageFlags.Ephemeral});
