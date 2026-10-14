@@ -209,13 +209,13 @@ async function downloadMatchImage(data) {
   const text=(value,x,y,size,color='#f4f4f4',width=670,align='left')=>{ctx.fillStyle=color;ctx.textAlign=align;ctx.font='700 '+size+'px Rajdhani, sans-serif';while(ctx.measureText(value).width>width && size>12){size--;ctx.font='700 '+size+'px Rajdhani, sans-serif';}ctx.fillText(value,x,y);};
   ctx.fillStyle='#101316';ctx.fillRect(0,0,1600,900);
   const gradient=ctx.createLinearGradient(30,0,1570,250);gradient.addColorStop(0,'#352b1d');gradient.addColorStop(1,'#23272f');ctx.fillStyle=gradient;ctx.fillRect(30,30,1540,230);ctx.fillStyle='#ff9b01';ctx.fillRect(30,30,1540,5);
-  text('SELECTED MAP / CUSTOM 5V5',800,90,22,'#ff9b01',1400,'center');text((match.map || 'Map pending').toUpperCase(),800,205,100,'#ff9b01',1400,'center');
+  text('SELECTED MAP / CUSTOM '+data.teamSize+'V'+data.teamSize,800,90,22,'#ff9b01',1400,'center');text((match.map || 'Map pending').toUpperCase(),800,205,100,'#ff9b01',1400,'center');
   match.ids.forEach((id,i)=>{const team=state.teams.get(id),x=30+i*785,color=i===0?'#70b4cd':'#ff9b01';ctx.fillStyle='#23272f';ctx.fillRect(x,290,755,570);ctx.strokeStyle='#424b55';ctx.strokeRect(x,290,755,570);ctx.fillStyle=color;ctx.fillRect(x,290,755,4);
     text(team.name,x+30,365,42,'#f4f4f4',570);text(match.result?String(match.result.scores[i]):'—',x+715,365,42,'#ff9b01',100,'right');text(match.winner===id?'WINNERS':'5 PLAYERS',x+30,410,20,'#ff9b01');
     team.players.forEach((player,j)=>{const y=445+j*76;ctx.strokeStyle='#424b55';ctx.beginPath();ctx.moveTo(x+30,y);ctx.lineTo(x+725,y);ctx.stroke();text(String(j+1).padStart(2,'0'),x+30,y+48,18,'#b8bcbf',35);text(player.name+(team.captainId===player.id?' (C)':''),x+80,y+48,34,'#f4f4f4',640);});
   });
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('Could not create match image.');
-  const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=(match.map || 'custom').replace(/[^a-z0-9_-]+/gi,'-')+'-5v5-match.png';link.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
+  const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=(match.map || 'custom').replace(/[^a-z0-9_-]+/gi,'-')+'-'+data.teamSize+'v'+data.teamSize+'-match.png';link.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
 }
 
 function renderTournament(data) {
@@ -246,7 +246,7 @@ function renderTournament(data) {
   document.getElementById('groups-heading').closest('section').hidden = !groups.length;
   document.getElementById('roster-count').textContent = `${data.teams.length} TEAMS / 1 TROPHY`;
   document.getElementById('group-rules').textContent = 'Ranked by wins, then round difference (RD). Remaining ties need a tiebreak decision. Playoff places are confirmed when each team has played every other team in its group.';
-  document.getElementById('schedule-rules').textContent = (data.format==='single' ? 'One custom 5v5 game between your two drawn squads.' : data.format==='double' ? 'Lose once to enter the losers bracket; a second loss eliminates you. If the losers bracket winner wins the grand final, play the reset final.' : groups.length ? `Play group games in numbered order. Top ${qualifiers} from each group advance to the knockout stages.` : 'Straight knockout: winners advance. Teams with a first-round bye enter in the following round.') + ' Connect in Settings to enter or correct results in Fixtures.';
+  document.getElementById('schedule-rules').textContent = (data.format==='single' ? 'One custom '+data.teamSize+'v'+data.teamSize+' game between your two drawn teams.' : data.format==='double' ? 'Lose once to enter the losers bracket; a second loss eliminates you. If the losers bracket winner wins the grand final, play the reset final.' : groups.length ? `Play group games in numbered order. Top ${qualifiers} from each group advance to the knockout stages.` : 'Straight knockout: winners advance. Teams with a first-round bye enter in the following round.') + ' Connect in Settings to enter or correct results in Fixtures.';
   document.getElementById('status').textContent = completed === matches.length ? 'Tournament complete' : completed ? 'Tournament underway' : 'Awaiting first match';
   if (!data.teams.length) {
     document.getElementById('format-name').textContent='Not configured';
@@ -302,7 +302,7 @@ function renderTournament(data) {
     details.append(fixtures); section.append(details);
     document.getElementById('groups').append(section);
   }
-  const singleSquads=data.format==='single' && data.teamSize===5;
+  const singleSquads=data.format==='single' && data.teamSize>=2;
   const leaderboardTab=document.getElementById('tab-leaderboard');
   leaderboardTab.textContent=singleSquads?'Match':'Leader board';
   leaderboardTab.setAttribute('aria-label',singleSquads?'Match':'Leader board');
@@ -334,7 +334,7 @@ function renderTournament(data) {
   }
   else if(data.format==='double')renderConnectedBracket(bracketRoot,matches,teams);
   else [...new Set(matches.filter(match => !match.group).map(match => match.round))].sort((a,b)=>a-b).forEach(round => {
-    const column=element('div', 'round round-'+round),heading=element('h3','round-heading',data.format==='single'?'5v5 · '+(matches[0].map || 'Map pending'):knockoutRoundName({round},matches));
+    const column=element('div', 'round round-'+round),heading=element('h3','round-heading',data.format==='single'?data.teamSize+'v'+data.teamSize+' · '+(matches[0].map || 'Map pending'):knockoutRoundName({round},matches));
     heading.append(element('span','',String(round+1).padStart(2,'0')));column.append(heading);
     const list=element('div','match-list');matches.filter(match=>match.round===round).forEach(match=>list.append(matchCard(match)));
     column.append(list);bracketRoot.append(column);

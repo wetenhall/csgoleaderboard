@@ -88,10 +88,10 @@ function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMap
         if(left.length===1){
           const hero=element('div','single-match-map');
           hero.setAttribute('role','status');
-          hero.append(element('span','eyebrow','SELECTED MAP / CUSTOM 5V5'),element('h3','',left[0]));section.append(hero);
+          hero.append(element('span','eyebrow','SELECTED MAP / CUSTOM '+draft.teamSize+'V'+draft.teamSize),element('h3','',left[0]));section.append(hero);
         }else if(left.length>1){
           const hero=element('div','single-match-map');hero.setAttribute('role','status');
-          hero.append(element('span','eyebrow','MAP VETO / CUSTOM 5V5'),element('h3','',team.name+' bans next'),element('p','rules','The organiser clicks on behalf of each team.'));section.append(hero);
+          hero.append(element('span','eyebrow','MAP VETO / CUSTOM '+draft.teamSize+'V'+draft.teamSize),element('h3','',team.name+' bans next'),element('p','rules','The organiser clicks on behalf of each team.'));section.append(hero);
         }else section.append(element('p','rules','Select at least one map.'));
         const buttons=element('div','game-actions');if(left.length>1)left.forEach(map=>buttons.append(makeButton('Ban '+map,()=>{if(isBusy() || !isOrganiser())return;const result=advanceMapVeto(maps,draft.teams,bans,map);draft.mapVeto=result.bans;if(result.selected)setMap(result.selected);else renderDraft();})));
         if(left.length===1 && draft.matches[0].map!==left[0])buttons.append(makeButton('Confirm '+left[0],()=>setMap(left[0])));
@@ -104,7 +104,7 @@ function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMap
     publicRoot.replaceChildren();const data=getData(),actions=element('div','game-actions');
     if(data.teams.length)actions.append(makeButton('Copy match details for Discord',()=>copy(discordMatchText(getData(),resolveTournament))));
     if(data.serverAddress)actions.append(makeButton('Copy server connection',()=>copy('connect '+validServerAddress(getData().serverAddress))));
-    if(data.format==='single' && data.teamSize===5){const rematch=makeButton('Rematch · Same squads, new map',beginRematch);rematch.dataset.rematch='';actions.append(rematch);}
+    if(data.format==='single' && data.teamSize>=2){const rematch=makeButton('Rematch · Same teams, new map',beginRematch);rematch.dataset.rematch='';actions.append(rematch);}
     const matchActions=document.querySelector('.match-published-actions');
     if(matchActions){actions.classList.add('match-extra-actions');matchActions.querySelector('.match-extra-actions')?.remove();matchActions.append(actions);}
     else publicRoot.append(actions);
