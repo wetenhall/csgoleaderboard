@@ -4,6 +4,17 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const { resolveTournament } = require('./app.js');
 const { cupMode, cupFinal, completedCup, archiveCup, careerRecords, matchNight } = require('./extras.js');
+test('completed five-duo knockout draw is publishable and explains blocked settings',()=>{
+  const {makeTournament,drawPublishReason}=require('./manager.js');
+  const players=Array.from({length:10},(_,i)=>({id:'p'+i,name:'Player '+i}));
+  const draw=makeTournament(players,2,{name:'Duos'},undefined,0,['Nuke'],2,'groups');
+  const state={connected:true,busy:false,spinning:false,teamSize:2,format:'groups',groups:0,qualifiers:2,maps:['Nuke']};
+  assert.equal(drawPublishReason(draw,state),'');
+  assert.match(drawPublishReason(draw,{...state,maps:[]}),/fixture map/);
+  assert.match(drawPublishReason(draw,{...state,groups:1}),/group count/);
+  assert.match(drawPublishReason(draw,{...state,spinning:true}),/spin/);
+  assert.match(drawPublishReason(draw,{...state,connected:false}),/organiser/);
+});
 test('frequent players can be added and removed independently of tournament history',()=>{
   const {savedPlayers,updateSavedPlayers}=require('./extras.js');
   const {emptyTournament,validateData,makeTournament}=require('./manager.js');
