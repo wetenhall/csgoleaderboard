@@ -330,7 +330,7 @@ function renderTournament(data) {
     bracketRoot.append(squads);
     const download=element('button','secondary match-image-download','Download match image');download.type='button';
     download.onclick=async()=>{download.disabled=true;try{await downloadMatchImage(data);}catch(error){download.textContent='Download failed · Try again';console.error(error);}finally{download.disabled=false;}};
-    bracketRoot.append(download);
+    const actions=element('div','match-published-actions');actions.append(download);bracketRoot.append(actions);
   }
   else if(data.format==='double')renderConnectedBracket(bracketRoot,matches,teams);
   else [...new Set(matches.filter(match => !match.group).map(match => match.round))].sort((a,b)=>a-b).forEach(round => {

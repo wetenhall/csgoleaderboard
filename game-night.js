@@ -75,7 +75,7 @@ function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMap
   draftRoot.hidden=true;draftRoot.id='map-draw-options';publicRoot.id='match-tools';methodRoot.parentElement.after(draftRoot);$('panel-leaderboard').append(publicRoot);
   const makeButton=(label,action)=>{const b=element('button','secondary',label);b.type='button';b.onclick=async()=>{try{await action();}catch(e){notify(e.message);}};return b;};
   async function copy(text){try{await navigator.clipboard.writeText(text);notify('Copied to clipboard.');}catch{const dialog=element('dialog','options-dialog'),field=element('textarea');field.value=text;field.rows=12;field.readOnly=true;dialog.append(element('h2','','Copy match details'),field,makeButton('Close',()=>{dialog.close();dialog.remove();}));document.body.append(dialog);dialog.showModal();field.select();}}
-  function controls(){[draftRoot,methodRoot].forEach(root=>root.querySelectorAll('input,select,button').forEach(el=>el.disabled=isBusy() || !isOrganiser()));publicRoot.querySelectorAll('[data-rematch]').forEach(el=>{el.hidden=!isOrganiser();el.disabled=isBusy();});}
+  function controls(){[draftRoot,methodRoot].forEach(root=>root.querySelectorAll('input,select,button').forEach(el=>el.disabled=isBusy() || !isOrganiser()));$('panel-leaderboard').querySelectorAll('[data-rematch]').forEach(el=>{el.hidden=!isOrganiser();el.disabled=isBusy();});}
   function renderDraft(){
     draftRoot.replaceChildren();methodRoot.replaceChildren();const draft=getDraft();methodRoot.hidden=!draft || draft.format!=='single';draftRoot.hidden=true;
     $('draw-stage').classList.toggle('map-veto',!methodRoot.hidden && draft.mapMethod==='veto');
@@ -102,13 +102,15 @@ function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMap
     if(data.teams.length)actions.append(makeButton('Copy match details for Discord',()=>copy(discordMatchText(getData(),resolveTournament))));
     if(data.serverAddress)actions.append(makeButton('Copy server connection',()=>copy('connect '+validServerAddress(getData().serverAddress))));
     if(data.format==='single' && data.teamSize===5){const rematch=makeButton('Rematch · Same squads, new map',beginRematch);rematch.dataset.rematch='';actions.append(rematch);}
-    publicRoot.append(actions);
+    const matchActions=document.querySelector('.match-published-actions');
+    if(matchActions){actions.classList.add('match-extra-actions');matchActions.querySelector('.match-extra-actions')?.remove();matchActions.append(actions);}
+    else publicRoot.append(actions);
     const past=(data.history || []).filter(entry=>entry.tournament.format==='single').slice(-8).reverse();
     publicRoot.hidden=!data.teams.length && !data.serverAddress && !past.length;
     const completed=data.format==='single' && data.matches[0]?.result;
     if(past.length || completed){publicRoot.append(element('h3','','Recent custom matches'));const list=element('div','recent-matches');
       for(const entry of [...(completed?[{title:'Current match',tournament:data}]:[]),...past]){const state=resolveTournament(entry.tournament),match=state.matches[0],card=element('article','recent-match');card.append(element('strong','',match.map || 'Custom match'),element('p','',match.ids.map(id=>state.teams.get(id).name).join(' vs ')+' · '+match.result.scores.join(' – ')),element('p','rules','Winner: '+(state.teams.get(match.winner)?.name || 'Draw')),element('small','',entry.title));list.append(card);}publicRoot.append(list);
-    }controls();
+    }publicRoot.hidden=!publicRoot.children.length;controls();
   }
   return {render,renderDraft,controls};
 }
