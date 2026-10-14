@@ -1,4 +1,4 @@
-function createSetupStages({isBusy,isLocked,validateOptions,validatePlayers,signature,summary,resetDraw}) {
+function createSetupStages({isBusy,isLocked,validateOptions,validatePlayers,preparePlayers,signature,summary,resetDraw}) {
   const $=id=>document.getElementById(id);
   let step=1,unlocked=1,confirmed=null;
   function render(){
@@ -21,6 +21,7 @@ function createSetupStages({isBusy,isLocked,validateOptions,validatePlayers,sign
       resetDraw();if(isLocked())return;
       confirmed=null;unlocked=3;
     }
+    if(next===3)preparePlayers?.();
     step=next;$('setup-status').textContent='';render();
     $('setup-tab-'+step).focus();
   }

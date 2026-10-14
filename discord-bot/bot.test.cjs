@@ -29,7 +29,7 @@ test('website loads selected roster, handles cancellation and locks controls dur
   vm.createContext(context);vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../discord-events.js'),'utf8'),context);
   const loader=context.createDiscordEventLoader({canLoad:()=>allowed,load:e=>{if(cancel)return false;loaded=e;},notify:()=>notices++});
   await new Promise(resolve=>setImmediate(resolve));nodes['discord-event'].value='friday';nodes['discord-event'].onchange();
-  assert.equal(loaded.title,'Friday');assert.equal(notices,1);
+  assert.equal(loaded.title,'Friday');assert.equal(loader.getSelectedEvent().title,'Friday');assert.equal(notices,1);
   cancel=true;nodes['discord-event'].onchange();assert.equal(notices,1);
   cancel=false;nodes['discord-event'].value='';nodes['discord-event'].onchange();assert.equal(loaded,null);assert.equal(notices,2);
   allowed=false;loader.render();assert.equal(nodes['discord-event'].disabled,true);assert.equal(nodes['refresh-discord-events'].disabled,true);

@@ -35,6 +35,6 @@ function createDiscordEventLoader({canLoad,load,notify}) {
     }catch(error){if(id!==request)return;fetching=false;render();status.textContent=error.message;}
   }
   select.onchange=()=>{if(!canLoad())return;const event=events.find(e=>e.id===select.value) || null;if(load(event)===false)return;render();notify(event?'Loaded '+event.players.length+' players from '+event.title+'. Choose your format and create teams as usual.':'Custom game selected. Add your players below.');};refresh.onclick=reload;
-  reload();return {render};
+  reload();return {render,getSelectedEvent:()=>events.find(event=>event.id===select.value) || null,resetChoice:()=>{select.value='';render();}};
 }
 if(typeof module!=='undefined')module.exports={validateDiscordEvents};

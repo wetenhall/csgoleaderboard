@@ -304,9 +304,12 @@ if (typeof document !== 'undefined') (() => {
   function stopAutoSpin(){clearTimeout(autoSpinTimer);autoSpinTimer=null;$('auto-spin').checked=false;}
   $('auto-spin').onchange=()=>queueAutoSpin(0);
   function controls() {
+    if(discordEventUI)loadedDiscordEvent=discordEventUI.getSelectedEvent();
     discordEventUI?.render();
     $('custom-saved-players').hidden=!!loadedDiscordEvent;
     $('custom-player-entry').hidden=!!loadedDiscordEvent;
+    $('player-pool-heading').textContent=loadedDiscordEvent?'Discord event players':'Player pool';
+    $('setup-next-3').textContent=loadedDiscordEvent?'Confirm Discord players & continue':'Confirm players & continue';
     $('player-pool-help').textContent=loadedDiscordEvent?'Players are loaded from Discord. Select who is playing below, then lock the pool.':'Choose who is playing this time. Add saved players above or enter names below, then load the pool and select your players.';
     $('skip-animation').disabled=busy || spinning || skippingAnimation || !token || (!remaining.length && !(draw?.format==='single' && !drawnMap && draw.mapMethod!=='veto' && selectedMaps().length)) || (remaining.length>0 && ['manual','captains'].includes($('team-creation').value));
     const manual=$('team-creation').value==='manual';
@@ -712,7 +715,7 @@ if (typeof document !== 'undefined') (() => {
     renderMapOptions();selectionCount();controls();
   };
   $('pool-input').addEventListener('input',()=>{if(!loadedDiscordEvent)customPlayerNames=$('pool-input').value;});
-  $('load-pool').onclick=()=>{
+  function loadPlayerPool(){
     if(locked || busy)return;
     const names=loadedDiscordEvent ? [...loadedDiscordEvent.players] : $('pool-input').value.split(/\r?\n/).map(n=>n.trim()).filter(Boolean);
     if(!names.length || names.some(n=>n.length>40) || new Set(names.map(n=>n.toLowerCase())).size!==names.length){announce('Use distinct names, one per line, up to 40 characters each.');return;}
@@ -1030,7 +1033,7 @@ if (typeof document !== 'undefined') (() => {
     loadedDiscordEvent=event;
     $('pool-input').value=event?event.players.join('\n'):customPlayerNames;
     pool=[];selected=[];remaining=[];$('pool-list').replaceChildren();
-    if($('pool-input').value.trim())$('load-pool').click();else selectionCount();
+    if($('pool-input').value.trim())loadPlayerPool();else selectionCount();
     controls();return true;
   },notify:say});
   featureUI=createTournamentExtras({getData:()=>current,isOrganiser:()=>!!token,isBusy:()=>busy || spinning,isPoolLocked:()=>locked,addNames:names=>{
@@ -1041,12 +1044,20 @@ if (typeof document !== 'undefined') (() => {
   gameNightUI=createGameNightTools({getData:()=>current,getDraft:()=>draw,isOrganiser:()=>!!token,isBusy:()=>busy || spinning,refreshDraft:configureDraw,getMaps:selectedMaps,setMap:map=>{drawnMap=map;configureDraw();controls();},notify:say,beginRematch:()=>{
     if(!token || busy || spinning || current.format!=='single')return;
     if((draw || remaining.length) && !confirm('Replace the unpublished draw with a rematch?'))return;
-    const source=structuredClone(current);loadedDiscordEvent=null;resetDrawState();rematchSource=JSON.stringify(current);
+    const source=structuredClone(current);discordEventUI?.resetChoice();loadedDiscordEvent=null;resetDrawState();rematchSource=JSON.stringify(current);
     $('team-creation').value=$('draw-animation').value;$('team-size').value='5';$('tournament-format').value='single';$('group-count').value='0';renderMapOptions();
     $('map-options').querySelectorAll('input').forEach(input=>{input.checked=source.mapPool.includes(input.value);});updateMapCount();
     selected=Array.from({length:5},(_,i)=>source.teams.map(team=>structuredClone(team.players[i]))).flat();remaining=[];draw=source;delete draw.activeMatchId;delete draw.mapVeto;delete draw.mapMethod;draw.matches.forEach(match=>{match.result=null;});drawOrder=source.teams.map(t=>t.id);drawnMap=null;lock(true);$('pool-count').textContent='10 players retained · Two squads of five · Rematch';configureDraw();controls();setupUI?.showDraw();selectTab($('tab-team-setup'),true);$('draw-stage').scrollIntoView({block:'start'});announce('Same squads are ready. Spin for a new map or use map vetoes. A completed previous match is archived when you publish.');
   }});
-  setupUI=createSetupStages({isBusy:()=>busy || spinning || skippingAnimation,isLocked:()=>locked,
+  setupUI=createSetupStages({preparePlayers:()=>{
+    loadedDiscordEvent=discordEventUI?.getSelectedEvent() || null;
+    if(!loadedDiscordEvent || locked || busy){controls();return;}
+    const names=loadedDiscordEvent.players;
+    if(pool.length!==names.length || pool.some((player,index)=>player.name!==names[index]) || $('pool-list').querySelectorAll('input').length!==names.length){
+      $('pool-input').value=names.join('\n');loadPlayerPool();
+    }
+    controls();
+  },isBusy:()=>busy || spinning || skippingAnimation,isLocked:()=>locked,
     signature:()=>JSON.stringify({game:$('discord-event').value,size:$('team-size').value,format:$('tournament-format').value,groups:$('group-count').value,qualifiers:$('qualifiers-per-group').value,maps:selectedMaps(),players:[...$('pool-list').querySelectorAll('input:checked')].map(input=>input.value)}),
     summary:()=>{const count=$('pool-list').querySelectorAll('input:checked').length;return (loadedDiscordEvent?.title || 'Custom game')+' · '+$('team-size').value+'v'+$('team-size').value+' · '+count+' players · '+$('tournament-format').selectedOptions[0].textContent;},
     validateOptions:()=>{if(Number($('team-size').value)!==1 && !selectedMaps().length)return 'Select at least one fixture map to continue.';if($('tournament-format').value==='groups' && (!Number($('group-count').value) || (Number($('group-count').value)===1 && Number($('qualifiers-per-group').value)===1)))return 'Choose valid groups: Top 1 requires at least two groups.';return '';},
