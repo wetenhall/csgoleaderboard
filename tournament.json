@@ -14,13 +14,106 @@
     "Sam"
   ],
   "name": "Friends Cup",
-  "teams": [],
+  "teams": [
+    {
+      "id": "t1",
+      "name": "Team 01",
+      "tag": "01",
+      "captainId": "p3",
+      "players": [
+        {
+          "id": "p3",
+          "name": "Don"
+        },
+        {
+          "id": "p8",
+          "name": "Kzy"
+        },
+        {
+          "id": "p2",
+          "name": "Cantlon"
+        },
+        {
+          "id": "p5",
+          "name": "Froppo"
+        },
+        {
+          "id": "p1",
+          "name": "Aatori"
+        }
+      ]
+    },
+    {
+      "id": "t2",
+      "name": "Team 02",
+      "tag": "02",
+      "captainId": "p4",
+      "players": [
+        {
+          "id": "p4",
+          "name": "Finesse"
+        },
+        {
+          "id": "p7",
+          "name": "Hans"
+        },
+        {
+          "id": "p6",
+          "name": "Grayzee"
+        },
+        {
+          "id": "p10",
+          "name": "Omnii"
+        },
+        {
+          "id": "p9",
+          "name": "Lukinss"
+        }
+      ]
+    }
+  ],
   "groups": [],
-  "matches": [],
+  "matches": [
+    {
+      "id": "f1",
+      "round": 0,
+      "sources": [
+        {
+          "team": "t1"
+        },
+        {
+          "team": "t2"
+        }
+      ],
+      "result": null,
+      "label": "One match · 5v5",
+      "map": "Vertigo"
+    }
+  ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
     "banner": "Tournament"
   },
-  "registrationEnabled": true
+  "registrationEnabled": true,
+  "format": "single",
+  "qualifiersPerGroup": 2,
+  "teamSize": 5,
+  "mode": "squads",
+  "mapPool": [
+    "Mirage",
+    "Dust2",
+    "Inferno",
+    "Nuke",
+    "Ancient",
+    "Anubis",
+    "Vertigo",
+    "Cache",
+    "Train",
+    "Overpass",
+    "Office",
+    "Italy"
+  ],
+  "mapMethod": "wheel",
+  "mapVeto": []
 }
