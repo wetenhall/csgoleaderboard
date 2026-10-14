@@ -281,6 +281,7 @@ if (typeof document !== 'undefined') (() => {
   const api=repository?.api;
   let current = structuredClone(TOURNAMENT), token = '', fileSha = '', busy = false;
   let featureUI=null,gameNightUI=null,discordEventUI=null,loadedDiscordEvent=null,rematchSource=null;
+  let skippingAnimation=false;
   let drawnMap=null,manualAssignments=[],manualNames=[],autoSpinTimer=null,captainDraft=null;
   let pool = [], remaining = [], selected = [], draw = null, spinning = false, locked = false, drawOrder = [];
   const tokenStorageKey = 'friends-cup.organiser-token.'+(repository?repository.owner+'/'+repository.repo:'unconfigured');
@@ -302,6 +303,7 @@ if (typeof document !== 'undefined') (() => {
   $('auto-spin').onchange=()=>queueAutoSpin(0);
   function controls() {
     discordEventUI?.render();
+    $('skip-animation').disabled=busy || spinning || skippingAnimation || !token || !remaining.length || ['manual','captains'].includes($('team-creation').value);
     const manual=$('team-creation').value==='manual';
     const captains=$('team-creation').value==='captains';
     $('captain-case-panel').hidden=!captains || !locked;
@@ -871,6 +873,13 @@ if (typeof document !== 'undefined') (() => {
     captainDraft=null;$('captain-choices').replaceChildren();$('captain-case-grid').replaceChildren();manualAssignments=[];manualNames=[];rematchSource=null;drawnMap=null;remaining=pool.filter(p=>ids.includes(p.id));selected=[];draw=null;lock(true);resetReveal();if($('team-creation').value==='captains'){stopAutoSpin();showCaptainChoices();showDrawTeams();controls();return;}if($('team-creation').value==='manual'){selected=[...remaining];remaining=[];manualAssignments=selected.map(()=>'');manualNames=Array.from({length:selected.length/size},(_,i)=>'Team '+String(i+1).padStart(2,'0'));renderManualTeams();controls();return;}showDrawTeams();paintWheel(remaining);controls();
     announce(size===1 && $('tournament-format').value!=='double'?'Drawing Group A. Spin to select its first player.':'Drawing Team 01. Spin to select its first player.');
   };
+  $('skip-animation').onclick=async()=>{
+    if(busy || spinning || skippingAnimation || !token || !remaining.length || ['manual','captains'].includes($('team-creation').value))return;
+    stopAutoSpin();skippingAnimation=true;controls();
+    try{while(remaining.length && token && !busy)await $('spin').onclick();}
+    catch(error){announce(error.message);}
+    finally{skippingAnimation=false;controls();}
+  };
   $('spin').onclick=async()=>{
     if(draw?.format==='single' && !remaining.length){await spinMap();return;}
     if(busy || spinning || !remaining.length)return;
@@ -878,7 +887,7 @@ if (typeof document !== 'undefined') (() => {
     await prepareSound();$('player-reveal').classList.remove('revealed');
     $('reveal-name').textContent='Selecting a player…';$('reveal-label').textContent='DRAFT IN PROGRESS';$('reveal-avatar').textContent='?';
     const index=randomIndex(remaining.length),picked=remaining[index],names=[...remaining];
-    const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:6800;
+    const duration=skippingAnimation || matchMedia('(prefers-reduced-motion: reduce)').matches?0:6800;
     const target=2880+360-(index+.5)*360/names.length;
     let previous=-1,lastTick=0;
     try {
