@@ -18,8 +18,10 @@ function card(event){
 }
 async function update(event){const channel=await client.channels.fetch(event.channelId);const message=await channel.messages.fetch(event.messageId);await message.edit(card(event));}
 client.once(Events.ClientReady,async()=>{
-  const command=new SlashCommandBuilder().setName('event').setDescription('Create a tournament registration event').setDMPermission(false).addStringOption(o=>o.setName('title').setDescription('Event title').setRequired(true).setMaxLength(100)).addIntegerOption(o=>o.setName('players').setDescription('Required players').setRequired(true).setMinValue(2).setMaxValue(64));
+  const command=new SlashCommandBuilder().setName('playgame').setDescription('Create a tournament registration event').setDMPermission(false).addStringOption(o=>o.setName('title').setDescription('Event title').setRequired(true).setMaxLength(100)).addIntegerOption(o=>o.setName('players').setDescription('Required players').setRequired(true).setMinValue(2).setMaxValue(64));
   await client.application.commands.create(command,process.env.DISCORD_GUILD_ID);
+  const commands=await client.application.commands.fetch({guildId:process.env.DISCORD_GUILD_ID});
+  for(const old of commands.values())if(old.name==='event')await client.application.commands.delete(old.id,process.env.DISCORD_GUILD_ID);
   await client.application.commands.create(new SlashCommandBuilder().setName('event-admin').setDescription('Open your private event publishing panel').setDMPermission(false),process.env.DISCORD_GUILD_ID);
   for(const event of data.events){try{await update(event);}catch{console.error('Could not refresh an existing event card. Check channel permissions.');}}
   console.log('Registration bot ready.');
@@ -31,7 +33,7 @@ client.on(Events.InteractionCreate,async i=>{
     if(i.isChatInputCommand() && i.commandName==='event-admin'){
       if(!admin(i))return i.reply({content:'Only event organisers can open this panel.',flags:MessageFlags.Ephemeral});
       const events=data.events.filter(e=>!e.publishedAt).slice(-25).reverse();
-      if(!events.length)return i.reply({content:'No unpublished events. Create one with /event.',flags:MessageFlags.Ephemeral});
+      if(!events.length)return i.reply({content:'No unpublished events. Create one with /playgame.',flags:MessageFlags.Ephemeral});
       const menu=new StringSelectMenuBuilder().setCustomId('admin-select').setPlaceholder('Select an event to publish').addOptions(events.map(e=>({label:e.title,value:e.id,description:e.players.length+'/'+e.capacity+' players registered'})));
       return i.reply({content:'Select an event. This panel is visible only to you. Showing the latest 25 unpublished events.',components:[new ActionRowBuilder().addComponents(menu)],flags:MessageFlags.Ephemeral});
     }
@@ -40,7 +42,7 @@ client.on(Events.InteractionCreate,async i=>{
       const event=data.events.find(e=>e.id===i.values[0]);if(!event)throw Error('Event unavailable.');
       return i.update({content:escapeMarkdown(event.title)+' · '+event.players.length+'/'+event.capacity+' players. Publishing locks registrations and makes gaming names public.',components:[new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('publish:'+event.id).setLabel('Publish to site').setStyle(ButtonStyle.Success).setDisabled(!!event.publishedAt || event.players.length!==event.capacity))]});
     }
-    if(i.isChatInputCommand() && i.commandName==='event'){
+    if(i.isChatInputCommand() && i.commandName==='playgame'){
       if(!admin(i))return i.reply({content:'Only event organisers can create events.',flags:MessageFlags.Ephemeral});
       await i.deferReply({flags:MessageFlags.Ephemeral});
       const event={id:randomUUID(),title:i.options.getString('title').trim(),capacity:i.options.getInteger('players'),players:[],channelId:i.channelId};
