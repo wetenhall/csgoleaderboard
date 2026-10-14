@@ -1,0 +1,60 @@
+const fs=require('node:fs'),path=require('node:path'),{randomUUID}=require('node:crypto');
+const {Client,GatewayIntentBits,Events,PermissionFlagsBits,SlashCommandBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,ModalBuilder,TextInputBuilder,TextInputStyle,EmbedBuilder,escapeMarkdown,MessageFlags}=require('discord.js');
+const {register,publishEvent}=require('./core.cjs');
+for(const key of ['DISCORD_TOKEN','DISCORD_GUILD_ID','GITHUB_TOKEN','GITHUB_REPOSITORY','GITHUB_BRANCH','SITE_URL'])if(!process.env[key])throw Error('Missing '+key);
+if(!/^[\w.-]+\/[\w.-]+$/.test(process.env.GITHUB_REPOSITORY))throw Error('Invalid repository.');
+if(new URL(process.env.SITE_URL).protocol!=='https:')throw Error('SITE_URL must use HTTPS.');
+const file=path.resolve(process.env.DATA_FILE || './data/events.json');
+let data=fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):{events:[]};
+function save(){fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file+'.tmp',JSON.stringify(data,null,2));fs.renameSync(file+'.tmp',file);}
+function admin(i){return i.memberPermissions?.has(PermissionFlagsBits.Administrator) || (process.env.DISCORD_ADMIN_ROLE_ID && i.member.roles.cache.has(process.env.DISCORD_ADMIN_ROLE_ID));}
+const client=new Client({intents:[GatewayIntentBits.Guilds]});
+function card(event){
+  const rows=[new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId('register:'+event.id).setLabel('Register me to play').setStyle(ButtonStyle.Primary).setDisabled(!!event.publishedAt),
+    new ButtonBuilder().setCustomId('withdraw:'+event.id).setLabel('Withdraw').setStyle(ButtonStyle.Secondary).setDisabled(!!event.publishedAt),
+    new ButtonBuilder().setCustomId('publish:'+event.id).setLabel('Publish to site').setStyle(ButtonStyle.Success).setDisabled(!!event.publishedAt))];
+  if(event.publishedAt)rows.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel('View tournament').setStyle(ButtonStyle.Link).setURL(process.env.SITE_URL)));
+  return {embeds:[new EmbedBuilder().setTitle(event.title).setColor(0xf5a623).setDescription(event.players.length?event.players.map((p,i)=>(i+1)+'. '+escapeMarkdown(p.name)).join('\n'):'No players registered yet.').setFooter({text:event.players.length+'/'+event.capacity+' players · '+(event.publishedAt?'Published · roster locked':'Submit your gaming name to register. Names become public when published.')})],components:rows,allowedMentions:{parse:[]}};
+}
+async function update(event){const channel=await client.channels.fetch(event.channelId);const message=await channel.messages.fetch(event.messageId);await message.edit(card(event));}
+client.once(Events.ClientReady,async()=>{
+  const command=new SlashCommandBuilder().setName('event').setDescription('Create a tournament registration event').setDMPermission(false).addStringOption(o=>o.setName('title').setDescription('Event title').setRequired(true).setMaxLength(100)).addIntegerOption(o=>o.setName('players').setDescription('Required players').setRequired(true).setMinValue(2).setMaxValue(64));
+  await client.application.commands.create(command,process.env.DISCORD_GUILD_ID);console.log('Registration bot ready.');
+});
+let queue=Promise.resolve();
+client.on(Events.InteractionCreate,async i=>{
+  if(i.guildId!==process.env.DISCORD_GUILD_ID)return;
+  try{
+    if(i.isChatInputCommand() && i.commandName==='event'){
+      if(!admin(i))return i.reply({content:'Only event organisers can create events.',flags:MessageFlags.Ephemeral});
+      await i.deferReply({flags:MessageFlags.Ephemeral});
+      const event={id:randomUUID(),title:i.options.getString('title').trim(),capacity:i.options.getInteger('players'),players:[],channelId:i.channelId};
+      if(!event.title)throw Error('Enter an event title.');
+      const message=await i.channel.send(card(event));event.messageId=message.id;data.events.push(event);save();return i.editReply('Event created.');
+    }
+    if(!i.isButton() && !i.isModalSubmit())return;
+    const [action,id]=i.customId.split(':'),event=data.events.find(e=>e.id===id);if(!event)throw Error('Event unavailable.');
+    if(action==='register'){
+      if(event.publishedAt)throw Error('Registration is closed.');
+      const input=new TextInputBuilder().setCustomId('name').setLabel('Gaming name · Submit registers you to play').setStyle(TextInputStyle.Short).setRequired(true).setMaxLength(40).setValue((event.players.find(p=>p.userId===i.user.id)?.name || i.member.displayName).slice(0,40));
+      return i.showModal(new ModalBuilder().setCustomId('submit:'+id).setTitle('Register me to play').addComponents(new ActionRowBuilder().addComponents(input)));
+    }
+    if(!['submit','withdraw','publish'].includes(action))return;
+    if(action==='publish' && !admin(i))throw Error('Only event organisers can publish.');
+    await i.deferReply({flags:MessageFlags.Ephemeral});
+    const operation=queue.then(async()=>{
+      if(action==='submit')register(event,i.user.id,i.fields.getTextInputValue('name'));
+      if(action==='withdraw'){if(event.publishedAt)throw Error('Registration is closed.');event.players=event.players.filter(p=>p.userId!==i.user.id);}
+      if(action==='publish'){
+        if(event.publishedAt)throw Error('Already published.');
+        event.publishedAt=await publishEvent(event,{repository:process.env.GITHUB_REPOSITORY,token:process.env.GITHUB_TOKEN,branch:process.env.GITHUB_BRANCH});
+      }
+      save();
+      try{await update(event);}catch{throw Error('Your change was saved, but the event card could not update. Check bot channel permissions.');}
+      await i.editReply(action==='publish'?'Roster published to GitHub. It will appear after deployment; use Refresh events on the site.':action==='withdraw'?'Registration removed.':'You are registered.');
+    });queue=operation.catch(()=>{});await operation;
+  }catch(error){const content=error.message || 'Action failed. Try again.';if(i.deferred || i.replied)await i.editReply({content}).catch(()=>{});else await i.reply({content,flags:MessageFlags.Ephemeral}).catch(()=>{});}
+});
+client.on(Events.Error,()=>console.error('Discord connection error. Check connection and credentials.'));
+client.login(process.env.DISCORD_TOKEN);

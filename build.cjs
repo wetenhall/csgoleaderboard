@@ -17,7 +17,7 @@ html = html.replace(/<title>[^<]*<\/title>/, () => '<title>'+pageTitle+'</title>
 html = html.replace(/(<meta (?:name|property)="(?:description|og:title|og:description|twitter:title|twitter:description)" content=")[^"]*(">)/g,
   (tag, before, after) => before + (before.includes(':title') ? pageTitle : pageDescription) + after);
 html = html.replace('</head>', '<meta name="dashboard-repository" content="'+escapeAttribute(repository)+'">\n<meta name="dashboard-branch" content="'+escapeAttribute(branch)+'">\n</head>');
-for (const filename of ['styles.css', 'app.js', 'tournament.js', 'extras.js', 'game-night.js', 'manager.js']) {
+for (const filename of ['styles.css', 'app.js', 'tournament.js', 'extras.js', 'game-night.js', 'discord-events.js', 'manager.js']) {
   const content = filename === 'tournament.js' ? Buffer.from('const TOURNAMENT = ' + fs.readFileSync(path.join(__dirname, 'tournament.json'), 'utf8') + ';') : fs.readFileSync(path.join(__dirname, filename));
   const hash = crypto.createHash('sha256').update(content).digest('hex').slice(0, 12);
   const versioned = filename.replace(/(\.[^.]+)$/, `.${hash}$1`);
@@ -27,3 +27,6 @@ for (const filename of ['styles.css', 'app.js', 'tournament.js', 'extras.js', 'g
 fs.writeFileSync(path.join(output, 'index.html'), html);
 fs.writeFileSync(path.join(output, '.nojekyll'), '');
 fs.copyFileSync(path.join(__dirname, 'tournament.json'), path.join(output, 'tournament.json'));
+
+require('./discord-events.js').validateDiscordEvents(JSON.parse(fs.readFileSync(path.join(__dirname, 'discord-events.json'), 'utf8')));
+fs.copyFileSync(path.join(__dirname, 'discord-events.json'), path.join(output, 'discord-events.json'));
