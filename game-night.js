@@ -83,11 +83,14 @@ function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMap
       for(const [value,label] of [['wheel','Spin the wheel'],['veto','Teams ban maps']]){const option=element('option','',label);option.value=value;method.append(option);}method.value=draft.mapMethod || 'wheel';method.onchange=()=>{draft.mapMethod=method.value;draft.mapVeto=[];setMap(null);};methodLabel.append(method);methodRoot.append(methodLabel);
       if(method.value==='veto'){
         const bans=draft.mapVeto || [],left=maps.filter(map=>!bans.some(b=>b.map===map)),team=draft.teams[bans.length%2];
-        section.append(element('p','rules',left.length>1?team.name+' bans next. The organiser clicks on behalf of each team.':left.length===1?'Selected map: '+left[0]:'Select at least one map.'));
+        if(left.length===1){
+          const hero=element('div','single-match-map');
+          hero.setAttribute('role','status');
+          hero.append(element('span','eyebrow','SELECTED MAP / CUSTOM 5V5'),element('h3','',left[0]));section.append(hero);
+        }else section.append(element('p','rules',left.length>1?team.name+' bans next. The organiser clicks on behalf of each team.':'Select at least one map.'));
         const buttons=element('div','game-actions');if(left.length>1)left.forEach(map=>buttons.append(makeButton('Ban '+map,()=>{if(isBusy() || !isOrganiser())return;const result=advanceMapVeto(maps,draft.teams,bans,map);draft.mapVeto=result.bans;if(result.selected)setMap(result.selected);else renderDraft();})));
         if(left.length===1 && draft.matches[0].map!==left[0])buttons.append(makeButton('Confirm '+left[0],()=>setMap(left[0])));
         buttons.append(makeButton('Restart veto',()=>{draft.mapVeto=[];setMap(null);}));section.append(buttons);
-        const list=element('ul');bans.forEach(b=>list.append(element('li','',(draft.teams.find(t=>t.id===b.teamId)?.name || 'Team')+' banned '+b.map)));section.append(list);
       }draftRoot.hidden=method.value!=='veto';draftRoot.append(section);
     }
     controls();
