@@ -7,24 +7,24 @@
       "tag": "01",
       "players": [
         {
-          "id": "p8",
-          "name": "cantlon"
+          "id": "p6",
+          "name": "sam"
         },
         {
-          "id": "p1",
-          "name": "malice"
+          "id": "p7",
+          "name": "dan"
+        },
+        {
+          "id": "p5",
+          "name": "grayzee"
+        },
+        {
+          "id": "p8",
+          "name": "part"
         },
         {
           "id": "p4",
-          "name": "ribe"
-        },
-        {
-          "id": "p10",
-          "name": "spongo"
-        },
-        {
-          "id": "p3",
-          "name": "finesse"
+          "name": "tart"
         }
       ]
     },
@@ -34,24 +34,24 @@
       "tag": "02",
       "players": [
         {
-          "id": "p2",
-          "name": "goro"
-        },
-        {
           "id": "p9",
-          "name": "froppo"
+          "name": "aatori"
         },
         {
-          "id": "p5",
-          "name": "aiden"
+          "id": "p10",
+          "name": "hans"
         },
         {
-          "id": "p7",
-          "name": "lukinss"
+          "id": "p2",
+          "name": "ribe"
         },
         {
-          "id": "p6",
-          "name": "sam"
+          "id": "p1",
+          "name": "frodo"
+        },
+        {
+          "id": "p3",
+          "name": "cantlon"
         }
       ]
     }
@@ -71,7 +71,7 @@
       ],
       "result": null,
       "label": "One match · 5v5",
-      "map": "Nuke"
+      "map": "Train"
     }
   ],
   "history": [],
@@ -91,7 +91,11 @@
     "Ancient",
     "Anubis",
     "Vertigo",
-    "Cache"
+    "Cache",
+    "Train",
+    "Overpass",
+    "Office",
+    "Italy"
   ],
   "registrationEnabled": true,
   "serverAddress": ""
