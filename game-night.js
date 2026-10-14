@@ -89,7 +89,10 @@ function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMap
           const hero=element('div','single-match-map');
           hero.setAttribute('role','status');
           hero.append(element('span','eyebrow','SELECTED MAP / CUSTOM 5V5'),element('h3','',left[0]));section.append(hero);
-        }else section.append(element('p','rules',left.length>1?team.name+' bans next. The organiser clicks on behalf of each team.':'Select at least one map.'));
+        }else if(left.length>1){
+          const hero=element('div','single-match-map');hero.setAttribute('role','status');
+          hero.append(element('span','eyebrow','MAP VETO / CUSTOM 5V5'),element('h3','',team.name+' bans next'),element('p','rules','The organiser clicks on behalf of each team.'));section.append(hero);
+        }else section.append(element('p','rules','Select at least one map.'));
         const buttons=element('div','game-actions');if(left.length>1)left.forEach(map=>buttons.append(makeButton('Ban '+map,()=>{if(isBusy() || !isOrganiser())return;const result=advanceMapVeto(maps,draft.teams,bans,map);draft.mapVeto=result.bans;if(result.selected)setMap(result.selected);else renderDraft();})));
         if(left.length===1 && draft.matches[0].map!==left[0])buttons.append(makeButton('Confirm '+left[0],()=>setMap(left[0])));
         buttons.append(makeButton('Restart veto',()=>{draft.mapVeto=[];setMap(null);}));section.append(buttons);
