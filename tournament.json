@@ -14,13 +14,151 @@
     "Sam"
   ],
   "name": "test event",
-  "teams": [],
+  "teams": [
+    {
+      "id": "t1",
+      "name": "Team 01",
+      "tag": "01",
+      "captainId": "p5",
+      "players": [
+        {
+          "id": "p5",
+          "name": "Froppo"
+        },
+        {
+          "id": "p8",
+          "name": "Kzy"
+        },
+        {
+          "id": "p3",
+          "name": "Don"
+        },
+        {
+          "id": "p10",
+          "name": "Omnii"
+        },
+        {
+          "id": "p1",
+          "name": "Aatori"
+        }
+      ]
+    },
+    {
+      "id": "t2",
+      "name": "Team 02",
+      "tag": "02",
+      "captainId": "p4",
+      "players": [
+        {
+          "id": "p4",
+          "name": "Finesse"
+        },
+        {
+          "id": "p6",
+          "name": "Grayzee"
+        },
+        {
+          "id": "p9",
+          "name": "Lukinss"
+        },
+        {
+          "id": "p7",
+          "name": "Hans"
+        },
+        {
+          "id": "p2",
+          "name": "Cantlon"
+        }
+      ]
+    }
+  ],
   "groups": [],
-  "matches": [],
+  "matches": [
+    {
+      "id": "f1",
+      "round": 0,
+      "sources": [
+        {
+          "team": "t1"
+        },
+        {
+          "team": "t2"
+        }
+      ],
+      "result": null,
+      "label": "One match · 5v5",
+      "map": "Mirage"
+    }
+  ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
     "banner": "test event"
   },
-  "registrationEnabled": false
+  "registrationEnabled": false,
+  "format": "single",
+  "qualifiersPerGroup": 2,
+  "teamSize": 5,
+  "mode": "squads",
+  "mapPool": [
+    "Mirage",
+    "Dust2",
+    "Inferno",
+    "Nuke",
+    "Ancient",
+    "Anubis",
+    "Vertigo",
+    "Cache",
+    "Train",
+    "Overpass",
+    "Office",
+    "Italy"
+  ],
+  "mapMethod": "veto",
+  "mapVeto": [
+    {
+      "teamId": "t1",
+      "map": "Ancient"
+    },
+    {
+      "teamId": "t2",
+      "map": "Anubis"
+    },
+    {
+      "teamId": "t1",
+      "map": "Train"
+    },
+    {
+      "teamId": "t2",
+      "map": "Vertigo"
+    },
+    {
+      "teamId": "t1",
+      "map": "Overpass"
+    },
+    {
+      "teamId": "t2",
+      "map": "Italy"
+    },
+    {
+      "teamId": "t1",
+      "map": "Cache"
+    },
+    {
+      "teamId": "t2",
+      "map": "Inferno"
+    },
+    {
+      "teamId": "t1",
+      "map": "Dust2"
+    },
+    {
+      "teamId": "t2",
+      "map": "Office"
+    },
+    {
+      "teamId": "t1",
+      "map": "Nuke"
+    }
+  ]
 }
