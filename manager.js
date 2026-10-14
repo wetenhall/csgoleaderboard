@@ -327,6 +327,8 @@ if (typeof document !== 'undefined') (() => {
     $('qualifiers-per-group').closest('label').hidden=$('tournament-format').value!=='groups';
     $('double-note').hidden=$('tournament-format').value!=='double';
     $('single-match-note').hidden=$('tournament-format').value!=='single';
+    $('format-preview').hidden=$('tournament-format').value==='single';
+    $('draw-fixtures').hidden=$('tournament-format').value==='single';
     $('group-count').disabled = busy || spinning || (!!captainDraft && !draw) || (locked && Number($('team-size').value)===1);
     $('map-options').querySelectorAll('input').forEach(input=>{input.disabled=busy || spinning || (!!captainDraft && !draw);});
     $('disconnect').hidden = !token;

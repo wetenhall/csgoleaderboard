@@ -70,16 +70,17 @@ if(typeof module!=='undefined')module.exports={validServerAddress,balanceRosters
 
 function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMaps,beginRematch,notify}) {
   const $=id=>document.getElementById(id);
-  const draftRoot=element('section','map-draw-options'),publicRoot=element('section','match-tools');
+  const draftRoot=element('section','map-draw-options'),methodRoot=element('div','map-method-control'),publicRoot=element('section','match-tools');
+  methodRoot.hidden=true;$('sound-toggle').after(methodRoot);
   draftRoot.hidden=true;draftRoot.id='map-draw-options';publicRoot.id='match-tools';$('publish-draw').before(draftRoot);$('panel-leaderboard').append(publicRoot);
   const makeButton=(label,action)=>{const b=element('button','secondary',label);b.type='button';b.onclick=async()=>{try{await action();}catch(e){notify(e.message);}};return b;};
   async function copy(text){try{await navigator.clipboard.writeText(text);notify('Copied to clipboard.');}catch{const dialog=element('dialog','options-dialog'),field=element('textarea');field.value=text;field.rows=12;field.readOnly=true;dialog.append(element('h2','','Copy match details'),field,makeButton('Close',()=>{dialog.close();dialog.remove();}));document.body.append(dialog);dialog.showModal();field.select();}}
-  function controls(){draftRoot.querySelectorAll('input,select,button').forEach(el=>el.disabled=isBusy() || !isOrganiser());publicRoot.querySelectorAll('[data-rematch]').forEach(el=>{el.hidden=!isOrganiser();el.disabled=isBusy();});}
+  function controls(){[draftRoot,methodRoot].forEach(root=>root.querySelectorAll('input,select,button').forEach(el=>el.disabled=isBusy() || !isOrganiser()));publicRoot.querySelectorAll('[data-rematch]').forEach(el=>{el.hidden=!isOrganiser();el.disabled=isBusy();});}
   function renderDraft(){
-    draftRoot.replaceChildren();const draft=getDraft();draftRoot.hidden=!draft || draft.format!=='single';if(draftRoot.hidden)return;
+    draftRoot.replaceChildren();methodRoot.replaceChildren();const draft=getDraft();methodRoot.hidden=!draft || draft.format!=='single';draftRoot.hidden=true;if(methodRoot.hidden)return;
     if(draft.format==='single'){
       const maps=getMaps(),section=element('section','veto-panel'),methodLabel=element('label','','Map selection'),method=element('select');
-      for(const [value,label] of [['wheel','Spin the wheel'],['veto','Teams ban maps']]){const option=element('option','',label);option.value=value;method.append(option);}method.value=draft.mapMethod || 'wheel';method.onchange=()=>{draft.mapMethod=method.value;draft.mapVeto=[];setMap(null);};methodLabel.append(method);section.append(methodLabel);
+      for(const [value,label] of [['wheel','Spin the wheel'],['veto','Teams ban maps']]){const option=element('option','',label);option.value=value;method.append(option);}method.value=draft.mapMethod || 'wheel';method.onchange=()=>{draft.mapMethod=method.value;draft.mapVeto=[];setMap(null);};methodLabel.append(method);methodRoot.append(methodLabel);
       if(method.value==='veto'){
         const bans=draft.mapVeto || [],left=maps.filter(map=>!bans.some(b=>b.map===map)),team=draft.teams[bans.length%2];
         section.append(element('p','rules',left.length>1?team.name+' bans next. The organiser clicks on behalf of each team.':left.length===1?'Selected map: '+left[0]:'Select at least one map.'));
@@ -87,7 +88,7 @@ function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMap
         if(left.length===1 && draft.matches[0].map!==left[0])buttons.append(makeButton('Confirm '+left[0],()=>setMap(left[0])));
         buttons.append(makeButton('Restart veto',()=>{draft.mapVeto=[];setMap(null);}));section.append(buttons);
         const list=element('ul');bans.forEach(b=>list.append(element('li','',(draft.teams.find(t=>t.id===b.teamId)?.name || 'Team')+' banned '+b.map)));section.append(list);
-      }draftRoot.append(section);
+      }draftRoot.hidden=method.value!=='veto';draftRoot.append(section);
     }
     controls();
   }
