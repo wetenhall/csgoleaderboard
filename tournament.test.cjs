@@ -11,7 +11,7 @@ test('one-match games support 2v2 through 5v5 with exactly two teams and a worki
     const cup=makeTournament(players,size,{name:'Custom match'},undefined,4,['Nuke'],2,'single');
     assert.equal(cup.groups.length,0);assert.equal(cup.matches.length,1);assert.equal(cup.matches[0].label,'One match · '+size+'v'+size);
     assert.ok(cup.teams.every(team=>team.players.length===size));validateData(cup,resolveTournament);
-    const done=applyResult(cup,'f1',{teams:cup.matches[0].teams,scores:[13,9]},resolveTournament).next;
+    const done=applyResult(cup,'f1',{teams:resolveTournament(cup).matches[0].ids,scores:[13,9]},resolveTournament).next;
     assert.equal(completedCup(done,resolveTournament),true);
     assert.throws(()=>makeTournament([...players,...players.map(p=>({...p,id:p.id+'x'}))],size,{name:'Bad'},undefined,0,['Nuke'],2,'single'),/exactly/);
   }
