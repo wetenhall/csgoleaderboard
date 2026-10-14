@@ -1,5 +1,5 @@
 const fs=require('node:fs'),path=require('node:path'),{randomUUID}=require('node:crypto');
-const {Client,GatewayIntentBits,Events,PermissionFlagsBits,SlashCommandBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,ModalBuilder,TextInputBuilder,TextInputStyle,EmbedBuilder,escapeMarkdown,MessageFlags}=require('discord.js');
+const {Client,GatewayIntentBits,Events,PermissionFlagsBits,SlashCommandBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,StringSelectMenuBuilder,ModalBuilder,TextInputBuilder,TextInputStyle,EmbedBuilder,escapeMarkdown,MessageFlags}=require('discord.js');
 const {register,publishEvent}=require('./core.cjs');
 for(const key of ['DISCORD_TOKEN','DISCORD_GUILD_ID','GITHUB_TOKEN','GITHUB_REPOSITORY','GITHUB_BRANCH','SITE_URL'])if(!process.env[key])throw Error('Missing '+key);
 if(!/^[\w.-]+\/[\w.-]+$/.test(process.env.GITHUB_REPOSITORY))throw Error('Invalid repository.');
@@ -12,20 +12,34 @@ const client=new Client({intents:[GatewayIntentBits.Guilds]});
 function card(event){
   const rows=[new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('register:'+event.id).setLabel('Register me to play').setStyle(ButtonStyle.Primary).setDisabled(!!event.publishedAt),
-    new ButtonBuilder().setCustomId('withdraw:'+event.id).setLabel('Withdraw').setStyle(ButtonStyle.Secondary).setDisabled(!!event.publishedAt),
-    new ButtonBuilder().setCustomId('publish:'+event.id).setLabel('Publish to site').setStyle(ButtonStyle.Success).setDisabled(!!event.publishedAt))];
+    new ButtonBuilder().setCustomId('withdraw:'+event.id).setLabel('Withdraw').setStyle(ButtonStyle.Secondary).setDisabled(!!event.publishedAt))];
   if(event.publishedAt)rows.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel('View tournament').setStyle(ButtonStyle.Link).setURL(process.env.SITE_URL)));
   return {embeds:[new EmbedBuilder().setTitle(event.title).setColor(0xf5a623).setDescription(event.players.length?event.players.map((p,i)=>(i+1)+'. '+escapeMarkdown(p.name)).join('\n'):'No players registered yet.').setFooter({text:event.players.length+'/'+event.capacity+' players · '+(event.publishedAt?'Published · roster locked':'Submit your gaming name to register. Names become public when published.')})],components:rows,allowedMentions:{parse:[]}};
 }
 async function update(event){const channel=await client.channels.fetch(event.channelId);const message=await channel.messages.fetch(event.messageId);await message.edit(card(event));}
 client.once(Events.ClientReady,async()=>{
   const command=new SlashCommandBuilder().setName('event').setDescription('Create a tournament registration event').setDMPermission(false).addStringOption(o=>o.setName('title').setDescription('Event title').setRequired(true).setMaxLength(100)).addIntegerOption(o=>o.setName('players').setDescription('Required players').setRequired(true).setMinValue(2).setMaxValue(64));
-  await client.application.commands.create(command,process.env.DISCORD_GUILD_ID);console.log('Registration bot ready.');
+  await client.application.commands.create(command,process.env.DISCORD_GUILD_ID);
+  await client.application.commands.create(new SlashCommandBuilder().setName('event-admin').setDescription('Open your private event publishing panel').setDMPermission(false),process.env.DISCORD_GUILD_ID);
+  for(const event of data.events){try{await update(event);}catch{console.error('Could not refresh an existing event card. Check channel permissions.');}}
+  console.log('Registration bot ready.');
 });
 let queue=Promise.resolve();
 client.on(Events.InteractionCreate,async i=>{
   if(i.guildId!==process.env.DISCORD_GUILD_ID)return;
   try{
+    if(i.isChatInputCommand() && i.commandName==='event-admin'){
+      if(!admin(i))return i.reply({content:'Only event organisers can open this panel.',flags:MessageFlags.Ephemeral});
+      const events=data.events.filter(e=>!e.publishedAt).slice(-25).reverse();
+      if(!events.length)return i.reply({content:'No unpublished events. Create one with /event.',flags:MessageFlags.Ephemeral});
+      const menu=new StringSelectMenuBuilder().setCustomId('admin-select').setPlaceholder('Select an event to publish').addOptions(events.map(e=>({label:e.title,value:e.id,description:e.players.length+'/'+e.capacity+' players registered'})));
+      return i.reply({content:'Select an event. This panel is visible only to you. Showing the latest 25 unpublished events.',components:[new ActionRowBuilder().addComponents(menu)],flags:MessageFlags.Ephemeral});
+    }
+    if(i.isStringSelectMenu() && i.customId==='admin-select'){
+      if(!admin(i))throw Error('Only event organisers can publish.');
+      const event=data.events.find(e=>e.id===i.values[0]);if(!event)throw Error('Event unavailable.');
+      return i.update({content:escapeMarkdown(event.title)+' · '+event.players.length+'/'+event.capacity+' players. Publishing locks registrations and makes gaming names public.',components:[new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('publish:'+event.id).setLabel('Publish to site').setStyle(ButtonStyle.Success).setDisabled(!!event.publishedAt || event.players.length!==event.capacity))]});
+    }
     if(i.isChatInputCommand() && i.commandName==='event'){
       if(!admin(i))return i.reply({content:'Only event organisers can create events.',flags:MessageFlags.Ephemeral});
       await i.deferReply({flags:MessageFlags.Ephemeral});
