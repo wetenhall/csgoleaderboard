@@ -4,6 +4,27 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const { resolveTournament } = require('./app.js');
 const { cupMode, cupFinal, completedCup, archiveCup, careerRecords, matchNight } = require('./extras.js');
+test('frequent players can be added and removed independently of tournament history',()=>{
+  const {savedPlayers,updateSavedPlayers}=require('./extras.js');
+  const {emptyTournament,validateData,makeTournament}=require('./manager.js');
+  const data=fixture();data.history=[{tournament:{teams:[{players:[{name:'Alice'},{name:'Bob'}]}]}}];
+  const saved=updateSavedPlayers(data,[' alice ','Carol']);
+  assert.deepEqual(saved.savedPlayers,['Alice','Bob','Carol']);
+  assert.equal(data.savedPlayers,undefined);
+  const removed=updateSavedPlayers(saved,[],['ALICE']);
+  assert.deepEqual(savedPlayers(removed.history,removed.savedPlayers),['Bob','Carol']);
+  assert.deepEqual(removed.teams,data.teams);assert.deepEqual(removed.matches,data.matches);
+  assert.deepEqual(emptyTournament(removed).savedPlayers,['Bob','Carol']);
+  delete removed.history;
+  for(const size of [1,2,5]){
+    const players=Array.from({length:size*2},(_,i)=>({id:'p'+i,name:'Player '+i}));
+    assert.deepEqual(makeTournament(players,size,removed,undefined,size===1?1:0).savedPlayers,['Bob','Carol']);
+  }
+  validateData(removed,resolveTournament);
+  assert.throws(()=>validateData({...removed,savedPlayers:['Bob','bob']},resolveTournament),/saved players/);
+  assert.throws(()=>updateSavedPlayers(removed,['x'.repeat(41)]),/40 characters/);
+  assert.deepEqual(updateSavedPlayers({...removed,savedPlayers:[]},[]).savedPlayers,[]);
+});
 function fixture() { return JSON.parse(vm.runInNewContext(fs.readFileSync('tournament.js', 'utf8') + '\nJSON.stringify(TOURNAMENT)')); }
 function completeGroups(data) { data.matches.filter(m => m.group).forEach(m => { m.result = { teams: m.teams, scores: [13, 9] }; }); }
 test('current tournament data is valid', () => { assert.equal(resolveTournament(fixture()).matches.length, 15); });

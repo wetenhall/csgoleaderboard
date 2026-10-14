@@ -1,12 +1,19 @@
 /* Match night, immutable tournament archives and career records. */
 function cupMode(data) { return data.teamSize===1?'1v1':data.teamSize===5?'squads':'duos'; }
-function savedPlayers(history=[]) {
+function savedPlayers(history=[],roster) {
+  if(roster!==undefined)return [...roster].sort((a,b)=>a.localeCompare(b));
   const names=new Map();
   for(const entry of history)for(const team of entry.tournament.teams)for(const player of team.players || []) {
     const name=player.name.trim(),key=name.normalize('NFKC').toLocaleLowerCase('en');
     if(!names.has(key))names.set(key,name);
   }
   return [...names.values()].sort((a,b)=>a.localeCompare(b));
+}
+function updateSavedPlayers(data,added=[],removed=[]) {
+  const key=name=>name.normalize('NFKC').toLocaleLowerCase('en');
+  const exclude=new Set(removed.map(key));
+  const names=mergePlayerNames('',[...savedPlayers(data.history,data.savedPlayers),...added]).split('\n').filter(name=>name && !exclude.has(key(name)));
+  return {...structuredClone(data),savedPlayers:names.sort((a,b)=>a.localeCompare(b))};
 }
 function removeCupHistory(data,id=null) {
   if(id!==null && !(data.history || []).some(entry=>entry.id===id))throw Error('This archived cup no longer exists. Reload the latest tournament.');
@@ -61,7 +68,7 @@ function matchNight(data, resolve, ordered) {
   const active=ready.find(m=>m.id===data.activeMatchId) || null;
   return {state,active,next:ready.filter(m=>m!==active).slice(0,2),pending:pending.length};
 }
-if(typeof module!=='undefined')module.exports={cupMode,cupFinal,completedCup,archiveCup,careerRecords,matchNight,savedPlayers,mergePlayerNames,removeCupHistory};
+if(typeof module!=='undefined')module.exports={cupMode,cupFinal,completedCup,archiveCup,careerRecords,matchNight,savedPlayers,updateSavedPlayers,mergePlayerNames,removeCupHistory};
 
 function createTournamentExtras({getData,isOrganiser,isBusy,isPoolLocked,addNames,save,resetDraw,notify,goToFixtures}) {
   const $=id=>document.getElementById(id);
@@ -75,8 +82,12 @@ function createTournamentExtras({getData,isOrganiser,isBusy,isPoolLocked,addName
     $('archive-cup').disabled=isBusy() || !completedCup(getData(),resolveTournament);
     $('archive-cup').hidden=!isOrganiser();
     $('clear-history').disabled=isBusy() || !getData().history?.length;
-    const frozen=isBusy() || isPoolLocked();
+    const frozen=isBusy() || isPoolLocked() || !isOrganiser();
+    $('saved-players').hidden=!isOrganiser();
     $('saved-players').querySelectorAll('input,button').forEach(input=>{input.disabled=frozen;});
+    $('save-player-names').disabled=frozen || !isOrganiser();
+    $('remove-saved-players').disabled=frozen || !isOrganiser() || !$('saved-player-list').querySelector('input:checked');
+    $('saved-player-names').disabled=frozen || !isOrganiser();
     $('add-saved-players').disabled=frozen || !$('saved-player-list').querySelector('input:checked');
   }
   function filterSaved() {
@@ -87,13 +98,28 @@ function createTournamentExtras({getData,isOrganiser,isBusy,isPoolLocked,addName
   }
   function renderSaved(data) {
     const list=$('saved-player-list'),selected=new Set([...list.querySelectorAll('input:checked')].map(input=>input.value));list.replaceChildren();
-    const names=savedPlayers(data.history);
+    const names=savedPlayers(data.history,data.savedPlayers);
     $('saved-player-empty').hidden=!!names.length;
     $('saved-player-tools').hidden=!names.length;
     names.forEach(name=>{const label=element('label'),input=element('input');input.type='checkbox';input.value=name;input.checked=selected.has(name);input.onchange=filterSaved;label.append(input,document.createTextNode(name));list.append(label);});
     filterSaved();
   }
   $('saved-player-search').oninput=filterSaved;
+  $('save-player-names').onclick=async()=>{
+    if(isBusy() || isPoolLocked() || !isOrganiser())return;
+    try{
+      const names=$('saved-player-names').value.split(/\r?\n/).map(name=>name.trim()).filter(Boolean);
+      if(!names.length)throw Error('Enter at least one player name.');
+      await save(updateSavedPlayers(getData(),names),'Save frequent players');
+      $('saved-player-names').value='';notify('Players saved. Select them below to use in any game mode.');
+    }catch(e){notify(e.message);}
+  };
+  $('remove-saved-players').onclick=async()=>{
+    if(isBusy() || isPoolLocked() || !isOrganiser())return;
+    const names=[...$('saved-player-list').querySelectorAll('input:checked')].map(input=>input.value);
+    if(!names.length)return;
+    try{await save(updateSavedPlayers(getData(),[],names),'Remove saved players');notify('Removed from saved players. Existing teams and results are kept.');}catch(e){notify(e.message);}
+  };
   $('select-saved-players').onclick=()=>{$('saved-player-list').querySelectorAll('label:not([hidden]) input').forEach(input=>{input.checked=true;});filterSaved();};
   $('clear-saved-players').onclick=()=>{$('saved-player-list').querySelectorAll('input').forEach(input=>{input.checked=false;});filterSaved();};
   $('add-saved-players').onclick=()=>{
@@ -144,7 +170,7 @@ function createTournamentExtras({getData,isOrganiser,isBusy,isPoolLocked,addName
       const download=element('button','secondary','Download champion card');download.type='button';download.onclick=()=>downloadCard(cup,entry.title);details.append(download);
       const remove=button('Delete archived cup',async()=>{
         if(!isOrganiser() || isBusy())return;
-        if(!confirm('Delete the archived cup “'+entry.title+'” for everyone? Its results will be removed from History and all-time records. Players only saved in this cup will leave the Saved players picker. The current tournament and typed player pool are kept.'))return;
+        if(!confirm('Delete the archived cup “'+entry.title+'” for everyone? Its results will be removed from History and all-time records. Players from this cup leave the picker unless you have saved a player list. The current tournament and typed player pool are kept.'))return;
         await save(removeCupHistory(getData(),entry.id),'Delete archived cup: '+entry.title);
         notify('Archived cup deleted. All-time records and Saved players updated.');
       });remove.classList.add('danger');details.append(remove);
@@ -185,7 +211,7 @@ function createTournamentExtras({getData,isOrganiser,isBusy,isPoolLocked,addName
   $('clear-history').onclick=async()=>{
     if(!isOrganiser() || isBusy() || !getData().history?.length)return;
     const count=getData().history.length;
-    if(!confirm('Clear all '+count+' archived cup'+(count===1?'':'s')+' for everyone? This empties History, all-time records and the Saved players picker. The current tournament and typed player pool are kept.'))return;
+    if(!confirm('Clear all '+count+' archived cup'+(count===1?'':'s')+' for everyone? This empties History and all-time records. Your saved player list is kept. The current tournament and typed player pool are kept.'))return;
     try{await save(removeCupHistory(getData()),'Clear all archived tournament history');notify('History cleared. All-time records and Saved players are now empty.');}
     catch(e){notify(e.message);}
   };
