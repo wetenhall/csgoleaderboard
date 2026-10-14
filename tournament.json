@@ -5,46 +5,17 @@
       "id": "t1",
       "name": "Team 01",
       "tag": "01",
-      "captainId": "p4",
-      "players": [
-        {
-          "id": "p4",
-          "name": "Froppo"
-        },
-        {
-          "id": "p3",
-          "name": "Finesse"
-        },
-        {
-          "id": "p6",
-          "name": "Hans"
-        },
-        {
-          "id": "p7",
-          "name": "Kzy"
-        },
-        {
-          "id": "p10",
-          "name": "Sam"
-        }
-      ]
-    },
-    {
-      "id": "t2",
-      "name": "Team 02",
-      "tag": "02",
-      "captainId": "p2",
       "players": [
         {
           "id": "p2",
-          "name": "Don"
+          "name": "Cantlon"
+        },
+        {
+          "id": "p4",
+          "name": "Finesse"
         },
         {
           "id": "p9",
-          "name": "Omnii"
-        },
-        {
-          "id": "p8",
           "name": "Lukinss"
         },
         {
@@ -52,8 +23,35 @@
           "name": "Aatori"
         },
         {
-          "id": "p5",
+          "id": "p10",
+          "name": "Omnii"
+        }
+      ]
+    },
+    {
+      "id": "t2",
+      "name": "Team 02",
+      "tag": "02",
+      "players": [
+        {
+          "id": "p8",
+          "name": "Kzy"
+        },
+        {
+          "id": "p6",
           "name": "Grayzee"
+        },
+        {
+          "id": "p5",
+          "name": "Froppo"
+        },
+        {
+          "id": "p7",
+          "name": "Hans"
+        },
+        {
+          "id": "p3",
+          "name": "Don"
         }
       ]
     }
@@ -65,15 +63,15 @@
       "round": 0,
       "sources": [
         {
-          "team": "t1"
+          "team": "t2"
         },
         {
-          "team": "t2"
+          "team": "t1"
         }
       ],
       "result": null,
       "label": "One match · 5v5",
-      "map": "Ancient"
+      "map": "Mirage"
     }
   ],
   "history": [],
@@ -113,7 +111,5 @@
     "Omnii",
     "Part",
     "Sam"
-  ],
-  "mapMethod": "wheel",
-  "mapVeto": []
+  ]
 }
