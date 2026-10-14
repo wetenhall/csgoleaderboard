@@ -141,7 +141,28 @@
           "team": "t9"
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t8",
+          "t9"
+        ],
+        "scores": [
+          4,
+          8
+        ],
+        "players": {
+          "p5": {
+            "kills": 4,
+            "deaths": 8,
+            "assists": 0
+          },
+          "p4": {
+            "kills": 8,
+            "deaths": 4,
+            "assists": 0
+          }
+        }
+      }
     },
     {
       "id": "de2",
