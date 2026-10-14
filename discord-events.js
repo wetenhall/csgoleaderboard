@@ -15,12 +15,12 @@ function validateDiscordEvents(data) {
   return data.events;
 }
 function createDiscordEventLoader({canLoad,load,notify}) {
-  const select=document.getElementById('discord-event'),button=document.getElementById('load-discord-event'),refresh=document.getElementById('refresh-discord-events'),status=document.getElementById('discord-event-status');
+  const select=document.getElementById('discord-event'),refresh=document.getElementById('refresh-discord-events'),status=document.getElementById('discord-event-status');
   let events=[],fetching=false,request=0;
   function render(){
     const event=events.find(e=>e.id===select.value);
-    select.disabled=fetching || !canLoad();refresh.disabled=fetching || !canLoad();button.disabled=fetching || !canLoad() || !event;
-    if(!fetching)status.textContent=event?event.players.length+' registered players: '+event.players.join(', '):'Select a published event, then load its players.';
+    select.disabled=fetching || !canLoad();refresh.disabled=fetching || !canLoad();
+    if(!fetching)status.textContent=event?event.players.length+' Discord players loaded: '+event.players.join(', '):'Custom game · Add saved players or enter your own names below.';
   }
   async function reload(){
     const id=++request;fetching=true;render();status.textContent='Loading published Discord events…';
@@ -28,14 +28,13 @@ function createDiscordEventLoader({canLoad,load,notify}) {
       const response=await fetch('discord-events.json?t='+Date.now(),{cache:'no-store'});
       if(!response.ok)throw Error('Could not load Discord events. Try Refresh after deployment finishes.');
       const next=validateDiscordEvents(await response.json());if(id!==request)return;
-      const previous=select.value;events=next;select.replaceChildren(new Option(events.length?'Select an event':'No published Discord events yet',''));
+      const previous=select.value;events=next;select.replaceChildren(new Option('Custom game',''));
       for(const event of events)select.add(new Option(event.title+' · '+event.players.length+' players',event.id));
       if(events.some(e=>e.id===previous))select.value=previous;
-      fetching=false;render();
+      fetching=false;if(previous && canLoad())load(events.find(e=>e.id===previous) || null);render();
     }catch(error){if(id!==request)return;fetching=false;render();status.textContent=error.message;}
   }
-  select.onchange=render;refresh.onclick=reload;
-  button.onclick=()=>{const event=events.find(e=>e.id===select.value);if(!event || !canLoad())return;if(load(event)===false)return;notify('Loaded '+event.players.length+' players from '+event.title+'. Choose your format and create teams as usual.');};
+  select.onchange=()=>{if(!canLoad())return;const event=events.find(e=>e.id===select.value) || null;if(load(event)===false)return;render();notify(event?'Loaded '+event.players.length+' players from '+event.title+'. Choose your format and create teams as usual.':'Custom game selected. Add your players below.');};refresh.onclick=reload;
   reload();return {render};
 }
 if(typeof module!=='undefined')module.exports={validateDiscordEvents};

@@ -1,6 +1,6 @@
 # Counter-Strike friends tournament dashboard
 
-Discord event registration is supported through the companion [bot setup guide](discord-bot/README.md). Published events appear in the organiser's Team setup dropdown; select an event and load its roster before drawing teams. The bot runs separately from GitHub Pages.
+Discord event registration is supported through the companion [bot setup guide](discord-bot/README.md). Published events appear in the organiser's Team setup dropdown; select an event to load its roster automatically before drawing teams. The bot runs separately from GitHub Pages.
 
 Typography uses bundled Rajdhani fonts from [Google Fonts](https://github.com/google/fonts/tree/main/ofl/rajdhani), under the SIL Open Font License included in assets/fonts/OFL.txt. It provides a Counter-Strike-inspired style without requiring Stratum 2 font files or an external font service.
 
