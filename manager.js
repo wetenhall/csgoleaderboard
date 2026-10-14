@@ -822,7 +822,7 @@ if (typeof document !== 'undefined') (() => {
     const complete=captainDraft.turn===captainDraft.cases.length,team=captainDraft.teams[captainDraft.turn%2],captain=team.players.find(p=>p.id===team.captainId);
     $('captain-case-status').textContent=complete?'Both teams are complete. '+($('tournament-format').value==='single'?'Choose the map below, then publish.':'Ready to publish.'):'Next pick: '+captain.name+' · '+team.name+'. Click a case on behalf of the captain.';
     captainDraft.cases.forEach((item,i)=>{
-      const button=element('button','captain-case'+(item.opened?' case-opened':'')),art=element('span','captain-case-art');button.type='button';art.setAttribute('aria-hidden','true');art.append(element('span','case-lid'),element('span','case-body'),element('span','case-lock','?'));button.append(art,element('span','case-number','CASE '+String(i+1).padStart(2,'0')));
+      const button=element('button','captain-case'+(item.opened?' case-opened':'')),art=element('span','captain-case-art');button.type='button';art.setAttribute('aria-hidden','true');art.append(element('span','case-lid'),element('span','case-body'),element('span','case-badge','CS:GO'),element('span','case-lock'));button.append(art,element('span','case-number','CASE '+String(i+1).padStart(2,'0')));
       if(item.opened){button.append(element('strong','',item.player.name),element('small','',captainDraft.teams.find(team=>team.id===item.teamId).name));}else button.setAttribute('aria-label','Open case '+(i+1));
       button.onclick=async()=>{
         if(!token || busy || spinning || captainDraft.cases[i].opened)return;
