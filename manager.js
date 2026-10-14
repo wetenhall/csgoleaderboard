@@ -322,11 +322,12 @@ if (typeof document !== 'undefined') (() => {
     $('captain-case-grid').querySelectorAll('button').forEach((button,i)=>{button.disabled=busy || spinning || !token || !!captainDraft?.cases[i].opened;});
     $('team-creation').disabled=busy || locked;
     $('start-draw').hidden=locked;
+    $('reset-draw').hidden=!locked;
     $('start-draw').textContent=captains?'Lock players & choose captains':manual?'Lock players & create teams':$('team-creation').value==='random'?'Lock players & assign random teams':$('team-creation').value==='case'?'Lock players & start reel':'Lock players & start draw';
     $('manual-teams').hidden=!manual || !locked || !manualAssignments.length;
     $('manual-team-list').querySelectorAll('input,select').forEach(input=>{input.disabled=busy || !token;});
     $('use-manual-teams').disabled=busy || !token || manualAssignments.some(id=>!id) || !manualAssignments.length || new Set(manualAssignments).size!==manualAssignments.length;
-    $('draw-stage').hidden=manual && (!draw || draw.format!=='single');
+    $('draw-stage').hidden=!locked || (manual && (!draw || draw.format!=='single'));
     $('draw-stage').classList.toggle('manual-map',manual);
     document.querySelector('.draw-roster').hidden=manual;
     $('draw-animation').disabled=busy || spinning;
@@ -351,8 +352,8 @@ if (typeof document !== 'undefined') (() => {
     $('qualifiers-per-group').closest('label').hidden=$('tournament-format').value!=='groups';
     $('double-note').hidden=$('tournament-format').value!=='double';
     $('single-match-note').hidden=$('tournament-format').value!=='single';
-    $('format-preview').hidden=$('tournament-format').value==='single';
-    $('draw-fixtures').hidden=$('tournament-format').value==='single';
+    $('format-preview').hidden=!locked || !draw || $('tournament-format').value==='single';
+    $('draw-fixtures').hidden=!locked || !draw || $('tournament-format').value==='single';
     $('group-count').disabled = busy || spinning || (!!captainDraft && !draw) || (locked && Number($('team-size').value)===1);
     $('map-options').querySelectorAll('input').forEach(input=>{input.disabled=busy || spinning || (!!captainDraft && !draw);});
     $('disconnect').hidden = !token;
@@ -367,7 +368,7 @@ if (typeof document !== 'undefined') (() => {
     $('remember-token').disabled = busy;
     const publishReason=drawPublishReason(draw,{busy,spinning,connected:!!token,drawnMap,format:$('tournament-format').value,groups:Number($('group-count').value),qualifiers:Number($('qualifiers-per-group').value),teamSize:Number($('team-size').value),maps:selectedMaps()});
     $('publish-draw').disabled=!!publishReason;$('publish-expanded').disabled=!!publishReason;
-    $('publish-draw').hidden=!manual || draw?.format==='single';$('publish-status').hidden=$('publish-draw').hidden;
+    $('publish-draw').hidden=!locked || !manual || draw?.format==='single';$('publish-status').hidden=$('publish-draw').hidden;
     for(const id of ['publish-status','publish-expanded-status']){$(id).textContent=publishReason || 'Teams are ready to publish.';}
     document.querySelectorAll('.result-form button, .tie-form button').forEach(b => { b.disabled = busy || !token; });
     featureUI?.controls();gameNightUI?.controls();setupUI?.render();queueAutoSpin();
