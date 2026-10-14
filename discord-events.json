@@ -1,1 +1,14 @@
-{"version":1,"events":[]}
+{
+  "version": 1,
+  "events": [
+    {
+      "id": "a5d4a763-806c-4823-b82c-80931f844ecb",
+      "title": "test event",
+      "players": [
+        "Aatori",
+        "Grayzee"
+      ],
+      "publishedAt": "2026-10-14T18:35:18.997Z"
+    }
+  ]
+}
