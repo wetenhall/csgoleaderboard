@@ -4,6 +4,15 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const { resolveTournament } = require('./app.js');
 const { cupMode, cupFinal, completedCup, archiveCup, careerRecords, matchNight } = require('./extras.js');
+test('custom Load player pool button remains connected to the shared roster loader',()=>{
+  const source=fs.readFileSync('manager.js','utf8');
+  const loader=source.slice(source.indexOf('  function loadPlayerPool(){'),source.indexOf('  const teamColours='));
+  const nodes={'pool-input':{value:'Alice\nBob'},'load-pool':{},'pool-list':{children:[],replaceChildren(){this.children=[];},append(node){this.children.push(node);}}};
+  const context={$:id=>nodes[id],loadedDiscordEvent:null,locked:false,busy:false,pool:[],selectionCount(){},announce(){},element:()=>({append(){}}),document:{createTextNode:name=>name}};
+  vm.runInNewContext(loader,context);assert.equal(typeof nodes['load-pool'].onclick,'function');nodes['load-pool'].onclick();
+  assert.equal(context.pool.length,2);assert.equal(context.pool[0].name,'Alice');assert.equal(nodes['pool-list'].children.length,2);
+  context.loadedDiscordEvent={players:['Carol','Don']};nodes['load-pool'].onclick();assert.equal(context.pool[0].name,'Carol');
+});
 test('setup stages validate forward progress, invalidate changed players and protect active draws',()=>{
   const source=fs.readFileSync('setup.js','utf8'),nodes={};
   for(const prefix of ['setup-stage-','setup-tab-','setup-next-','setup-back-'])for(let i=1;i<=4;i++)nodes[prefix+i]={hidden:true,setAttribute(){},removeAttribute(){},focus(){}};

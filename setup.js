@@ -30,7 +30,7 @@ function createSetupStages({isBusy,isLocked,validateOptions,validatePlayers,prep
   for(let i=1;i<=3;i++)$('setup-next-'+i).onclick=()=>{
     if(isBusy())return;
     const error=i===2?validateOptions():i===3?validatePlayers():'';
-    if(error){$('setup-status').textContent=error;return;}
+    if(error){$('setup-status').textContent=error;$('setup-status').scrollIntoView?.({block:'center',behavior:'smooth'});return;}
     if(i===3)confirmed=signature();
     unlocked=Math.max(unlocked,i+1);go(i+1);
   };
