@@ -203,3 +203,5 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 /* Keep Back immediately left of each stage action, including Create teams. */
 .setup-navigation{flex-wrap:nowrap;align-items:center}.setup-navigation>button{margin:0;min-width:0}.setup-navigation>[id^="setup-back-"]{flex:0 0 auto;white-space:nowrap}
 #draw-panel.live-draw #setup-stage-4>.setup-navigation{display:none}
+
+.setup-stage>.setup-navigation{width:100%;justify-content:flex-end}.setup-stage .saved-player-actions{justify-content:flex-end}

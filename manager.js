@@ -313,7 +313,7 @@ if (typeof document !== 'undefined') (() => {
     $('player-game-type').textContent=playerSize+'v'+playerSize+' · '+playerFormatLabel;
     $('player-game-context').textContent=(loadedDiscordEvent?.title || 'Custom game')+' · '+(playerFormat==='single'?(playerSize*2)+' players required':'At least '+(playerSize*2)+' players · Complete teams');
     $('player-pool-heading').textContent=loadedDiscordEvent?'Event players':'Player pool';
-    $('setup-next-3').textContent='Confirm players & continue';
+    $('setup-next-3').textContent='Continue';
     $('player-pool-help').textContent=loadedDiscordEvent?'Select who is playing below, then confirm your players.':'Choose who is playing this time. Add saved players above or enter names below, then load the pool and select your players.';
     $('skip-animation').disabled=busy || spinning || skippingAnimation || !token || (!remaining.length && !(draw?.format==='single' && !drawnMap && draw.mapMethod!=='veto' && selectedMaps().length)) || (remaining.length>0 && ['manual','captains'].includes($('team-creation').value));
     const manual=$('team-creation').value==='manual';
