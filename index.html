@@ -20,9 +20,15 @@
   <header class="topbar"><a class="brand" href="./"><span class="mark" aria-hidden="true">⌖</span><span id="brand-title">Friends Cup</span></a><div class="header-actions"><span class="game">COUNTER-STRIKE <b> // </b> PRIVATE TOURNAMENT</span><button type="button" id="open-options" class="options-cog" aria-label="Open settings" aria-haspopup="dialog" aria-controls="options-dialog" title="Open settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m9 3-.7 2.5-2 .9L4 5.7 2 9l1.8 1.8v2.4L2 15l2 3.3 2.3-.7 2 .9L9 21h4l.7-2.5 2-.9 2.3.7 2-3.3-1.8-1.8v-2.4L20 9l-2-3.3-2.3.7-2-.9L13 3Z"></path><circle cx="11" cy="12" r="3"></circle></svg></button></div></header>
   <main>
     <div class="intro"><div><p class="eyebrow">COUNTER-STRIKE <span class="slash"> / </span> PRIVATE MATCH CENTRE</p><h1 id="title">Friends Cup<span>.</span></h1><p class="subtitle">Your squad. Your server. Your tournament.</p></div><div class="broadcast-state"><span class="label">TOURNAMENT SIGNAL</span><strong id="broadcast-status">READY</strong><span id="broadcast-caption">COUNTER-STRIKE / FRIENDS CUP</span></div></div>
+    <nav id="admin-menu" class="admin-menu" aria-label="Admin menu" hidden="">
+      <span class="label">Admin menu</span>
+      <div class="admin-tabs" role="tablist" aria-label="Admin sections">
+<button type="button" id="tab-team-setup" aria-label="Team setup" hidden="" role="tab" aria-controls="panel-team-setup" aria-selected="false" tabindex="-1">Team setup</button>
+<button type="button" id="tab-manage-players" hidden="" role="tab" aria-controls="panel-manage-players" aria-selected="false" tabindex="-1">Manage Players</button>
+      </div>
+    </nav>
     <section class="overview" aria-label="Tournament summary"><div><span class="label">FORMAT</span><strong id="format-name">Groups → playoffs</strong></div><div><span class="label">TEAMS</span><strong id="team-count">8 teams entered</strong></div><div><span class="label">PROGRESS</span><strong id="progress">0 / 15 <small>matches complete</small></strong></div><div><span class="label">STATUS</span><strong id="status" class="accent">Awaiting first match</strong></div></section>
     <div class="page-tabs" role="tablist" aria-label="Tournament sections">
-<button type="button" id="tab-team-setup" aria-label="Team setup" hidden="" role="tab" aria-controls="panel-team-setup" aria-selected="false" tabindex="-1">Team setup</button>
 <button type="button" id="tab-leaderboard" aria-label="Leader board" role="tab" aria-controls="panel-leaderboard" aria-selected="true" tabindex="0">Leader board</button>
 <button type="button" id="tab-fixtures" aria-label="Fixtures" role="tab" aria-controls="panel-fixtures" aria-selected="false" tabindex="-1">Fixtures</button>
 <button type="button" id="tab-stats" aria-label="Stats" role="tab" aria-controls="panel-stats" aria-selected="false" tabindex="-1">Stats</button>
@@ -66,6 +72,10 @@ Another player"></textarea></label>
 </div>
 <div id="panel-history" class="tab-panel" role="tabpanel" aria-labelledby="tab-history" tabindex="0" hidden="">
 <section aria-labelledby="history-heading"><div class="section-heading"><h2 id="history-heading">Tournament history</h2><span>PAST CUPS / LASTING BRAGGING RIGHTS</span></div><p class="rules">Completed cups are saved here when the organiser archives them. Past results and player stats stay available after a new draw.</p><button id="clear-history" type="button" class="secondary danger" data-organiser-action="" hidden="" disabled="">Clear all history</button><div id="cup-history"></div></section>
+</div>
+<div id="panel-manage-players" class="tab-panel" role="tabpanel" aria-labelledby="tab-manage-players" tabindex="0" hidden="">
+  <div class="section-heading"><h2>Manage players</h2></div>
+  <div id="player-links"></div>
 </div>
 <div id="panel-register" class="tab-panel" role="tabpanel" aria-labelledby="tab-register" tabindex="0" hidden="">
   <section aria-labelledby="register-heading">

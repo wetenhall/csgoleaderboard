@@ -360,6 +360,8 @@ if (typeof document !== 'undefined') (() => {
     $('options-form').hidden = !token;
     document.querySelector('.token-help').hidden = !!token;
     $('tab-team-setup').hidden = !token;
+    $('tab-manage-players').hidden = !token;
+    $('admin-menu').hidden = !token;
     const matchLink=new URLSearchParams(location.search);const viewingMatch=matchLink.get('connect')==='1' && matchLink.get('event')===current.discordEventId;
     const hideTournament=current.registrationEnabled!==false && !token && !viewingMatch;
     ['leaderboard','fixtures','stats','history'].forEach(name=>{$('tab-'+name).hidden=hideTournament;});
@@ -535,8 +537,8 @@ if (typeof document !== 'undefined') (() => {
     await publish(next,'Import FACEIT result for '+id);
   }
   function renderSchedule() {
-    document.getElementById('fixture-platform')?.remove();document.getElementById('import-centre')?.remove();
-    if(token){const centre=createImportCentre({data:structuredClone(current),resolve:resolveTournament,isBusy:()=>busy,isOrganiser:()=>!!token,saveImport:saveImportedFixture,saveProfiles:async profiles=>{const next=structuredClone(current);next.leetifyProfiles=profiles;await publish(next,'Update Leetify player profile links');},saveAliases:async aliases=>{const next=structuredClone(current);next.importAliases={...current.importAliases,faceit:aliases};await publish(next,'Update FACEIT player name links');},undo:async()=>{await publish(undoResultChange(current,resolveTournament),'Undo last result change');}});centre.id='import-centre';$('schedule').before(centre);}
+    document.getElementById('fixture-platform')?.remove();document.getElementById('import-centre')?.remove();$('player-links').replaceChildren();
+    if(token){const centre=createImportCentre({playerContainer:$('player-links'),data:structuredClone(current),resolve:resolveTournament,isBusy:()=>busy,isOrganiser:()=>!!token,saveImport:saveImportedFixture,saveProfiles:async profiles=>{const next=structuredClone(current);next.leetifyProfiles=profiles;await publish(next,'Update Leetify player profile links');},saveAliases:async aliases=>{const next=structuredClone(current);next.importAliases={...current.importAliases,faceit:aliases};await publish(next,'Update FACEIT player name links');},undo:async()=>{await publish(undoResultChange(current,resolveTournament),'Undo last result change');}});centre.id='import-centre';$('schedule').before(centre);}
 
     if(token){const label=element('label','fixture-platform','Game platform'),select=element('select');label.id='fixture-platform';for(const [value,text] of [['manual','Other · Manual results'],['faceit','FACEIT · Pull up gang queue']]){const o=element('option','',text);o.value=value;select.append(o);}select.value=current.gameProvider || 'manual';select.disabled=busy;select.onchange=async()=>{try{const next=structuredClone(current);next.gameProvider=select.value;await publish(next,'Update fixture game platform');}catch(error){say(error.message);select.value=current.gameProvider || 'manual';}};label.append(select);$('schedule').before(label);}
 
@@ -1035,7 +1037,7 @@ if (typeof document !== 'undefined') (() => {
   fullscreenButton.onclick=()=>setExpandedDraw(!expandedDraw);
   document.addEventListener('keydown',event=>{if(event.key==='Escape' && expandedDraw){event.preventDefault();setExpandedDraw(false);}});
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
-  const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+  const tabs = Array.from(document.querySelectorAll('.page-tabs [role="tab"], .admin-tabs [role="tab"]'));
   function defaultTab(){return current.registrationEnabled!==false && !token ? $('tab-register') : $('tab-leaderboard');}
   let registrationSubmitting=false;
   $('registration-form').addEventListener('submit',async event=>{
@@ -1065,6 +1067,7 @@ if (typeof document !== 'undefined') (() => {
       item.setAttribute('aria-selected', String(active)); item.tabIndex = active ? 0 : -1;
       $(item.getAttribute('aria-controls')).hidden = !active;
     });
+    for(const menu of document.querySelectorAll('.page-tabs,.admin-tabs')){const items=tabs.filter(item=>item.parentElement===menu && !item.hidden);if(items.length && !items.some(item=>item.tabIndex===0))items[0].tabIndex=0;}
     if (updateUrl) history.replaceState(null,'','#'+tab.id.slice(4));
     if (focus) tab.focus();
   }
@@ -1076,7 +1079,7 @@ if (typeof document !== 'undefined') (() => {
   tabs.forEach(tab => {
     tab.addEventListener('click', () => selectTab(tab));
     tab.addEventListener('keydown', event => {
-      const visibleTabs = tabs.filter(item => !item.hidden), index = visibleTabs.indexOf(tab);
+      const visibleTabs = tabs.filter(item => !item.hidden && item.parentElement===tab.parentElement), index = visibleTabs.indexOf(tab);
       const target = event.key === 'ArrowRight' ? (index+1)%visibleTabs.length : event.key === 'ArrowLeft' ? (index+visibleTabs.length-1)%visibleTabs.length : event.key === 'Home' ? 0 : event.key === 'End' ? visibleTabs.length-1 : null;
       if (target !== null) { event.preventDefault(); selectTab(visibleTabs[target],true); }
     });
