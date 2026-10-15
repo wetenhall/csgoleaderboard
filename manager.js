@@ -308,6 +308,10 @@ if (typeof document !== 'undefined') (() => {
     discordEventUI?.render();
     $('custom-saved-players').hidden=$('game-source').value==='discord';
     $('custom-player-entry').hidden=$('game-source').value==='discord';
+    const playerSize=Number($('team-size').value),playerFormat=$('tournament-format').value;
+    const playerFormatLabel=playerFormat==='single'?'One match':playerFormat==='double'?'Double elimination':playerFormat==='knockout' || Number($('group-count').value)===0?'Knockout':'Groups → playoffs';
+    $('player-game-type').textContent=playerSize+'v'+playerSize+' · '+playerFormatLabel;
+    $('player-game-context').textContent=(loadedDiscordEvent?.title || 'Custom game')+' · '+(playerFormat==='single'?(playerSize*2)+' players required':'At least '+(playerSize*2)+' players · Complete teams');
     $('player-pool-heading').textContent=loadedDiscordEvent?'Discord event players':'Player pool';
     $('setup-next-3').textContent=loadedDiscordEvent?'Confirm Discord players & continue':'Confirm players & continue';
     $('player-pool-help').textContent=loadedDiscordEvent?'Players are loaded from Discord. Select who is playing below, then lock the pool.':'Choose who is playing this time. Add saved players above or enter names below, then load the pool and select your players.';
