@@ -1031,7 +1031,11 @@ if (typeof document !== 'undefined') (() => {
       if (target !== null) { event.preventDefault(); selectTab(visibleTabs[target],true); }
     });
   });
-  discordEventUI=createDiscordEventLoader({canLoad:()=>!!token && !locked && !busy && !spinning,load:event=>{
+  const discordEventConfig=()=>({api:repository.api.replace(/tournament\.json$/,'discord-events.json'),branch:repository.branch,token});
+  discordEventUI=createDiscordEventLoader({readEvents:async()=>token?(await readPublishedDiscordEvents(discordEventConfig())).data:null,clearEvents:async()=>{
+    if(!token || !repository || locked || busy || spinning)throw Error('Connect as organiser and finish or reset the draw before clearing events.');
+    busy=true;controls();try{await clearPublishedDiscordEvents(discordEventConfig());}finally{busy=false;controls();}
+  },canLoad:()=>!!token && !locked && !busy && !spinning,load:event=>{
     if(locked || busy || spinning || !token)return false;
     if(!loadedDiscordEvent)customPlayerNames=$('pool-input').value;
     loadedDiscordEvent=event;

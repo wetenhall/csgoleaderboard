@@ -1,6 +1,17 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {register,publishEvent}=require('./core.cjs');
 const {validateDiscordEvents}=require('../discord-events.js');
+test('clear events updates only the event file using the latest GitHub SHA',async()=>{
+  const {clearPublishedDiscordEvents}=require('../discord-events.js');let saved;
+  const config={api:'https://api.github.com/repos/owner/repo/contents/discord-events.json',branch:'main',token:'test'};
+  await clearPublishedDiscordEvents(config,async(url,options)=>{
+    assert.ok(url.startsWith(config.api));
+    if(options.method==='PUT'){saved=JSON.parse(options.body);return {ok:true};}
+    return {ok:true,json:async()=>({sha:'latest',content:Buffer.from(JSON.stringify({version:1,events:[{id:'cup',title:'Cup',players:['Alice']}]})).toString('base64')})};
+  });
+  assert.equal(saved.sha,'latest');assert.equal(saved.branch,'main');assert.deepEqual(JSON.parse(atob(saved.content)),{version:1,events:[]});
+  await assert.rejects(clearPublishedDiscordEvents(config,async(url,options)=>options.method==='PUT'?{ok:false,status:409}:{ok:true,json:async()=>({sha:'old',content:btoa('{"version":1,"events":[]}')})}),/changed/);
+});
 test('registrations update by account, reject duplicate names and respect capacity',()=>{
   const e={capacity:2,players:[]};register(e,'1',' Alice ');register(e,'1','Alicia');register(e,'2','Bob');
   assert.equal(e.players.length,2);assert.throws(()=>register(e,'3','Carol'),/full/);assert.throws(()=>register(e,'2','ALICIA'),/already/);
