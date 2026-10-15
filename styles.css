@@ -192,3 +192,8 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 #draw-panel.live-draw>.section-heading,#draw-panel.live-draw>.setup-steps,#draw-panel.live-draw>p,
 #draw-panel.live-draw #setup-back-4,#draw-panel.live-draw #setup-summary,#draw-panel.live-draw #team-creation-label,#draw-panel.live-draw #reset-draw{display:none}
 #draw-panel.live-draw #setup-stage-4,#draw-panel.live-draw #setup-stage-4>.draw-layout,#draw-panel.live-draw #draw-stage{margin-top:0}
+
+/* Let draw controls use the full available width rather than the wheel column. */
+.draw-stage>.spin-actions{grid-column:1/-1;width:100%;justify-content:center;gap:10px}
+.draw-stage>.spin-actions>button,.draw-stage>.spin-actions>label,.draw-stage>.spin-actions>.map-method-control{flex:0 0 auto;white-space:nowrap;margin:0}
+.draw-stage>.map-draw-options{grid-column:1/-1}

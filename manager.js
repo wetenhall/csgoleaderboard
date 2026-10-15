@@ -316,6 +316,7 @@ if (typeof document !== 'undefined') (() => {
     const captains=$('team-creation').value==='captains';
     $('captain-case-panel').hidden=!captains || !locked;
     document.querySelector('.wheel-panel').hidden=captains && (!draw || draw.format!=='single');
+    document.querySelector('.spin-actions').hidden=document.querySelector('.wheel-panel').hidden;
     $('draw-animation').closest('label').hidden=captains && !draw;
     $('draw-stage').classList.toggle('captain-style',captains);
     $('captain-choices').querySelectorAll('select,button').forEach(input=>{input.disabled=busy || spinning || !!captainDraft || !token;});
