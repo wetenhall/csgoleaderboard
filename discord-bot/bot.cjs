@@ -40,7 +40,7 @@ async function syncTeams(){
     const file=await response.json(),tournament=JSON.parse(Buffer.from(file.content,'base64').toString('utf8'));
     const event=data.events.find(event=>event.id===tournament.discordEventId && event.publishedAt);
     if(!event || !tournament.teams?.length)return;
-    const roster=teamAnnouncements(tournament,escapeMarkdown),signature='team-connect-v1:'+JSON.stringify([roster,tournament.serverAddress||'']);
+    const roster=teamAnnouncements(tournament,escapeMarkdown),signature='team-connect-auto-v1:'+JSON.stringify([roster,tournament.serverAddress||'']);
     const map=tournament.format==='single'?tournament.matches?.[0]?.map:null;
     const descriptions=['Teams ready · '+tournament.teamSize+'v'+tournament.teamSize+(map?' · '+escapeMarkdown(map):'')];
     if(event.teamSignature===signature)return;
@@ -51,7 +51,7 @@ async function syncTeams(){
       const payload={embeds:[new EmbedBuilder().setTitle((event.title+' · Teams').slice(0,256)).setColor(0xf5a623).setDescription(descriptions[i]).setURL(process.env.SITE_URL)],allowedMentions:{parse:[],repliedUser:false}};
       payload.attachments=[];
       const actions=new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel('View game').setStyle(ButtonStyle.Link).setURL(process.env.SITE_URL));
-      if(tournament.serverAddress){const link=new URL('connect.html',process.env.SITE_URL.endsWith('/')?process.env.SITE_URL:process.env.SITE_URL+'/');link.searchParams.set('event',event.id);actions.addComponents(new ButtonBuilder().setLabel('Connect to match').setStyle(ButtonStyle.Link).setURL(link.href));}
+      if(tournament.serverAddress){const link=new URL('connect.html',process.env.SITE_URL.endsWith('/')?process.env.SITE_URL:process.env.SITE_URL+'/');link.searchParams.set('event',event.id);link.searchParams.set('autoconnect','1');actions.addComponents(new ButtonBuilder().setLabel('Connect to match').setStyle(ButtonStyle.Link).setURL(link.href));}
       payload.components=[actions];
       if(i===0 && images.length){
         payload.files=images;payload.embeds[0].setImage('attachment://'+images[0].name);

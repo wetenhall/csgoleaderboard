@@ -4,7 +4,7 @@
   if(dialog){
     const close=()=>dialog.close();document.getElementById('close-connect').onclick=close;document.getElementById('dismiss-connect').onclick=close;
     dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left || event.clientX>r.right || event.clientY<r.top || event.clientY>r.bottom)close();}});
-    dialog.addEventListener('close',()=>{const url=new URL(location.href);url.searchParams.delete('connect');url.searchParams.delete('event');history.replaceState(null,'',url);});
+    dialog.addEventListener('close',()=>{const url=new URL(location.href);url.searchParams.delete('connect');url.searchParams.delete('event');url.searchParams.delete('autoconnect');history.replaceState(null,'',url);});
     if(!requested)return;dialog.showModal();
   }
   const status=document.getElementById('status');
@@ -21,5 +21,6 @@
     document.getElementById('copy').onclick=async()=>{try{await navigator.clipboard.writeText(command);status.textContent='Connection command copied.';}catch{status.textContent='Copy the command shown below into the CS2 console.';}};
     status.textContent='Your match server: '+server;
     document.getElementById('connection').hidden=false;
+    if(new URLSearchParams(location.search).get('autoconnect')==='1'){status.textContent='Opening Steam to connect… If nothing happens, use Open CS2 & connect below.';location.href=document.getElementById('launch').href;}
   }catch(error){status.textContent=error.message;}
 })();
