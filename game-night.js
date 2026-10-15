@@ -68,7 +68,7 @@ function openCaptainCase(state,index){
 }
 if(typeof module!=='undefined')module.exports={validServerAddress,balanceRosters,swapDraftPlayers,discordMatchText,advanceMapVeto,manualRosters,createCaptainCases,openCaptainCase};
 
-function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMaps,setMapMethod,beginRematch,notify}) {
+function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,setMap,getMaps,setMapMethod,beginRematch,notify}) {
   const $=id=>document.getElementById(id);
   const draftRoot=element('section','map-draw-options'),methodRoot=element('div','map-method-control'),publicRoot=element('section','match-tools');
   let pendingMethod='';
@@ -76,7 +76,7 @@ function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMap
   draftRoot.hidden=true;draftRoot.id='map-draw-options';publicRoot.id='match-tools';methodRoot.after(draftRoot);$('panel-leaderboard').append(publicRoot);
   const makeButton=(label,action)=>{const b=element('button','secondary',label);b.type='button';b.onclick=async()=>{try{await action();}catch(e){notify(e.message);}};return b;};
   async function copy(text){try{await navigator.clipboard.writeText(text);notify('Copied to clipboard.');}catch{const dialog=element('dialog','options-dialog'),field=element('textarea');field.value=text;field.rows=12;field.readOnly=true;dialog.append(element('h2','','Copy match details'),field,makeButton('Close',()=>{dialog.close();dialog.remove();}));document.body.append(dialog);dialog.showModal();field.select();}}
-  function controls(){[draftRoot,methodRoot].forEach(root=>root.querySelectorAll('input,select,button').forEach(el=>el.disabled=isBusy() || !isOrganiser()));const confirm=$('confirm-map-method');if(confirm)confirm.disabled=isBusy() || !isOrganiser() || !$('map-selection-method').value || !!getDraft()?.mapMethod;$('panel-leaderboard').querySelectorAll('[data-rematch]').forEach(el=>{el.hidden=!isOrganiser();el.disabled=isBusy();});}
+  function controls(){publicRoot.querySelectorAll('[data-server-editor]').forEach(form=>{form.hidden=!isOrganiser();form.querySelectorAll('input,button').forEach(el=>el.disabled=isBusy());});[draftRoot,methodRoot].forEach(root=>root.querySelectorAll('input,select,button').forEach(el=>el.disabled=isBusy() || !isOrganiser()));const confirm=$('confirm-map-method');if(confirm)confirm.disabled=isBusy() || !isOrganiser() || !$('map-selection-method').value || !!getDraft()?.mapMethod;$('panel-leaderboard').querySelectorAll('[data-rematch]').forEach(el=>{el.hidden=!isOrganiser();el.disabled=isBusy();});}
   function renderDraft(){
     const wasHidden=methodRoot.hidden;
     draftRoot.replaceChildren();methodRoot.replaceChildren();const draft=getDraft();methodRoot.hidden=!draft || draft.format!=='single';draftRoot.hidden=true;
@@ -123,6 +123,14 @@ function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMap
     const matchActions=document.querySelector('.match-published-actions');
     if(matchActions){actions.classList.add('match-extra-actions');matchActions.querySelector('.match-extra-actions')?.remove();matchActions.append(actions);}
     else publicRoot.append(actions);
+    if(data.format==='single' && data.teams.length){
+      const form=element('form','setup-card');form.dataset.serverEditor='';
+      form.append(element('h3','','Match server'),element('p','rules','Once your game server is ready, add its address here. Saving updates Connect to match in Discord. Leave blank to remove it.'));
+      const label=element('label','','Server address'),input=document.createElement('input');input.value=data.serverAddress || '';input.placeholder='server.example.com:27015';input.maxLength=253;input.autocomplete='off';label.append(input);
+      const status=element('p','rules');status.setAttribute('role','status');const actions=element('div','setup-navigation'),save=element('button','','Save server details');save.type='submit';actions.append(save);form.append(label,status,actions);
+      form.onsubmit=async event=>{event.preventDefault();if(!isOrganiser() || isBusy())return;try{await saveServer(validServerAddress(input.value));notify('Server details saved. Discord updates automatically within 30 seconds.');}catch(error){status.textContent=error.message;}};
+      publicRoot.append(form);
+    }
     const past=(data.history || []).filter(entry=>entry.tournament.format==='single').slice(-8).reverse();
     publicRoot.hidden=!data.teams.length && !data.serverAddress && !past.length;
     const completed=data.format==='single' && data.matches[0]?.result;
