@@ -21,16 +21,8 @@
       "tag": "01",
       "players": [
         {
-          "id": "p6",
-          "name": "Coach Goro"
-        },
-        {
-          "id": "p2",
-          "name": "Spongoat"
-        },
-        {
-          "id": "p4",
-          "name": "lukinss"
+          "id": "p5",
+          "name": "Aatori"
         }
       ]
     },
@@ -40,16 +32,52 @@
       "tag": "02",
       "players": [
         {
-          "id": "p1",
-          "name": "LilRibe"
-        },
-        {
-          "id": "p5",
-          "name": "Aatori"
-        },
-        {
           "id": "p3",
           "name": "Grayzee"
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "name": "Team 03",
+      "tag": "03",
+      "players": [
+        {
+          "id": "p2",
+          "name": "Spongoat"
+        }
+      ]
+    },
+    {
+      "id": "t4",
+      "name": "Team 04",
+      "tag": "04",
+      "players": [
+        {
+          "id": "p4",
+          "name": "lukinss"
+        }
+      ]
+    },
+    {
+      "id": "t5",
+      "name": "Team 05",
+      "tag": "05",
+      "players": [
+        {
+          "id": "p6",
+          "name": "Coach Goro"
+        }
+      ]
+    },
+    {
+      "id": "t6",
+      "name": "Team 06",
+      "tag": "06",
+      "players": [
+        {
+          "id": "p1",
+          "name": "LilRibe"
         }
       ]
     }
@@ -57,19 +85,170 @@
   "groups": [],
   "matches": [
     {
-      "id": "f1",
+      "id": "de1",
       "round": 0,
+      "bracket": "upper",
+      "label": "Winners · Round 1",
+      "sources": [
+        {
+          "team": "t4"
+        },
+        {
+          "team": "t5"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de2",
+      "round": 0,
+      "bracket": "upper",
+      "label": "Winners · Round 1",
+      "sources": [
+        {
+          "team": "t3"
+        },
+        {
+          "team": "t6"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de3",
+      "round": 2,
+      "bracket": "upper",
+      "label": "Winners · Round 2",
       "sources": [
         {
           "team": "t1"
         },
         {
-          "team": "t2"
+          "winner": "de1"
         }
       ],
-      "result": null,
-      "label": "Single Game · 3v3",
-      "map": "Inferno"
+      "result": null
+    },
+    {
+      "id": "de4",
+      "round": 2,
+      "bracket": "upper",
+      "label": "Winners · Round 2",
+      "sources": [
+        {
+          "team": "t2"
+        },
+        {
+          "winner": "de2"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de5",
+      "round": 3,
+      "bracket": "lower",
+      "label": "Losers · Round 2",
+      "sources": [
+        {
+          "loser": "de1"
+        },
+        {
+          "loser": "de4"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de6",
+      "round": 3,
+      "bracket": "lower",
+      "label": "Losers · Round 2",
+      "sources": [
+        {
+          "loser": "de2"
+        },
+        {
+          "loser": "de3"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de7",
+      "round": 4,
+      "bracket": "lower",
+      "label": "Losers · Round 3",
+      "sources": [
+        {
+          "winner": "de5"
+        },
+        {
+          "winner": "de6"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de8",
+      "round": 5,
+      "bracket": "upper",
+      "label": "Winners · Round 3",
+      "sources": [
+        {
+          "winner": "de3"
+        },
+        {
+          "winner": "de4"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de9",
+      "round": 6,
+      "bracket": "lower",
+      "label": "Losers · Round 4",
+      "sources": [
+        {
+          "winner": "de7"
+        },
+        {
+          "loser": "de8"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "f1",
+      "round": 7,
+      "bracket": "final",
+      "label": "Grand final",
+      "sources": [
+        {
+          "winner": "de8"
+        },
+        {
+          "winner": "de9"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "f2",
+      "round": 8,
+      "bracket": "final",
+      "label": "Grand final reset · if needed",
+      "resetOf": "f1",
+      "sources": [
+        {
+          "winner": "de8"
+        },
+        {
+          "winner": "de9"
+        }
+      ],
+      "result": null
     }
   ],
   "history": [],
@@ -80,27 +259,11 @@
     "registrationDescription": "Enter your player name to register for the next 1v1 tournament.\n\nDate: Thursday 29th October \nTime: 7pm GMT"
   },
   "registrationEnabled": false,
-  "format": "single",
+  "format": "double",
   "qualifiersPerGroup": 2,
-  "teamSize": 3,
-  "mode": "trios",
-  "mapPool": [
-    "Mirage",
-    "Dust2",
-    "Inferno",
-    "Nuke",
-    "Ancient",
-    "Anubis",
-    "Vertigo",
-    "Cache",
-    "Train",
-    "Overpass",
-    "Office",
-    "Italy"
-  ],
-  "serverAddress": "138.199.44.113:26580",
-  "mapMethod": "wheel",
-  "mapVeto": [],
-  "discordEventId": "339b874f-6a09-4592-8f47-f794132251e4",
-  "serverPassword": "u1rrrn"
+  "teamSize": 1,
+  "mode": "1v1",
+  "serverAddress": "",
+  "gameProvider": "faceit",
+  "discordEventId": "339b874f-6a09-4592-8f47-f794132251e4"
 }
