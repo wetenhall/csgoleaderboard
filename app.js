@@ -211,7 +211,7 @@ async function downloadMatchImage(data) {
   const gradient=ctx.createLinearGradient(30,0,1570,250);gradient.addColorStop(0,'#352b1d');gradient.addColorStop(1,'#23272f');ctx.fillStyle=gradient;ctx.fillRect(30,30,1540,230);ctx.fillStyle='#ff9b01';ctx.fillRect(30,30,1540,5);
   text('SELECTED MAP / CUSTOM '+data.teamSize+'V'+data.teamSize,800,90,22,'#ff9b01',1400,'center');text((match.map || 'Map pending').toUpperCase(),800,205,100,'#ff9b01',1400,'center');
   match.ids.forEach((id,i)=>{const team=state.teams.get(id),x=30+i*785,color=i===0?'#70b4cd':'#ff9b01';ctx.fillStyle='#23272f';ctx.fillRect(x,290,755,570);ctx.strokeStyle='#424b55';ctx.strokeRect(x,290,755,570);ctx.fillStyle=color;ctx.fillRect(x,290,755,4);
-    text(team.name,x+30,365,42,'#f4f4f4',570);text(match.result?String(match.result.scores[i]):'—',x+715,365,42,'#ff9b01',100,'right');text(match.winner===id?'WINNERS':'5 PLAYERS',x+30,410,20,'#ff9b01');
+    text(team.name,x+30,365,42,'#f4f4f4',570);text(match.result?String(match.result.scores[i]):'—',x+715,365,42,'#ff9b01',100,'right');text(match.winner===id?'WINNERS':team.players.length+' PLAYER'+(team.players.length===1?'':'S'),x+30,410,20,'#ff9b01');
     team.players.forEach((player,j)=>{const y=445+j*76;ctx.strokeStyle='#424b55';ctx.beginPath();ctx.moveTo(x+30,y);ctx.lineTo(x+725,y);ctx.stroke();text(String(j+1).padStart(2,'0'),x+30,y+48,18,'#b8bcbf',35);text(player.name+(team.captainId===player.id?' (C)':''),x+80,y+48,34,'#f4f4f4',640);});
   });
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('Could not create match image.');
@@ -324,7 +324,7 @@ function renderTournament(data) {
       const team=teams.get(id),card=element('article','single-squad'+(match.winner===id?' is-winner':''));
       const heading=element('div','single-squad-heading');
       heading.append(teamEmblem(team),element('h3','',team.name),element('strong','single-squad-score',match.result?String(match.result.scores[i]):'—'));
-      card.append(heading,element('p','eyebrow',match.winner===id?'WINNERS':'5 PLAYERS'));
+      card.append(heading,element('p','eyebrow',match.winner===id?'WINNERS':team.players.length+' PLAYER'+(team.players.length===1?'':'S')));
       const roster=element('ol','single-squad-players');
       team.players.forEach(player=>roster.append(element('li','',player.name+(team.captainId===player.id?' · Captain':''))));
       card.append(roster);squads.append(card);
