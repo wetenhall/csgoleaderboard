@@ -275,3 +275,7 @@ footer{flex-wrap:wrap}.footer-status{flex-basis:100%;display:flex;justify-conten
 .intro+.overview{margin-top:0;margin-bottom:0}.overview+#admin-menu{margin:20px 0}
 
 .faceit-link-row select{width:100%;min-height:44px;margin:0}.faceit-link-row.profile-saved select{flex:1;min-width:0;font-size:12px}
+
+.leetify-import{margin-top:28px;padding-top:20px;border-top:1px solid var(--border)}.leetify-import>label{margin:16px 0 8px}.leetify-import select,.leetify-import input{margin-bottom:0}.leetify-source{display:inline-block;color:#f84982;text-decoration:underline;margin:8px 0 16px}
+
+.leetify-attribution{display:inline-block;margin:8px 0}.leetify-attribution img{display:block;width:160px;max-width:100%;height:auto}

@@ -533,9 +533,9 @@ if (typeof document !== 'undefined') (() => {
     const live=resolveTournament(current).matches.find(m=>m.id===id);if(!live || JSON.stringify(live.ids)!==JSON.stringify(result.teams))throw Error('Fixture teams changed. Reload the fixture.');
     if(importedGameUsage(current,result.importSource.id).some(use=>use.archived || use.fixtureId!==id))throw Error('This game is already imported elsewhere.');
     if(live.result && !confirm('Replace the saved result and player stats with this imported game?'))return;
-    const {next,cleared}=applyResult(current,id,result,resolveTournament);next.importAliases={...current.importAliases,faceit:aliases};
+    const {next,cleared}=applyResult(current,id,result,resolveTournament);if(result.importSource.provider==='faceit')next.importAliases={...current.importAliases,faceit:aliases};
     if(cleared.length && !confirm('Importing this result clears changed playoff results: '+cleared.join(', ')+'. Continue?'))return;
-    await publish(next,'Import FACEIT result for '+id);
+    await publish(next,'Import '+(result.importSource.provider==='leetify'?'Leetify':'FACEIT')+' result for '+id);
   }
   function renderSchedule() {
     document.getElementById('fixture-platform')?.remove();document.getElementById('import-centre')?.remove();$('player-links').replaceChildren();
@@ -646,6 +646,7 @@ if (typeof document !== 'undefined') (() => {
         } catch(error) {note.textContent=error.message;}
       };
       if(token && current.gameProvider==='faceit')body.append(createFixtureImporter({data:structuredClone(current),fixture:match,isBusy:()=>busy,isOrganiser:()=>!!token,save:(result,aliases)=>saveImportedFixture(match.id,result,aliases)}));
+      if(match.result?.importSource?.provider==='leetify' && /^[a-f0-9-]{36}$/i.test(match.result.importSource.matchId)){const source=element('a','leetify-source','View on Leetify');source.href='https://leetify.com/app/match-details/'+match.result.importSource.matchId;source.target='_blank';source.rel='noopener noreferrer';const attribution=element('a','leetify-attribution'),badge=element('img');attribution.href='https://leetify.com/';badge.src='assets/images/leetify-data-badge.png';badge.alt='Data Provided by Leetify';attribution.append(badge);body.append(source,attribution);}
       body.append(form); details.append(body); container.append(details);
     });
   }
