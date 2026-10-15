@@ -19,14 +19,27 @@
       "id": "t1",
       "name": "Team 01",
       "tag": "01",
+      "captainId": "p5",
       "players": [
         {
-          "id": "p11",
-          "name": "Part"
+          "id": "p5",
+          "name": "Froppo"
         },
         {
-          "id": "p8",
-          "name": "Kzy"
+          "id": "p2",
+          "name": "Cantlon"
+        },
+        {
+          "id": "p6",
+          "name": "Grayzee"
+        },
+        {
+          "id": "p3",
+          "name": "Don"
+        },
+        {
+          "id": "p9",
+          "name": "Lukinss"
         }
       ]
     },
@@ -34,74 +47,27 @@
       "id": "t2",
       "name": "Team 02",
       "tag": "02",
+      "captainId": "p8",
       "players": [
         {
-          "id": "p3",
-          "name": "Don"
-        },
-        {
-          "id": "p1",
-          "name": "Aatori"
-        }
-      ]
-    },
-    {
-      "id": "t3",
-      "name": "Team 03",
-      "tag": "03",
-      "players": [
-        {
-          "id": "p9",
-          "name": "Lukinss"
-        },
-        {
-          "id": "p12",
-          "name": "Sam"
-        }
-      ]
-    },
-    {
-      "id": "t4",
-      "name": "Team 04",
-      "tag": "04",
-      "players": [
-        {
-          "id": "p2",
-          "name": "Cantlon"
+          "id": "p8",
+          "name": "Kzy"
         },
         {
           "id": "p10",
           "name": "Omnii"
-        }
-      ]
-    },
-    {
-      "id": "t5",
-      "name": "Team 05",
-      "tag": "05",
-      "players": [
-        {
-          "id": "p5",
-          "name": "Froppo"
         },
         {
-          "id": "p6",
-          "name": "Grayzee"
-        }
-      ]
-    },
-    {
-      "id": "t6",
-      "name": "Team 06",
-      "tag": "06",
-      "players": [
-        {
-          "id": "p7",
-          "name": "Hans"
+          "id": "p1",
+          "name": "Aatori"
         },
         {
           "id": "p4",
           "name": "Finesse"
+        },
+        {
+          "id": "p7",
+          "name": "Hans"
         }
       ]
     }
@@ -109,181 +75,19 @@
   "groups": [],
   "matches": [
     {
-      "id": "de1",
+      "id": "f1",
       "round": 0,
-      "bracket": "upper",
-      "label": "Winners · Round 1",
-      "sources": [
-        {
-          "team": "t4"
-        },
-        {
-          "team": "t5"
-        }
-      ],
-      "result": null,
-      "map": "Eldorado"
-    },
-    {
-      "id": "de2",
-      "round": 0,
-      "bracket": "upper",
-      "label": "Winners · Round 1",
-      "sources": [
-        {
-          "team": "t3"
-        },
-        {
-          "team": "t6"
-        }
-      ],
-      "result": null,
-      "map": "Vertigo"
-    },
-    {
-      "id": "de3",
-      "round": 2,
-      "bracket": "upper",
-      "label": "Winners · Round 2",
       "sources": [
         {
           "team": "t1"
         },
         {
-          "winner": "de1"
-        }
-      ],
-      "result": null,
-      "map": "Overpass"
-    },
-    {
-      "id": "de4",
-      "round": 2,
-      "bracket": "upper",
-      "label": "Winners · Round 2",
-      "sources": [
-        {
           "team": "t2"
-        },
-        {
-          "winner": "de2"
         }
       ],
       "result": null,
-      "map": "Inferno"
-    },
-    {
-      "id": "de5",
-      "round": 3,
-      "bracket": "lower",
-      "label": "Losers · Round 2",
-      "sources": [
-        {
-          "loser": "de1"
-        },
-        {
-          "loser": "de4"
-        }
-      ],
-      "result": null,
-      "map": "Nuke"
-    },
-    {
-      "id": "de6",
-      "round": 3,
-      "bracket": "lower",
-      "label": "Losers · Round 2",
-      "sources": [
-        {
-          "loser": "de2"
-        },
-        {
-          "loser": "de3"
-        }
-      ],
-      "result": null,
-      "map": "Debris"
-    },
-    {
-      "id": "de7",
-      "round": 4,
-      "bracket": "lower",
-      "label": "Losers · Round 3",
-      "sources": [
-        {
-          "winner": "de5"
-        },
-        {
-          "winner": "de6"
-        }
-      ],
-      "result": null,
-      "map": "Poseidon"
-    },
-    {
-      "id": "de8",
-      "round": 5,
-      "bracket": "upper",
-      "label": "Winners · Round 3",
-      "sources": [
-        {
-          "winner": "de3"
-        },
-        {
-          "winner": "de4"
-        }
-      ],
-      "result": null,
-      "map": "Vertigo"
-    },
-    {
-      "id": "de9",
-      "round": 6,
-      "bracket": "lower",
-      "label": "Losers · Round 4",
-      "sources": [
-        {
-          "winner": "de7"
-        },
-        {
-          "loser": "de8"
-        }
-      ],
-      "result": null,
-      "map": "Debris"
-    },
-    {
-      "id": "f1",
-      "round": 7,
-      "bracket": "final",
-      "label": "Grand final",
-      "sources": [
-        {
-          "winner": "de8"
-        },
-        {
-          "winner": "de9"
-        }
-      ],
-      "result": null,
-      "map": "Nuke"
-    },
-    {
-      "id": "f2",
-      "round": 8,
-      "bracket": "final",
-      "label": "Grand final reset · if needed",
-      "resetOf": "f1",
-      "sources": [
-        {
-          "winner": "de8"
-        },
-        {
-          "winner": "de9"
-        }
-      ],
-      "result": null,
-      "map": "Poseidon"
+      "label": "Single Game · 5v5",
+      "map": "Mirage"
     }
   ],
   "history": [],
@@ -292,18 +96,70 @@
     "banner": "custom game"
   },
   "registrationEnabled": false,
-  "format": "double",
+  "format": "single",
   "qualifiersPerGroup": 2,
-  "teamSize": 2,
-  "mode": "duos",
+  "teamSize": 5,
+  "mode": "squads",
   "mapPool": [
+    "Mirage",
+    "Dust2",
     "Inferno",
     "Nuke",
+    "Ancient",
+    "Anubis",
     "Vertigo",
+    "Cache",
+    "Train",
     "Overpass",
-    "Poseidon",
-    "Debris",
-    "Eldorado"
+    "Office",
+    "Italy"
   ],
-  "serverAddress": ""
+  "serverAddress": "",
+  "mapMethod": "veto",
+  "mapVeto": [
+    {
+      "teamId": "t1",
+      "map": "Inferno"
+    },
+    {
+      "teamId": "t2",
+      "map": "Vertigo"
+    },
+    {
+      "teamId": "t1",
+      "map": "Ancient"
+    },
+    {
+      "teamId": "t2",
+      "map": "Nuke"
+    },
+    {
+      "teamId": "t1",
+      "map": "Overpass"
+    },
+    {
+      "teamId": "t2",
+      "map": "Anubis"
+    },
+    {
+      "teamId": "t1",
+      "map": "Train"
+    },
+    {
+      "teamId": "t2",
+      "map": "Cache"
+    },
+    {
+      "teamId": "t1",
+      "map": "Dust2"
+    },
+    {
+      "teamId": "t2",
+      "map": "Italy"
+    },
+    {
+      "teamId": "t1",
+      "map": "Office"
+    }
+  ]
 }
