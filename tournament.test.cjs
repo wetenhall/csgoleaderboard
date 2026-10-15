@@ -271,7 +271,7 @@ test('clearing a tournament removes all match and player data and supports a new
  const {emptyTournament}=require('./manager.js');
  const original=JSON.parse(fs.readFileSync('tournament.json','utf8'));
  const snapshot=JSON.stringify(original); const empty=emptyTournament(original);
- assert.deepEqual(empty,{...(original.savedPlayers!==undefined?{savedPlayers:original.savedPlayers}:{}),...(original.serverAddress?{serverAddress:original.serverAddress}:{}),name:original.name,teams:[],groups:[],matches:[],...(original.history?{history:original.history}:{}),...(original.headers?{headers:original.headers}:{}),...(original.registrationEnabled!==undefined?{registrationEnabled:original.registrationEnabled}:{})});
+ assert.deepEqual(empty,{...(original.gameProvider?{gameProvider:original.gameProvider}:{}),...(original.importAliases?{importAliases:original.importAliases}:{}),...(original.savedPlayers!==undefined?{savedPlayers:original.savedPlayers}:{}),...(original.serverAddress?{serverAddress:original.serverAddress}:{}),name:original.name,teams:[],groups:[],matches:[],...(original.history?{history:original.history}:{}),...(original.headers?{headers:original.headers}:{}),...(original.registrationEnabled!==undefined?{registrationEnabled:original.registrationEnabled}:{})});
  assert.equal(JSON.stringify(original),snapshot);validateData(empty,resolveTournament);
  assert.equal(resolveTournament(empty).matches.length,0);assert.deepEqual(playerTotals(empty),[]);
  const players=Array.from({length:4},(_,i)=>({id:'p'+i,name:'Player '+i}));
