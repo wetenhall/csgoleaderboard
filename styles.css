@@ -220,3 +220,15 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 @media(max-width:650px){.setup-options-grid{grid-template-columns:1fr}.setup-stage .setup-card{padding:16px}}
 
 .draw-stage>.map-method-control{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:end;gap:12px;padding:18px;border:1px solid var(--border);border-top:3px solid var(--accent)}.draw-stage>.map-method-control label{flex:1;min-width:220px;display:block}.draw-stage>.map-method-control select{width:100%;margin-top:8px}.draw-stage>.map-method-control button{margin:0}.draw-stage>.map-method-control p{flex-basis:100%;margin:0}
+
+/* Keep primary draw actions at the right edge of their row. */
+.draw-stage>.spin-actions{justify-content:flex-start}.draw-stage>.spin-actions>.auto-spin-toggle{order:0}.draw-stage>.spin-actions>#skip-animation{order:1}.draw-stage>.spin-actions>#sound-toggle{order:2}.draw-stage>.spin-actions>#spin{order:3;margin-left:auto}
+#use-manual-teams,#save-player-names,#load-pool,#captain-choices>button{display:block;margin-left:auto;margin-right:0}
+#add-saved-players{margin-left:auto}.draw-stage>.map-method-control>#confirm-map-method{margin-left:auto}
+/* Accessible checkbox switch: the native checked state drives the visual track. */
+.auto-spin-toggle{position:relative;cursor:pointer;gap:10px}.auto-spin-toggle input{position:absolute;width:1px;height:1px;opacity:0;margin:0}
+.auto-spin-track{display:inline-block;position:relative;width:44px;height:26px;flex:0 0 44px;border:1px solid #7b818b;border-radius:20px;background:#151820;transition:background .15s,border-color .15s}
+.auto-spin-track:after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#e5e7eb;transition:transform .15s}
+.auto-spin-toggle input:checked+.auto-spin-track{background:var(--accent);border-color:var(--accent)}.auto-spin-toggle input:checked+.auto-spin-track:after{transform:translateX(18px);background:#171a21}
+.auto-spin-toggle input:focus-visible+.auto-spin-track{outline:2px solid var(--blue);outline-offset:3px}.auto-spin-toggle input:disabled+.auto-spin-track{opacity:.45}
+@media(prefers-reduced-motion:reduce){.auto-spin-track,.auto-spin-track:after{transition:none}}
