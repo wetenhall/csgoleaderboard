@@ -12,7 +12,8 @@ const client=new Client({intents:[GatewayIntentBits.Guilds]});
 function card(event){
   const rows=[new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('register:'+event.id).setLabel('Register me to play').setStyle(ButtonStyle.Primary).setDisabled(!!event.publishedAt),
-    new ButtonBuilder().setCustomId('withdraw:'+event.id).setLabel('Withdraw').setStyle(ButtonStyle.Secondary).setDisabled(!!event.publishedAt))];
+    new ButtonBuilder().setCustomId('withdraw:'+event.id).setLabel('Withdraw').setStyle(ButtonStyle.Secondary).setDisabled(!!event.publishedAt),
+    new ButtonBuilder().setCustomId('publish:'+event.id).setLabel('Publish game').setStyle(ButtonStyle.Success).setDisabled(!!event.publishedAt || event.players.length!==event.capacity))];
   if(event.publishedAt)rows.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel('View tournament').setStyle(ButtonStyle.Link).setURL(process.env.SITE_URL)));
   return {embeds:[new EmbedBuilder().setTitle(event.title).setColor(0xf5a623).setDescription(event.players.length?event.players.map((p,i)=>(i+1)+'. '+escapeMarkdown(p.name)).join('\n'):'No players registered yet.').setFooter({text:event.players.length+'/'+event.capacity+' players · '+(event.publishedAt?'Published · roster locked':'Submit your gaming name to register. Names become public when published.')})],components:rows,allowedMentions:{parse:[]}};
 }
