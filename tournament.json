@@ -85,8 +85,9 @@
     "Debris",
     "Eldorado"
   ],
-  "serverAddress": "",
+  "serverAddress": "138.199.44.113:25477",
   "mapMethod": "wheel",
   "mapVeto": [],
-  "discordEventId": "201e9b2c-92ee-4828-b066-2ef2c40236a2"
+  "discordEventId": "201e9b2c-92ee-4828-b066-2ef2c40236a2",
+  "serverPassword": "07ayn"
 }
