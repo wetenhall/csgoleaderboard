@@ -85,12 +85,12 @@ if(typeof module!=='undefined')module.exports={validServerAddress,parseServerCon
 function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,setMap,getMaps,setMapMethod,beginRematch,notify}) {
   const $=id=>document.getElementById(id);
   const draftRoot=element('section','map-draw-options'),methodRoot=element('div','map-method-control'),publicRoot=element('section','match-tools');
-  let pendingMethod='';
+  let pendingMethod='',serverEditorOpen=false;
   methodRoot.hidden=true;$('draw-stage').querySelector('.draw-roster').after(methodRoot);
   draftRoot.hidden=true;draftRoot.id='map-draw-options';publicRoot.id='match-tools';methodRoot.after(draftRoot);$('panel-leaderboard').append(publicRoot);
   const makeButton=(label,action)=>{const b=element('button','secondary',label);b.type='button';b.onclick=async()=>{try{await action();}catch(e){notify(e.message);}};return b;};
   async function copy(text){try{await navigator.clipboard.writeText(text);notify('Copied to clipboard.');}catch{const dialog=element('dialog','options-dialog'),field=element('textarea');field.value=text;field.rows=12;field.readOnly=true;dialog.append(element('h2','','Copy match details'),field,makeButton('Close',()=>{dialog.close();dialog.remove();}));document.body.append(dialog);dialog.showModal();field.select();}}
-  function controls(){publicRoot.querySelectorAll('[data-server-editor]').forEach(form=>{form.hidden=!isOrganiser();form.querySelectorAll('input,button').forEach(el=>el.disabled=isBusy());});[draftRoot,methodRoot].forEach(root=>root.querySelectorAll('input,select,button').forEach(el=>el.disabled=isBusy() || !isOrganiser()));const confirm=$('confirm-map-method');if(confirm)confirm.disabled=isBusy() || !isOrganiser() || !$('map-selection-method').value || !!getDraft()?.mapMethod;$('panel-leaderboard').querySelectorAll('[data-rematch]').forEach(el=>{el.hidden=!isOrganiser();el.disabled=isBusy();});}
+  function controls(){publicRoot.querySelectorAll('[data-server-toggle]').forEach(button=>{button.hidden=!isOrganiser();button.disabled=isBusy();button.setAttribute('aria-expanded',String(serverEditorOpen && isOrganiser()));});publicRoot.querySelectorAll('[data-server-editor]').forEach(form=>{form.hidden=!isOrganiser() || !serverEditorOpen;form.querySelectorAll('input,button').forEach(el=>el.disabled=isBusy());});[draftRoot,methodRoot].forEach(root=>root.querySelectorAll('input,select,button').forEach(el=>el.disabled=isBusy() || !isOrganiser()));const confirm=$('confirm-map-method');if(confirm)confirm.disabled=isBusy() || !isOrganiser() || !$('map-selection-method').value || !!getDraft()?.mapMethod;$('panel-leaderboard').querySelectorAll('[data-rematch]').forEach(el=>{el.hidden=!isOrganiser();el.disabled=isBusy();});}
   function renderDraft(){
     const wasHidden=methodRoot.hidden;
     draftRoot.replaceChildren();methodRoot.replaceChildren();const draft=getDraft();methodRoot.hidden=!draft || draft.format!=='single';draftRoot.hidden=true;
@@ -138,7 +138,8 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
     if(matchActions){actions.classList.add('match-extra-actions');matchActions.querySelector('.match-extra-actions')?.remove();matchActions.append(actions);}
     else publicRoot.append(actions);
     if(data.format==='single' && data.teams.length){
-      const form=element('form','setup-card');form.dataset.serverEditor='';
+      const form=element('form','setup-card');form.dataset.serverEditor='';form.id='match-server-editor';
+      const toggle=makeButton('Add server',()=>{serverEditorOpen=!serverEditorOpen;controls();if(serverEditorOpen)form.querySelector('input').focus();});toggle.dataset.serverToggle='';toggle.setAttribute('aria-controls',form.id);publicRoot.append(toggle);
       form.append(element('h3','','Match server'),element('p','rules','Once your game server is ready, add its address here. Saving updates Connect to match in Discord. Paste the full connect command, including a password if required. These details are published for players on the website and in its public repository. Leave blank to remove them.'));
       const label=element('label','','Server connection details'),input=document.createElement('input');input.value=data.serverAddress?serverConnectionCommand(data):'';input.placeholder='server.example.com:27015';input.maxLength=450;input.autocomplete='off';label.append(input);
       const status=element('p','rules');status.setAttribute('role','status');const actions=element('div','setup-navigation'),save=element('button','','Save server details');save.type='submit';actions.append(save);form.append(label,status,actions);
