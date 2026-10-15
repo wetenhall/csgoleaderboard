@@ -13,7 +13,7 @@
     "Part",
     "Sam"
   ],
-  "name": "custom game",
+  "name": "2v2",
   "teams": [
     {
       "id": "t1",
@@ -21,24 +21,12 @@
       "tag": "01",
       "players": [
         {
-          "id": "p4",
-          "name": "Finesse"
+          "id": "p1",
+          "name": "Grayzee"
         },
         {
           "id": "p2",
-          "name": "Cantlon"
-        },
-        {
-          "id": "p5",
-          "name": "Froppo"
-        },
-        {
-          "id": "p7",
-          "name": "Hans"
-        },
-        {
-          "id": "p10",
-          "name": "Omnii"
+          "name": "OMNII-GODZ"
         }
       ]
     },
@@ -48,24 +36,12 @@
       "tag": "02",
       "players": [
         {
-          "id": "p8",
-          "name": "Kzy"
-        },
-        {
-          "id": "p9",
-          "name": "Lukinss"
-        },
-        {
-          "id": "p1",
-          "name": "Aatori"
+          "id": "p4",
+          "name": "gorogay"
         },
         {
           "id": "p3",
-          "name": "Don"
-        },
-        {
-          "id": "p6",
-          "name": "Grayzee"
+          "name": "Spongoat"
         }
       ]
     }
@@ -84,37 +60,33 @@
         }
       ],
       "result": null,
-      "label": "Single Game · 5v5",
-      "map": "Italy"
+      "label": "Single Game · 2v2",
+      "map": "Nuke"
     }
   ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
-    "banner": "Custom Games",
+    "banner": "2v2",
     "registrationTitle": "Register to play",
     "registrationDescription": "Enter your player name to register for the next 1v1 tournament.\n\nDate: Thursday 29th October \nTime: 7pm GMT"
   },
   "registrationEnabled": true,
   "format": "single",
   "qualifiersPerGroup": 2,
-  "teamSize": 5,
-  "mode": "squads",
+  "teamSize": 2,
+  "mode": "duos",
   "mapPool": [
-    "Mirage",
-    "Dust2",
     "Inferno",
     "Nuke",
-    "Ancient",
-    "Anubis",
     "Vertigo",
-    "Cache",
-    "Train",
     "Overpass",
-    "Office",
-    "Italy"
+    "Poseidon",
+    "Debris",
+    "Eldorado"
   ],
   "serverAddress": "",
-  "mapMethod": "case",
-  "mapVeto": []
+  "mapMethod": "wheel",
+  "mapVeto": [],
+  "discordEventId": "201e9b2c-92ee-4828-b066-2ef2c40236a2"
 }
