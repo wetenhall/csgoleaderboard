@@ -288,7 +288,7 @@ function renderTournament(data) {
       const tr = element('tr', group.qualified && i < qualifiers ? 'qualified' : '');
       [group.complete && !group.tied ? i+1 : '—', teams.get(row.id).name, row.played, row.wins, row.draws, row.losses, row.difference > 0 ? `+${row.difference}` : row.difference].forEach((value, index) => {
         const cell = element('td');
-        if (index === 1) { const identity=element('span','scoreboard-identity');identity.append(teamEmblem(teams.get(row.id)),teamNameNode(teams.get(row.id)));cell.append(identity); }
+        if (index === 1) { const team=teams.get(row.id),identity=element('span','scoreboard-identity'),name=teamNameNode(team);if(team.players?.length>1)name.append(element('small','group-team-players',team.players.map(player=>player.name).join(' · ')));identity.append(teamEmblem(team),name);cell.append(identity); }
         else cell.textContent = String(value);
         tr.append(cell);
       });
