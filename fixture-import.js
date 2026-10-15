@@ -1,6 +1,13 @@
 let importCentreState={open:false,inbox:false,links:false};
 let faceitFeedCache=null;
 async function loadFaceitFeed(force=false){if(!faceitFeedCache || force)faceitFeedCache=fetch('faceit-games.json?v='+Date.now(),{cache:'no-store'}).then(async response=>{if(!response.ok)throw Error('Game list is not available yet. Check that the bot is running.');return response.json();}).catch(error=>{faceitFeedCache=null;throw error;});return faceitFeedCache;}
+function normalizeLeetifyProfileUrl(value){
+  if(!String(value).trim())return '';
+  let url;try{url=new URL(String(value).trim());}catch{throw Error('Enter a complete Leetify profile URL.');}
+  const match=url.pathname.match(/^\/app\/profile\/([a-z0-9-]+)(?:\/.*)?$/i);
+  if(url.protocol!=='https:' || !['leetify.com','www.leetify.com'].includes(url.hostname) || url.port || url.username || url.password || !match || !/^(?:[0-9]{17}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i.test(match[1]))throw Error('Use a Leetify profile link such as https://leetify.com/app/profile/your-profile-id.');
+  return 'https://leetify.com/app/profile/'+match[1].toLowerCase();
+}
 function importedFixtureResult(data,fixture,game,links){
   if(!fixture.ids?.every(Boolean))throw Error('This fixture is not ready.');
   if(game.provider!=='faceit' || game.teams?.length!==2)throw Error('Invalid imported game.');
@@ -33,7 +40,7 @@ function createFixtureImporter({data,fixture,save,isBusy,isOrganiser,gameId}){
   };
   void refresh();return root;
 }
-if(typeof module!=='undefined')module.exports={importedFixtureResult,importedGameUsage,suggestImportFixtures};
+if(typeof module!=='undefined')module.exports={normalizeLeetifyProfileUrl,importedFixtureResult,importedGameUsage,suggestImportFixtures};
 function importedGameUsage(data,id){
   return [...data.matches.filter(m=>m.result?.importSource?.id===id).map(m=>({fixtureId:m.id,archived:false,label:m.id.toUpperCase()})),...(data.history||[]).flatMap(entry=>entry.tournament.matches.filter(m=>m.result?.importSource?.id===id).map(m=>({fixtureId:m.id,archived:true,label:entry.title+' / '+m.id.toUpperCase()})))];
 }
@@ -45,14 +52,14 @@ function suggestImportFixtures(data,game,resolve){
     try{importedFixtureResult(data,fixture,game,links);suggestions.push(fixture.id);}catch{}
   }return suggestions;
 }
-function createImportCentre({data,resolve,isBusy,isOrganiser,saveImport,saveAliases,undo}){
+function createImportCentre({data,resolve,isBusy,isOrganiser,saveImport,saveAliases,saveProfiles,undo}){
   const root=element('details','import-centre'),note=element('p','rules');
   const button=(text,fn)=>{const b=element('button','secondary',text);b.type='button';b.onclick=async()=>{if(isBusy()||!isOrganiser())return;b.disabled=true;try{await fn();}catch(error){note.textContent=error.message;}finally{b.disabled=false;}};return b;};
   root.append(element('summary','import-centre-heading','Imports & result changes'));root.open=importCentreState.open;root.addEventListener('toggle',event=>{if(event.target===root)importCentreState.open=root.open;});
   const last=data.resultRevisions?.at(-1);if(last){root.append(element('p','rules','Last result change: '+last.fixtureId.toUpperCase()+' · '+new Date(last.at).toLocaleString()),button('Undo last result change',async()=>{if(confirm('Restore the previous results and player stats, including affected playoff results? Name links are unchanged.'))await undo();}));}
   const inbox=element('details','import-inbox'),inboxBody=element('div');inbox.append(element('summary','','FACEIT import inbox'),inboxBody);
   const manager=element('details','name-link-manager'),managerBody=element('div');manager.append(element('summary','','Manage player name links'),element('p','rules','Change or unlink remembered names here. This affects future imports only; to correct an existing result, undo it or reimport the game with the correct links.'),managerBody);root.append(inbox,manager,note);
-  inbox.open=importCentreState.inbox;manager.open=importCentreState.links;let feed=null;
+  inbox.open=importCentreState.inbox;manager.open=importCentreState.links;let feed=null;const profilesBody=element('section','leetify-profile-links');manager.insertBefore(profilesBody,managerBody);renderProfiles();
   const load=async(force=false)=>{note.textContent='Loading FACEIT games…';try{feed=await loadFaceitFeed(force);if(!root.isConnected)return;renderInbox();renderLinks();note.textContent='Game list synced '+new Date(feed.updatedAt).toLocaleString()+'.';}catch(error){note.textContent=error.message;}};
   inboxBody.append(button('Load available games',()=>load()));managerBody.append(button('Load player name links',()=>load()));
   inbox.addEventListener('toggle',()=>{importCentreState.inbox=inbox.open;if(inbox.open&&!feed)void load();});manager.addEventListener('toggle',()=>{importCentreState.links=manager.open;if(manager.open&&!feed)void load();});
@@ -60,6 +67,16 @@ function createImportCentre({data,resolve,isBusy,isOrganiser,saveImport,saveAlia
     for(const game of games){const used=importedGameUsage(data,game.id),card=element('details','import-game'),body=element('div'),suggestions=suggestImportFixtures(data,game,resolve);card.append(element('summary','',game.map+' · '+game.teams.map(t=>t.players.map(p=>p.name).join(', ')).join(' vs ')+' · '+game.teams.map(t=>t.score).join('–')+' · '+new Date(game.finishedAt*1000).toLocaleString()+(used.length?' · Already imported: '+used.map(u=>u.label).join(', '):suggestions.length===1?' · Suggested '+suggestions[0].toUpperCase():suggestions.length>1?' · Multiple possible fixtures':' · Link players to suggest a fixture')));
       if(!used.length){const label=element('label','','Choose fixture'),pick=element('select'),preview=element('div');pick.append(element('option','','Select fixture'));pick.firstChild.value='';for(const fixture of resolve(data).matches.filter(m=>!m.skipped && m.ids.every(Boolean))){const o=element('option','',fixture.id.toUpperCase()+' · '+fixture.ids.map(id=>data.teams.find(t=>t.id===id).players.map(p=>p.name).join(', ')).join(' vs ')+(fixture.result?' · Replace saved result':''));o.value=fixture.id;pick.append(o);}label.append(pick);body.append(label,preview);pick.onchange=()=>{preview.replaceChildren();const fixture=resolve(data).matches.find(m=>m.id===pick.value);if(fixture)preview.append(createFixtureImporter({data,fixture,gameId:game.id,isBusy,isOrganiser,save:(result,aliases)=>saveImport(fixture.id,result,aliases)}));};if(suggestions.length===1)pick.value=suggestions[0];let opened=false;card.addEventListener('toggle',()=>{if(card.open&&!opened){opened=true;if(pick.value)pick.onchange();}});}
       card.append(body);inboxBody.append(card);
+    }
+  }
+  function renderProfiles(){
+    profilesBody.replaceChildren(element('h4','','Leetify profiles'),element('p','rules','Optional profile URLs are saved in the public repository. These links do not yet enable automatic game discovery. Unlinking a profile leaves your existing name mappings and match stats unchanged.'));
+    const profiles=data.leetifyProfiles||{},names=new Map();
+    for(const name of [...(data.savedPlayers||[]),...data.teams.flatMap(t=>t.players.map(p=>p.name)),...Object.values(data.importAliases?.faceit||{})])names.set(name.normalize('NFKC').toLowerCase(),name);
+    for(const key of Object.keys(profiles))if(!names.has(key))names.set(key,key);
+    if(!names.size)profilesBody.append(element('p','rules','Save players or create a tournament to link profiles.'));
+    for(const [key,name] of [...names].sort((a,b)=>a[1].localeCompare(b[1]))){const row=element('div','name-link-row leetify-profile-row'),label=element('label','',name),input=element('input');input.type='url';input.placeholder='https://leetify.com/app/profile/…';input.maxLength=300;input.value=profiles[key]||'';input.setAttribute('aria-label',name+' Leetify profile');label.append(input);
+      row.append(label,button('Save profile',async()=>{const next=Object.assign(Object.create(null),profiles),url=normalizeLeetifyProfileUrl(input.value);if(url)next[key]=url;else delete next[key];await saveProfiles(next);}),button('Unlink profile',async()=>{const next=Object.assign(Object.create(null),profiles);delete next[key];await saveProfiles(next);}));profilesBody.append(row);
     }
   }
   function renderLinks(){managerBody.replaceChildren();const aliases=data.importAliases?.faceit||{},names=[...new Set([...Object.keys(aliases),...(feed.games||[]).flatMap(g=>g.teams.flatMap(t=>t.players.map(p=>p.name.normalize('NFKC').toLowerCase())))])].sort(),choices=[...new Set([...(data.savedPlayers||[]),...data.teams.flatMap(t=>t.players.map(p=>p.name)),...Object.values(aliases)])].sort();
