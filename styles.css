@@ -199,3 +199,7 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .draw-stage>.map-draw-options{grid-column:1/-1}
 
 .player-game-banner{display:flex;align-items:center;flex-wrap:wrap;gap:6px 18px;padding:14px 18px;margin:18px 0 12px;border-left:4px solid var(--accent);background:linear-gradient(100deg,#ff9b011a,#171a21)}.player-game-banner>span{font:600 10px var(--mono);letter-spacing:1.5px;color:var(--accent)}.player-game-banner>strong{font-size:20px;color:var(--text)}.player-game-banner>small{margin-left:auto;color:var(--muted);font-size:13px}@media(max-width:600px){.player-game-banner>small{margin-left:0;flex-basis:100%}}
+
+/* Keep Back immediately left of each stage action, including Create teams. */
+.setup-navigation{flex-wrap:nowrap;align-items:center}.setup-navigation>button{margin:0;min-width:0}.setup-navigation>[id^="setup-back-"]{flex:0 0 auto;white-space:nowrap}
+#draw-panel.live-draw #setup-stage-4>.setup-navigation{display:none}
