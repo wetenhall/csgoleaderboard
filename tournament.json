@@ -155,7 +155,9 @@
   "history": [],
   "headers": {
     "brand": "Pull up gang",
-    "banner": "custom game"
+    "banner": "custom game",
+    "registrationTitle": "Register to play",
+    "registrationDescription": "Enter your player name to register for the next 1v1 tournament."
   },
   "registrationEnabled": true,
   "format": "groups",
