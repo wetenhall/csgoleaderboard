@@ -264,6 +264,6 @@
   "teamSize": 1,
   "mode": "1v1",
   "serverAddress": "",
-  "gameProvider": "faceit",
+  "gameProvider": "manual",
   "discordEventId": "339b874f-6a09-4592-8f47-f794132251e4"
 }
