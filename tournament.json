@@ -157,7 +157,7 @@
     "brand": "Pull up gang",
     "banner": "custom game"
   },
-  "registrationEnabled": false,
+  "registrationEnabled": true,
   "format": "groups",
   "qualifiersPerGroup": 1,
   "teamSize": 3,
@@ -175,5 +175,6 @@
     "Overpass",
     "Office",
     "Italy"
-  ]
+  ],
+  "serverAddress": ""
 }
