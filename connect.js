@@ -9,7 +9,7 @@
     if(!server)throw Error('The organiser has not added a server address yet.');
     const command=serverConnectionCommand(data);
     document.getElementById('command').textContent=command;
-    document.getElementById('launch').href='steam://run/730//'+encodeURIComponent(serverConnectionCommand(data,true))+'/';
+    document.getElementById('launch').href='steam://connect/'+server+(data.serverPassword?'/'+encodeURIComponent(data.serverPassword):'');
     document.getElementById('copy').onclick=async()=>{try{await navigator.clipboard.writeText(command);status.textContent='Connection command copied.';}catch{status.textContent='Copy the command shown below into the CS2 console.';}};
     status.textContent='Your match server: '+server;
     document.getElementById('connection').hidden=false;
