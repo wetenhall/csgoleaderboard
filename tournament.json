@@ -14,13 +14,167 @@
     "Sam"
   ],
   "name": "custom game",
-  "teams": [],
-  "groups": [],
-  "matches": [],
+  "teams": [
+    {
+      "id": "t1",
+      "name": "Team 01",
+      "tag": "01",
+      "players": [
+        {
+          "id": "p7",
+          "name": "Hans"
+        },
+        {
+          "id": "p8",
+          "name": "Kzy"
+        },
+        {
+          "id": "p6",
+          "name": "Grayzee"
+        }
+      ]
+    },
+    {
+      "id": "t2",
+      "name": "Team 02",
+      "tag": "02",
+      "players": [
+        {
+          "id": "p4",
+          "name": "Finesse"
+        },
+        {
+          "id": "p3",
+          "name": "Don"
+        },
+        {
+          "id": "p10",
+          "name": "Omnii"
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "name": "Team 03",
+      "tag": "03",
+      "players": [
+        {
+          "id": "p1",
+          "name": "Aatori"
+        },
+        {
+          "id": "p5",
+          "name": "Froppo"
+        },
+        {
+          "id": "p2",
+          "name": "Cantlon"
+        }
+      ]
+    },
+    {
+      "id": "t4",
+      "name": "Team 04",
+      "tag": "04",
+      "players": [
+        {
+          "id": "p11",
+          "name": "Part"
+        },
+        {
+          "id": "p9",
+          "name": "Lukinss"
+        },
+        {
+          "id": "p12",
+          "name": "Sam"
+        }
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "id": "A",
+      "teams": [
+        "t2",
+        "t3"
+      ],
+      "tiebreakOrder": []
+    },
+    {
+      "id": "B",
+      "teams": [
+        "t1",
+        "t4"
+      ],
+      "tiebreakOrder": []
+    }
+  ],
+  "matches": [
+    {
+      "id": "a1",
+      "group": "A",
+      "teams": [
+        "t2",
+        "t3"
+      ],
+      "result": null,
+      "map": "Dust2"
+    },
+    {
+      "id": "b1",
+      "group": "B",
+      "teams": [
+        "t1",
+        "t4"
+      ],
+      "result": null,
+      "map": "Cache"
+    },
+    {
+      "id": "f1",
+      "round": 0,
+      "sources": [
+        {
+          "seed": [
+            "A",
+            0
+          ]
+        },
+        {
+          "seed": [
+            "B",
+            0
+          ]
+        }
+      ],
+      "result": null,
+      "map": "Ancient"
+    }
+  ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
     "banner": "custom game"
   },
-  "registrationEnabled": false
+  "registrationEnabled": true,
+  "format": "groups",
+  "qualifiersPerGroup": 1,
+  "teamSize": 3,
+  "mode": "trios",
+  "mapPool": [
+    "Mirage",
+    "Dust2",
+    "Inferno",
+    "Nuke",
+    "Ancient",
+    "Anubis",
+    "Vertigo",
+    "Cache",
+    "Train",
+    "Overpass",
+    "Office",
+    "Italy"
+  ],
+  "serverAddress": ""
 }
