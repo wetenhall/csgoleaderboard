@@ -72,15 +72,17 @@ function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMap
   const $=id=>document.getElementById(id);
   const draftRoot=element('section','map-draw-options'),methodRoot=element('div','map-method-control'),publicRoot=element('section','match-tools');
   let pendingMethod='';
-  methodRoot.hidden=true;$('draw-stage').querySelector('.draw-stage-toolbar').after(methodRoot);
+  methodRoot.hidden=true;$('draw-stage').querySelector('.draw-roster').after(methodRoot);
   draftRoot.hidden=true;draftRoot.id='map-draw-options';publicRoot.id='match-tools';methodRoot.after(draftRoot);$('panel-leaderboard').append(publicRoot);
   const makeButton=(label,action)=>{const b=element('button','secondary',label);b.type='button';b.onclick=async()=>{try{await action();}catch(e){notify(e.message);}};return b;};
   async function copy(text){try{await navigator.clipboard.writeText(text);notify('Copied to clipboard.');}catch{const dialog=element('dialog','options-dialog'),field=element('textarea');field.value=text;field.rows=12;field.readOnly=true;dialog.append(element('h2','','Copy match details'),field,makeButton('Close',()=>{dialog.close();dialog.remove();}));document.body.append(dialog);dialog.showModal();field.select();}}
   function controls(){[draftRoot,methodRoot].forEach(root=>root.querySelectorAll('input,select,button').forEach(el=>el.disabled=isBusy() || !isOrganiser()));const confirm=$('confirm-map-method');if(confirm)confirm.disabled=isBusy() || !isOrganiser() || !$('map-selection-method').value || !!getDraft()?.mapMethod;$('panel-leaderboard').querySelectorAll('[data-rematch]').forEach(el=>{el.hidden=!isOrganiser();el.disabled=isBusy();});}
   function renderDraft(){
+    const wasHidden=methodRoot.hidden;
     draftRoot.replaceChildren();methodRoot.replaceChildren();const draft=getDraft();methodRoot.hidden=!draft || draft.format!=='single';draftRoot.hidden=true;
     $('draw-stage').classList.toggle('map-veto',!methodRoot.hidden && draft.mapMethod==='veto');
-    if(methodRoot.hidden){pendingMethod='';return;}
+    if(methodRoot.hidden){pendingMethod='';$('draw-stage').querySelector('.draw-roster').before($('draw-stage').querySelector('.wheel-panel'));return;}
+    draftRoot.after($('draw-stage').querySelector('.wheel-panel'));
     if(draft.format==='single'){
       const maps=getMaps(),section=element('section','veto-panel'),methodLabel=element('label','','Map selection method'),method=element('select');
       method.id='map-selection-method';
@@ -91,7 +93,7 @@ function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMap
       const confirm=makeButton(draft.mapMethod?'Method confirmed':'Confirm map selection',()=>{if(!method.value || isBusy() || !isOrganiser())return;pendingMethod=method.value;setMapMethod(method.value);});
       confirm.id='confirm-map-method';methodRoot.append(confirm);
       const note=element('p','rules',draft.mapMethod?'Choose another method to change how the map is selected.':'Select a method and confirm to reveal its controls.');methodRoot.append(note);
-      if(!draft.mapMethod){controls();confirm.disabled=isBusy() || !isOrganiser() || !method.value;return;}
+      if(!draft.mapMethod){controls();confirm.disabled=isBusy() || !isOrganiser() || !method.value;if(wasHidden)methodRoot.scrollIntoView({block:'center',behavior:'smooth'});return;}
       confirm.disabled=true;
       if(method.value==='veto'){
         const bans=draft.mapVeto || [],left=maps.filter(map=>!bans.some(b=>b.map===map)),team=draft.teams[bans.length%2];

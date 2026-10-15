@@ -870,7 +870,7 @@ if (typeof document !== 'undefined') (() => {
   function renderCaptainCases(){
     const root=$('captain-case-grid');root.replaceChildren();if(!captainDraft)return;
     const complete=captainDraft.turn===captainDraft.cases.length,team=captainDraft.teams[captainDraft.turn%2],captain=team.players.find(p=>p.id===team.captainId);
-    $('captain-case-status').textContent=complete?'Both teams are complete. '+($('tournament-format').value==='single'?'Choose the map below, then publish.':'Ready to publish.'):'Next pick: '+captain.name+' · '+team.name+'. Click a case on behalf of the captain.';
+    $('captain-case-status').textContent=complete?'Both teams are complete. '+($('tournament-format').value==='single'?'Choose and confirm a map selection method below, then select your map and publish.':'Ready to publish.'):'Next pick: '+captain.name+' · '+team.name+'. Click a case on behalf of the captain.';
     captainDraft.cases.forEach((item,i)=>{
       const button=element('button','captain-case'+(item.opened?' case-opened':'')),art=element('img','captain-case-art');button.type='button';art.src='assets/images/csgo-chroma-2-case.png';art.alt='';art.width=256;art.height=198;art.draggable=false;art.setAttribute('aria-hidden','true');button.append(art,element('span','case-number','CASE '+String(i+1).padStart(2,'0')));
       if(item.opened){button.append(element('strong','',item.player.name),element('small','',captainDraft.teams.find(team=>team.id===item.teamId).name));}else button.setAttribute('aria-label','Open case '+(i+1));
