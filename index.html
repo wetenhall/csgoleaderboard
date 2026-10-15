@@ -24,6 +24,7 @@
     <nav id="admin-menu" class="admin-menu" aria-label="Admin menu" hidden="">
       <div class="page-tabs admin-tabs" role="tablist" aria-label="Admin sections">
 <button type="button" id="tab-team-setup" aria-label="Team setup" hidden="" role="tab" aria-controls="panel-team-setup" aria-selected="false" tabindex="-1">Team setup</button>
+<button type="button" id="tab-fixture-import" hidden="" role="tab" aria-controls="panel-fixture-import" aria-selected="false" tabindex="-1">Fixture Import</button>
 <button type="button" id="tab-manage-players" hidden="" role="tab" aria-controls="panel-manage-players" aria-selected="false" tabindex="-1">Manage Players</button>
       </div>
     </nav>
@@ -71,6 +72,10 @@ Another player"></textarea></label>
 </div>
 <div id="panel-history" class="tab-panel" role="tabpanel" aria-labelledby="tab-history" tabindex="0" hidden="">
 <section aria-labelledby="history-heading"><div class="section-heading"><h2 id="history-heading">Tournament history</h2><span>PAST CUPS / LASTING BRAGGING RIGHTS</span></div><p class="rules">Completed cups are saved here when the organiser archives them. Past results and player stats stay available after a new draw.</p><button id="clear-history" type="button" class="secondary danger" data-organiser-action="" hidden="" disabled="">Clear all history</button><div id="cup-history"></div></section>
+</div>
+<div id="panel-fixture-import" class="tab-panel" role="tabpanel" aria-labelledby="tab-fixture-import" tabindex="0" hidden="">
+  <div class="section-heading"><h2>Fixture Import</h2></div>
+  <div id="fixture-import-centre"></div>
 </div>
 <div id="panel-manage-players" class="tab-panel" role="tabpanel" aria-labelledby="tab-manage-players" tabindex="0" hidden="">
   <div class="section-heading"><h2>Manage players</h2></div>

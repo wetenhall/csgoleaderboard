@@ -361,6 +361,7 @@ if (typeof document !== 'undefined') (() => {
     document.querySelector('.token-help').hidden = !!token;
     $('tab-team-setup').hidden = !token;
     $('tab-manage-players').hidden = !token;
+    $('tab-fixture-import').hidden = !token;
     $('admin-menu').hidden = !token;
     const matchLink=new URLSearchParams(location.search);const viewingMatch=matchLink.get('connect')==='1' && matchLink.get('event')===current.discordEventId;
     const hideTournament=current.registrationEnabled!==false && !token && !viewingMatch;
@@ -538,7 +539,7 @@ if (typeof document !== 'undefined') (() => {
   }
   function renderSchedule() {
     document.getElementById('fixture-platform')?.remove();document.getElementById('import-centre')?.remove();$('player-links').replaceChildren();
-    if(token){const centre=createImportCentre({playerContainer:$('player-links'),data:structuredClone(current),resolve:resolveTournament,isBusy:()=>busy,isOrganiser:()=>!!token,saveImport:saveImportedFixture,saveProfiles:async profiles=>{const next=structuredClone(current);next.leetifyProfiles=profiles;await publish(next,'Update Leetify player profile links');},saveAliases:async aliases=>{const next=structuredClone(current);next.importAliases={...current.importAliases,faceit:aliases};await publish(next,'Update FACEIT player name links');},undo:async()=>{await publish(undoResultChange(current,resolveTournament),'Undo last result change');}});centre.id='import-centre';$('schedule').before(centre);}
+    if(token){const centre=createImportCentre({dedicated:true,playerContainer:$('player-links'),data:structuredClone(current),resolve:resolveTournament,isBusy:()=>busy,isOrganiser:()=>!!token,saveImport:saveImportedFixture,saveProfiles:async profiles=>{const next=structuredClone(current);next.leetifyProfiles=profiles;await publish(next,'Update Leetify player profile links');},saveAliases:async aliases=>{const next=structuredClone(current);next.importAliases={...current.importAliases,faceit:aliases};await publish(next,'Update FACEIT player name links');},undo:async()=>{await publish(undoResultChange(current,resolveTournament),'Undo last result change');}});centre.id='import-centre';$('fixture-import-centre').replaceChildren(centre);}
 
     if(token){const label=element('label','fixture-platform','Game platform'),select=element('select');label.id='fixture-platform';for(const [value,text] of [['manual','Other · Manual results'],['faceit','FACEIT · Pull up gang queue']]){const o=element('option','',text);o.value=value;select.append(o);}select.value=current.gameProvider || 'manual';select.disabled=busy;select.onchange=async()=>{try{const next=structuredClone(current);next.gameProvider=select.value;await publish(next,'Update fixture game platform');}catch(error){say(error.message);select.value=current.gameProvider || 'manual';}};label.append(select);$('schedule').before(label);}
 
