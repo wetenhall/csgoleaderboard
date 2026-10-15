@@ -252,3 +252,5 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 
 .match-connect{display:block;width:100%;box-sizing:border-box;text-align:center;padding:20px 24px;font-size:24px;margin-top:20px}
 
+
+footer{flex-wrap:wrap}.footer-status{flex-basis:100%;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 24px}.footer-status .connection-status,.footer-status .viewer-update{margin:0;font-size:12px;line-height:1.5}
