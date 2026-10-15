@@ -4,12 +4,12 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const { resolveTournament } = require('./app.js');
 const { cupMode, cupFinal, completedCup, archiveCup, careerRecords, matchNight } = require('./extras.js');
-test('one-match games support 2v2 through 5v5 with exactly two teams and a working result',()=>{
+test('Single Game games support 2v2 through 5v5 with exactly two teams and a working result',()=>{
   const {makeTournament,validateData,applyResult}=require('./manager.js');
   for(const size of [2,3,4,5]){
     const players=Array.from({length:size*2},(_,i)=>({id:'p'+i,name:'Player '+i}));
     const cup=makeTournament(players,size,{name:'Custom match'},undefined,4,['Nuke'],2,'single');
-    assert.equal(cup.groups.length,0);assert.equal(cup.matches.length,1);assert.equal(cup.matches[0].label,'One match · '+size+'v'+size);
+    assert.equal(cup.groups.length,0);assert.equal(cup.matches.length,1);assert.equal(cup.matches[0].label,'Single Game · '+size+'v'+size);
     assert.ok(cup.teams.every(team=>team.players.length===size));validateData(cup,resolveTournament);
     const done=applyResult(cup,'f1',{teams:resolveTournament(cup).matches[0].ids,scores:[13,9]},resolveTournament).next;
     assert.equal(completedCup(done,resolveTournament),true);
@@ -651,7 +651,7 @@ test('squad wheel assigns one player to each team in rotation and preserves rost
  assert.deepEqual(drawTeamMembers(duos,2).map(t=>t.map(p=>p.id)),[['p0','p1'],['p2','p3'],['p4','p5']]);
 });
 
-test('5v5 one match requires ten players and publishes one rotating-team fixture',()=>{
+test('5v5 Single Game requires ten players and publishes one rotating-team fixture',()=>{
  const {makeTournament,applyResult,validateData}=require('./manager.js');
  const players=Array.from({length:10},(_,i)=>({id:'p'+i,name:'Player '+i}));
  const cup=makeTournament(players,5,{name:'Custom game'},['t1','t2'],4,['Nuke'],1,'single');

@@ -63,8 +63,8 @@ function matchPlaceholder(match, index) {
   return source.seed ? `Group ${source.seed[0]} · ${source.seed[1] === 0 ? '1st' : '2nd'}` : source.winner ? `Winner ${source.winner.toUpperCase()}` : source.loser ? `Loser ${source.loser.toUpperCase()}` : 'Awaiting team';
 }
 function knockoutRoundName(match, matches) {
-  if(match.label)return match.label;
-  const labelled=matches.find(m=>m.round===match.round && m.label);if(labelled)return labelled.label;
+  if(match.label)return match.label.replace(/one match/gi,'Single Game');
+  const labelled=matches.find(m=>m.round===match.round && m.label);if(labelled)return labelled.label.replace(/one match/gi,'Single Game');
   const last = Math.max(...matches.filter(m => !m.group).map(m => m.round));
   const remaining = last - match.round;
   return remaining === 0 ? 'Grand final' : remaining === 1 ? 'Semi-finals' : remaining === 2 ? 'Quarter-finals' : `Round of ${2 ** (remaining+1)}`;
@@ -242,7 +242,7 @@ function renderTournament(data) {
   document.getElementById('broadcast-status').dataset.state=completed && completed<matches.length?'live':'ready';
   document.getElementById('progress').replaceChildren(document.createTextNode(`${completed} / ${matches.length} `), element('small', '', 'matches complete'));
   document.getElementById('team-count').textContent = `${data.teams.length} teams entered`;
-  document.getElementById('format-name').textContent = `${data.teamSize === 1 ? '1v1' : data.teamSize === 2 ? 'Duos' : data.teamSize === 5 ? 'Squads' : data.teamSize === 3 ? '3v3' : data.teamSize === 4 ? '4v4' : 'Teams'} · ${data.format==='single' ? 'One match' : data.format==='double' ? 'Double elimination' : groups.length === 0 ? 'Knockout' : groups.length === 1 ? 'Group → final' : `${groups.length} groups → playoffs`}`;
+  document.getElementById('format-name').textContent = `${data.teamSize === 1 ? '1v1' : data.teamSize === 2 ? 'Duos' : data.teamSize === 5 ? 'Squads' : data.teamSize === 3 ? '3v3' : data.teamSize === 4 ? '4v4' : 'Teams'} · ${data.format==='single' ? 'Single Game' : data.format==='double' ? 'Double elimination' : groups.length === 0 ? 'Knockout' : groups.length === 1 ? 'Group → final' : `${groups.length} groups → playoffs`}`;
   document.getElementById('groups-heading').closest('section').hidden = !groups.length;
   document.getElementById('roster-count').textContent = `${data.teams.length} TEAMS / 1 TROPHY`;
   document.getElementById('group-rules').textContent = 'Ranked by wins, then round difference (RD). Remaining ties need a tiebreak decision. Playoff places are confirmed when each team has played every other team in its group.';
