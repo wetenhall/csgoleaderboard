@@ -288,9 +288,10 @@ if (typeof document !== 'undefined') (() => {
   let pool = [], remaining = [], selected = [], draw = null, spinning = false, locked = false, drawOrder = [];
   const tokenStorageKey = 'friends-cup.organiser-token.'+(repository?repository.owner+'/'+repository.repo:'unconfigured');
   function storeToken(value) {
+    try { sessionStorage.removeItem(tokenStorageKey); } catch { /* Clear legacy tab storage when available. */ }
     try {
-      if (value) sessionStorage.setItem(tokenStorageKey,value);
-      else sessionStorage.removeItem(tokenStorageKey);
+      if (value) localStorage.setItem(tokenStorageKey,value);
+      else localStorage.removeItem(tokenStorageKey);
       return true;
     } catch { return false; }
   }
@@ -386,7 +387,7 @@ if (typeof document !== 'undefined') (() => {
     const response = await fetch(api + (method === 'GET' ? '?ref='+encodeURIComponent(repository.branch) : ''), { method, cache:'no-store', headers: {Accept:'application/vnd.github+json',Authorization:`Bearer ${credential}`,'Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'}, ...(body ? {body:JSON.stringify(body)} : {}) });
     if (!response.ok) {
       if (response.status === 409 || response.status === 422) throw Error('The repository changed. Reload the latest saved tournament before editing again; your current inputs have not been published.');
-      if ([401,403,404].includes(response.status)) throw Error('GitHub denied access. Check token expiry, repository access and Contents: Read and write permission.');
+      if ([401,403,404].includes(response.status)) {const error=Error('GitHub denied access. Check token expiry, repository access and Contents: Read and write permission.');error.status=response.status;throw error;}
       throw Error(`GitHub could not save or load this tournament (${response.status}). Try again.`);
     }
     return response.json();
@@ -414,8 +415,8 @@ if (typeof document !== 'undefined') (() => {
       token = candidate; fileSha = file.sha; current = data;
       const remembered = storeToken($('remember-token').checked ? token : '');
       renderAll();
-      say(remembered ? 'Organiser connected. Latest repository data loaded.' : 'Organiser connected. Tab storage is unavailable; enter your token again after refreshing.');
-    } catch(error) { token = ''; fileSha = ''; storeToken(''); say(error.message); }
+      say(remembered ? 'Organiser connected. Latest repository data loaded.' : 'Organiser connected. Device storage is unavailable; enter your token again after refreshing.');
+    } catch(error) { token = ''; fileSha = ''; if([401,403,404].includes(error.status))storeToken(''); say(error.message); }
     finally { busy = false; controls(); }
   }
   $('connect-form').addEventListener('submit',async event => {
@@ -425,7 +426,7 @@ if (typeof document !== 'undefined') (() => {
   });
   $('remember-token').onchange = () => {
     const saved = storeToken($('remember-token').checked ? token : '');
-    if (!saved) say('Tab storage is unavailable; enter your token again after refreshing.');
+    if (!saved) say('Device storage is unavailable; enter your token again after refreshing.');
   };
   $('disconnect').onclick = () => { stopAutoSpin();token = ''; fileSha = ''; storeToken(''); controls(); say('Disconnected. The remembered token has been cleared.'); };
   $('refresh-data').onclick = async () => {
@@ -1109,6 +1110,7 @@ if (typeof document !== 'undefined') (() => {
   selectLinkedTab();
   if(!repository)say('Read-only preview. Deploy with GitHub Actions to enable organiser connection for your repository.');
   let rememberedToken = '';
-  try { rememberedToken = sessionStorage.getItem(tokenStorageKey) || ''; } catch { /* Storage may be disabled by browser settings. */ }
+  try { rememberedToken = localStorage.getItem(tokenStorageKey) || ''; } catch { /* Storage may be disabled by browser settings. */ }
+  if(!rememberedToken)try { rememberedToken=sessionStorage.getItem(tokenStorageKey) || ''; } catch { /* Legacy tab storage is optional. */ }
   if (rememberedToken) { $('remember-token').checked = true; void connect(rememberedToken); }
 })();

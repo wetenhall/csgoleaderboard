@@ -4,6 +4,14 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const { resolveTournament } = require('./app.js');
 const { cupMode, cupFinal, completedCup, archiveCup, careerRecords, matchNight } = require('./extras.js');
+test('remembered organiser token persists on device and clears both device and legacy storage',()=>{
+  const source=fs.readFileSync('manager.js','utf8'),persistent=new Map(),legacy=new Map([['repo','legacy']]);
+  const context={tokenStorageKey:'repo',localStorage:{setItem:(k,v)=>persistent.set(k,v),removeItem:k=>persistent.delete(k)},sessionStorage:{removeItem:k=>legacy.delete(k)}};
+  vm.runInNewContext(source.slice(source.indexOf('  function storeToken(value)'),source.indexOf('  const say =')),context);
+  assert.equal(context.storeToken('test-key'),true);assert.equal(persistent.get('repo'),'test-key');assert.equal(legacy.has('repo'),false);
+  context.storeToken('');assert.equal(persistent.has('repo'),false);
+  context.localStorage.setItem=()=>{throw Error('Storage unavailable');};assert.equal(context.storeToken('test-key'),false);
+});
 test('Single Game games support 2v2 through 5v5 with exactly two teams and a working result',()=>{
   const {makeTournament,validateData,applyResult}=require('./manager.js');
   for(const size of [2,3,4,5]){

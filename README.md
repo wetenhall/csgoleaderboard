@@ -24,7 +24,7 @@ Only the default branch deploys. No repository owner or API token needs to be pl
 
 Open the top-right settings cog and follow the token instructions. Create a fine-grained token as the repository owner, select only your dashboard repository and grant Contents: Read and write. Organisation policies may require approval. A token cannot grant access your account does not already have.
 
-Paste it into the dashboard and connect. Team setup and the header settings cog appear after connection. Remember for this tab uses session storage, scoped to the repository; disconnect clears it. Browser session restoration may retain it. Never commit tokens or include them in URLs.
+Paste it into the dashboard and connect. Team setup and the header settings cog appear after connection. Remember on this device uses browser local storage, scoped to the repository, and reconnects after refresh or reopening the browser; disconnect clears it. Temporary network failures keep the saved connection key. Never commit tokens or include them in URLs.
 
 ## Run a tournament
 
