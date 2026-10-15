@@ -1,6 +1,7 @@
 const fs=require('node:fs'),path=require('node:path'),{randomUUID}=require('node:crypto');
 const {Client,GatewayIntentBits,Events,PermissionFlagsBits,SlashCommandBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,StringSelectMenuBuilder,ModalBuilder,TextInputBuilder,TextInputStyle,EmbedBuilder,escapeMarkdown,MessageFlags}=require('discord.js');
 const {register,publishEvent,teamAnnouncements}=require('./core.cjs');
+const {renderTeamImages}=require('./team-image.cjs');
 for(const key of ['DISCORD_TOKEN','DISCORD_GUILD_ID','GITHUB_TOKEN','GITHUB_REPOSITORY','GITHUB_BRANCH','SITE_URL'])if(!process.env[key])throw Error('Missing '+key);
 if(!/^[\w.-]+\/[\w.-]+$/.test(process.env.GITHUB_REPOSITORY))throw Error('Invalid repository.');
 if(new URL(process.env.SITE_URL).protocol!=='https:')throw Error('SITE_URL must use HTTPS.');
@@ -39,12 +40,18 @@ async function syncTeams(){
     const file=await response.json(),tournament=JSON.parse(Buffer.from(file.content,'base64').toString('utf8'));
     const event=data.events.find(event=>event.id===tournament.discordEventId && event.publishedAt);
     if(!event || !tournament.teams?.length)return;
-    const descriptions=teamAnnouncements(tournament,escapeMarkdown),signature=JSON.stringify(descriptions);
+    const descriptions=teamAnnouncements(tournament,escapeMarkdown),signature='team-images-v1:'+JSON.stringify(descriptions);
     if(event.teamSignature===signature)return;
     const channel=await client.channels.fetch(event.channelId),registration=await channel.messages.fetch(event.messageId);
+    const images=renderTeamImages(tournament);
     event.teamMessageIds ||= [];
     for(let i=0;i<descriptions.length;i++){
       const payload={embeds:[new EmbedBuilder().setTitle((event.title+' · Teams').slice(0,256)).setColor(0xf5a623).setDescription(descriptions[i]).setURL(process.env.SITE_URL)],allowedMentions:{parse:[],repliedUser:false}};
+      payload.attachments=[];
+      if(i===0 && images.length){
+        payload.files=images;payload.embeds[0].setImage('attachment://'+images[0].name);
+        for(const image of images.slice(1))payload.embeds.push(new EmbedBuilder().setImage('attachment://'+image.name));
+      }
       let message=null;
       if(event.teamMessageIds[i])try{message=await channel.messages.fetch(event.teamMessageIds[i]);}catch(error){if(error.code!==10008)throw error;}
       if(message)await message.edit(payload);

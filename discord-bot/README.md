@@ -1,13 +1,13 @@
 # Discord registration bot
 
-After selecting a Discord event on the site and clicking Publish teams, the bot automatically replies beneath that event's registration card with the confirmed teams, players, captains and Single Game map. It checks the repository every 30 seconds while running. Republishing changed teams updates the same reply; score changes do not create new announcements. Custom games without a Discord event are not posted. Existing teams published before this feature need publishing again from their selected event to link them.
+After selecting a Discord event on the site and clicking Publish teams, the bot automatically replies beneath that event's registration card with a generated team-card PNG showing the confirmed teams, players, captains and Single Game map, alongside a text roster. It checks the repository every 30 seconds while running. Republishing changed teams updates the same reply; score changes do not create new announcements. Custom games without a Discord event are not posted. Existing teams published before this feature need publishing again from their selected event to link them.
 
 The website stays on GitHub Pages. This Node.js bot connects to Discord using the Gateway, so no public HTTP endpoint or Interactions Endpoint URL is needed. Run one instance on an always-on computer or a Node hosting service with a persistent disk. It only requests the Guilds intent, not message-content access.
 
 ## Configure
 
 1. In https://discord.com/developers/applications create an application. Under Bot generate a token.
-2. Under Installation enable Guild Install and select bot and applications.commands. Grant View Channels, Send Messages, Embed Links and Read Message History. Open the installation link and add it to your server. The bot itself does not need Administrator.
+2. Under Installation enable Guild Install and select bot and applications.commands. Grant View Channels, Send Messages, Embed Links, Attach Files and Read Message History. Open the installation link and add it to your server. The bot itself does not need Administrator.
 3. Enable Developer Mode in Discord settings. Right-click your server and Copy Server ID. Optionally copy your organiser role ID. Server administrators always qualify; the configured role also qualifies. All publish requests check permissions on the server.
 4. Copy `.env.example` to `.env` in this folder. Enter the bot token, server ID and optional role ID. Create a GitHub fine-grained token for this repository with Contents read/write. Enter it as GITHUB_TOKEN. Never commit or share either token.
 5. Verify the branch and website URL. The defaults point to wetenhall/csgoleaderboard on main. The GitHub token owner must have permission to update that branch.
@@ -24,3 +24,4 @@ After GitHub Pages deployment, connect as organiser on the site, open Team setup
 The default event file is empty. No fake participants are deployed. To test, create an event for two players and register with two Discord accounts, then publish and load it on the site. A full 5v5 test requires ten registrations. The existing tournament is not replaced until the website organiser publishes teams.
 
 Back up the private data file. Only one bot instance may access it. Published events remain in the website dropdown; pending events survive restarts on the persistent disk. This version does not include event deletion or reopening a published roster.
+

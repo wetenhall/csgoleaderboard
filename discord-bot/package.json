@@ -1,1 +1,1 @@
-{"name":"friends-cup-discord","private":true,"version":"1.0.0","scripts":{"start":"node --env-file=.env bot.cjs","test":"node --test bot.test.cjs"},"engines":{"node":">=22.12.0"},"dependencies":{"discord.js":"^14.22.1"}}
+{"name":"friends-cup-discord","private":true,"version":"1.0.0","scripts":{"start":"node --env-file=.env bot.cjs","test":"node --test bot.test.cjs image.test.cjs"},"engines":{"node":">=22.12.0"},"dependencies":{"@napi-rs/canvas":"^1.0.11","discord.js":"^14.22.1"}}

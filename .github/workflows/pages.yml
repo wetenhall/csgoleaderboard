@@ -22,7 +22,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tournament.test.cjs discord-bot/bot.test.cjs
+      - run: npm ci --prefix discord-bot --ignore-scripts
+      - run: node --test tournament.test.cjs discord-bot/bot.test.cjs discord-bot/image.test.cjs
       - name: Prepare website
         run: node build.cjs
       - uses: actions/configure-pages@v5

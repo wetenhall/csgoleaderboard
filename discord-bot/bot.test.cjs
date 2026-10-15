@@ -6,12 +6,12 @@ test('Discord sync posts once, skips unchanged teams and edits the existing repl
   const source=fs.readFileSync(path.join(__dirname,'bot.cjs'),'utf8');
   const event={id:'event1',publishedAt:'now',title:'Cup',channelId:'channel',messageId:'registration'};
   const tournament={discordEventId:'event1',teamSize:2,teams:[{name:'Team 01',players:[{name:'Alice'},{name:'Bob'}]}]};
-  let sent=0,edited=0;
-  class Embed{setTitle(){return this;}setColor(){return this;}setDescription(){return this;}setURL(){return this;}}
-  const message={id:'teams',edit:async()=>{edited++;}},registration={reply:async()=>{sent++;return message;}};
-  const context={queue:Promise.resolve(),syncingTeams:false,process:{env:{GITHUB_REPOSITORY:'owner/repo',GITHUB_BRANCH:'main',GITHUB_TOKEN:'fake',SITE_URL:'https://example.com'}},data:{events:[event]},Buffer,AbortSignal,EmbedBuilder:Embed,escapeMarkdown:value=>value,teamAnnouncements:require('./core.cjs').teamAnnouncements,save(){},console:{error(){}},fetch:async()=>({ok:true,json:async()=>({content:Buffer.from(JSON.stringify(tournament)).toString('base64')})}),client:{channels:{fetch:async()=>({messages:{fetch:async id=>id==='registration'?registration:message,delete:async()=>{}}})}}};
+  let sent=0,edited=0,postedPayload;
+  class Embed{setTitle(){return this;}setColor(){return this;}setDescription(){return this;}setURL(){return this;}setImage(){return this;}}
+  const message={id:'teams',edit:async()=>{edited++;}},registration={reply:async payload=>{sent++;postedPayload=payload;return message;}};
+  const context={queue:Promise.resolve(),syncingTeams:false,process:{env:{GITHUB_REPOSITORY:'owner/repo',GITHUB_BRANCH:'main',GITHUB_TOKEN:'fake',SITE_URL:'https://example.com'}},data:{events:[event]},Buffer,AbortSignal,EmbedBuilder:Embed,escapeMarkdown:value=>value,teamAnnouncements:require('./core.cjs').teamAnnouncements,renderTeamImages:()=>[{name:'teams-1.png',attachment:Buffer.from('png')}],save(){},console:{error(){}},fetch:async()=>({ok:true,json:async()=>({content:Buffer.from(JSON.stringify(tournament)).toString('base64')})}),client:{channels:{fetch:async()=>({messages:{fetch:async id=>id==='registration'?registration:message,delete:async()=>{}}})}}};
   vm.runInNewContext(source.slice(source.indexOf('async function syncTeams(){'),source.indexOf('client.on(Events.InteractionCreate')),context);
-  await context.syncTeams();assert.equal(sent,1);assert.deepEqual(Array.from(event.teamMessageIds),['teams']);
+  await context.syncTeams();assert.equal(sent,1);assert.equal(postedPayload.files[0].name,'teams-1.png');assert.deepEqual(Array.from(event.teamMessageIds),['teams']);
   await context.syncTeams();assert.equal(sent,1);assert.equal(edited,0);
   tournament.teams[0].name='Renamed team';await context.syncTeams();assert.equal(sent,1);assert.equal(edited,1);
 });
