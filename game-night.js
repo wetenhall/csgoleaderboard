@@ -130,17 +130,18 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
     controls();
   }
   function render(){
-    publicRoot.replaceChildren();const data=getData(),actions=element('div','game-actions');
+    publicRoot.replaceChildren();document.querySelector('[data-match-connect]')?.remove();let connectButton=null;const data=getData(),actions=element('div','game-actions');
     if(data.teams.length)actions.append(makeButton('Copy match details for Discord',()=>copy(discordMatchText(getData(),resolveTournament))));
     if(data.serverAddress){
-      const connection=parseServerConnection(serverConnectionCommand(data)),connect=element('a','connect-launch','Connect to server');
+      const connection=parseServerConnection(serverConnectionCommand(data)),connect=element('a','connect-launch match-connect','Connect to server');connect.dataset.matchConnect='';connectButton=connect;
       connect.href='steam://connect/'+connection.serverAddress+(connection.serverPassword?'/'+encodeURIComponent(connection.serverPassword):'');
-      actions.append(connect,makeButton('Copy server connection',()=>copy(serverConnectionCommand(getData()))));
+      actions.append(makeButton('Copy server connection',()=>copy(serverConnectionCommand(getData()))));
     }
     if(data.format==='single' && data.teamSize>=2){const rematch=makeButton('Rematch · Same teams, new map',beginRematch);rematch.dataset.rematch='';actions.append(rematch);}
     const matchActions=document.querySelector('.match-published-actions');
     if(matchActions){actions.classList.add('match-extra-actions');matchActions.querySelector('.match-extra-actions')?.remove();matchActions.append(actions);}
     else publicRoot.append(actions);
+    if(connectButton){if(matchActions)matchActions.before(connectButton);else publicRoot.prepend(connectButton);}
     if(data.format==='single' && data.teams.length){
       const form=element('form','setup-card');form.dataset.serverEditor='';form.id='match-server-editor';
       const toggle=makeButton('Add server',()=>{serverEditorOpen=!serverEditorOpen;controls();if(serverEditorOpen)form.querySelector('input').focus();});toggle.dataset.serverToggle='';toggle.setAttribute('aria-controls',form.id);toggle.classList.remove('secondary');actions.append(toggle);
