@@ -159,7 +159,7 @@
     "registrationTitle": "Register to play",
     "registrationDescription": "Enter your player name to register for the next 1v1 tournament.\n\nDate: Thursday 29th October \nTime: 7pm GMT"
   },
-  "registrationEnabled": false,
+  "registrationEnabled": true,
   "format": "groups",
   "qualifiersPerGroup": 1,
   "teamSize": 3,
