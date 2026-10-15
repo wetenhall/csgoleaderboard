@@ -1,4 +1,4 @@
-let importCentreState={open:false,inbox:false,links:false};
+let importCentreState={open:false,inbox:false,links:false,linkTab:'faceit'};
 let faceitFeedCache=null;
 async function loadFaceitFeed(force=false){if(!faceitFeedCache || force)faceitFeedCache=fetch('faceit-games.json?v='+Date.now(),{cache:'no-store'}).then(async response=>{if(!response.ok)throw Error('Game list is not available yet. Check that the bot is running.');return response.json();}).catch(error=>{faceitFeedCache=null;throw error;});return faceitFeedCache;}
 function normalizeLeetifyProfileUrl(value){
@@ -60,6 +60,11 @@ function createImportCentre({data,resolve,isBusy,isOrganiser,saveImport,saveAlia
   const inbox=element('details','import-inbox'),inboxBody=element('div');inbox.append(element('summary','','FACEIT import inbox'),inboxBody);
   const manager=element('details','name-link-manager'),managerBody=element('div');manager.append(element('summary','','Manage player name links'),element('p','rules','Change or unlink remembered names here. This affects future imports only; to correct an existing result, undo it or reimport the game with the correct links.'),managerBody);root.append(inbox,manager,note);
   inbox.open=importCentreState.inbox;manager.open=importCentreState.links;let feed=null;const profilesBody=element('section','leetify-profile-links');manager.insertBefore(profilesBody,managerBody);renderProfiles();
+  const linkTabs=element('div','player-link-tabs');linkTabs.setAttribute('role','tablist');linkTabs.setAttribute('aria-label','Player link provider');const tabButtons=[];
+  for(const [provider,title,panel] of [['faceit','FACEIT',managerBody],['leetify','Leetify',profilesBody]]){const tab=element('button','secondary',title);tab.type='button';tab.id='player-links-tab-'+provider;panel.id='player-links-panel-'+provider;tab.setAttribute('role','tab');tab.setAttribute('aria-controls',panel.id);panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',tab.id);tab.onclick=()=>showLinkTab(provider);tabButtons.push({provider,tab,panel});linkTabs.append(tab);}
+  function showLinkTab(provider){importCentreState.linkTab=provider;tabButtons.forEach(item=>{const selected=item.provider===provider;item.tab.setAttribute('aria-selected',String(selected));item.tab.tabIndex=selected?0:-1;item.panel.hidden=!selected;});}
+  tabButtons.forEach((item,index)=>item.tab.onkeydown=event=>{const next=event.key==='ArrowRight'?(index+1)%2:event.key==='ArrowLeft'?(index+1)%2:event.key==='Home'?0:event.key==='End'?1:null;if(next!==null){event.preventDefault();showLinkTab(tabButtons[next].provider);tabButtons[next].tab.focus();}});
+  manager.insertBefore(linkTabs,profilesBody);showLinkTab(importCentreState.linkTab||'faceit');
   const load=async(force=false)=>{note.textContent='Loading FACEIT games…';try{feed=await loadFaceitFeed(force);if(!root.isConnected)return;renderInbox();renderLinks();note.textContent='Game list synced '+new Date(feed.updatedAt).toLocaleString()+'.';}catch(error){note.textContent=error.message;}};
   inboxBody.append(button('Load available games',()=>load()));managerBody.append(button('Load player name links',()=>load()));
   inbox.addEventListener('toggle',()=>{importCentreState.inbox=inbox.open;if(inbox.open&&!feed)void load();});manager.addEventListener('toggle',()=>{importCentreState.links=manager.open;if(manager.open&&!feed)void load();});

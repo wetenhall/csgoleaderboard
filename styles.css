@@ -263,3 +263,5 @@ footer{flex-wrap:wrap}.footer-status{flex-basis:100%;display:flex;justify-conten
 
 
 .import-centre>.import-centre-heading{font-size:22px;line-height:1.4;color:var(--accent)}
+
+.player-link-tabs{display:flex;gap:0;margin:20px 0;border-bottom:1px solid var(--border)}.player-link-tabs button{flex:1;margin:0;background:transparent;border:0;border-bottom:3px solid transparent;color:var(--muted)}.player-link-tabs button[aria-selected=true]{color:var(--accent);border-bottom-color:var(--accent);background:#ff9b0115}
