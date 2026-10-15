@@ -1,4 +1,12 @@
 (async()=>{
+  const dialog=document.getElementById('connect-dialog');
+  const requested=new URLSearchParams(location.search).get('connect')==='1';
+  if(dialog){
+    const close=()=>dialog.close();document.getElementById('close-connect').onclick=close;document.getElementById('dismiss-connect').onclick=close;
+    dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left || event.clientX>r.right || event.clientY<r.top || event.clientY>r.bottom)close();}});
+    dialog.addEventListener('close',()=>{const url=new URL(location.href);url.searchParams.delete('connect');url.searchParams.delete('event');history.replaceState(null,'',url);});
+    if(!requested)return;dialog.showModal();
+  }
   const status=document.getElementById('status');
   try{
     const response=await fetch('tournament.json',{cache:'no-store'});

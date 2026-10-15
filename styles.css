@@ -245,3 +245,5 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .group-team-players{display:block;margin-top:5px;font-size:12px;font-weight:400;line-height:1.5;color:var(--muted);white-space:normal;overflow-wrap:anywhere}.group-panel .scoreboard-identity .team-name{min-width:0}
 
 #registration-description{white-space:pre-line}
+
+.connect-launch{display:inline-block;background:var(--accent);color:#111;padding:12px 18px;font-weight:700;text-decoration:none}.connection-command{display:block;overflow-wrap:anywhere;white-space:pre-wrap;background:#101316;padding:16px;margin-top:16px}#connect-dialog .game-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}#connect-dialog .game-actions button{margin:0}

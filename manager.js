@@ -351,7 +351,8 @@ if (typeof document !== 'undefined') (() => {
     $('options-form').hidden = !token;
     document.querySelector('.token-help').hidden = !!token;
     $('tab-team-setup').hidden = !token;
-    const hideTournament=current.registrationEnabled!==false && !token;
+    const matchLink=new URLSearchParams(location.search);const viewingMatch=matchLink.get('connect')==='1' && matchLink.get('event')===current.discordEventId;
+    const hideTournament=current.registrationEnabled!==false && !token && !viewingMatch;
     ['leaderboard','fixtures','stats','history'].forEach(name=>{$('tab-'+name).hidden=hideTournament;});
     document.querySelector('.overview').hidden=hideTournament;
     const active=tabs.find(tab=>tab.getAttribute('aria-selected')==='true');
