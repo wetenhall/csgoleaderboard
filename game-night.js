@@ -108,7 +108,9 @@ function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMap
         }else section.append(element('p','rules','Select at least one map.'));
         const buttons=element('div','game-actions');if(left.length>1)left.forEach(map=>buttons.append(makeButton('Ban '+map,()=>{if(isBusy() || !isOrganiser())return;const result=advanceMapVeto(maps,draft.teams,bans,map);draft.mapVeto=result.bans;if(result.selected)setMap(result.selected);else renderDraft();})));
         if(left.length===1 && draft.matches[0].map!==left[0])buttons.append(makeButton('Confirm '+left[0],()=>setMap(left[0])));
-        buttons.append(makeButton('Restart veto',()=>{draft.mapVeto=[];setMap(null);}));section.append(buttons);
+        section.append(buttons);
+        const resetRow=element('div','veto-reset-actions'),reset=makeButton('Restart veto',()=>{draft.mapVeto=[];setMap(null);});
+        reset.classList.add('danger');resetRow.append(reset);section.append(resetRow);
       }draftRoot.hidden=draft.mapMethod!=='veto';draftRoot.append(section);
     }
     controls();
