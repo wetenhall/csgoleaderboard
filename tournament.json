@@ -265,5 +265,13 @@
   "mode": "1v1",
   "serverAddress": "",
   "gameProvider": "faceit",
-  "discordEventId": "339b874f-6a09-4592-8f47-f794132251e4"
+  "discordEventId": "339b874f-6a09-4592-8f47-f794132251e4",
+  "leetifyProfiles": {
+    "cantlon": "https://leetify.com/app/profile/76561198169191946",
+    "grayzee": "https://leetify.com/app/profile/76561197962400947",
+    "don": "https://leetify.com/app/profile/76561198103763246",
+    "aatori": "https://leetify.com/app/profile/76561198320090889",
+    "lilribe": "https://leetify.com/app/profile/76561198017635867",
+    "omnii": "https://leetify.com/app/profile/76561199090504360"
+  }
 }
