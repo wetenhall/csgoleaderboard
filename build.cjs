@@ -30,3 +30,5 @@ fs.copyFileSync(path.join(__dirname, 'tournament.json'), path.join(output, 'tour
 
 require('./discord-events.js').validateDiscordEvents(JSON.parse(fs.readFileSync(path.join(__dirname, 'discord-events.json'), 'utf8')));
 fs.copyFileSync(path.join(__dirname, 'discord-events.json'), path.join(output, 'discord-events.json'));
+
+for(const name of ['connect.html','connect.js','game-night.js'])fs.copyFileSync(path.join(__dirname,name),path.join(output,name));
