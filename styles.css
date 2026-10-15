@@ -78,7 +78,7 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 
 .registration-toggle{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;color:var(--text);margin-top:24px}.registration-toggle input{width:20px;height:20px;accent-color:var(--accent)}
 
-.registration-mode .intro{margin-bottom:24px}.registration-mode #broadcast-status{font-size:13px;letter-spacing:1px}
+.registration-mode .intro{margin-bottom:0}.registration-mode #broadcast-status{font-size:13px;letter-spacing:1px}
 
 .options-dialog .organiser{border:0;margin:0 0 24px;background:transparent}.options-dialog .organiser-body{padding:0}.options-dialog .connection{align-items:end}.options-dialog .connection-status{margin-top:0}.options-dialog .options-form{border-top:1px solid var(--border);padding-top:16px}
 /* Clear match score entry with optional player statistics. */
@@ -270,6 +270,6 @@ footer{flex-wrap:wrap}.footer-status{flex-basis:100%;display:flex;justify-conten
 
 #player-links>.name-link-manager{padding:20px;background:var(--panel);border:1px solid var(--border);border-top:3px solid var(--accent)}#player-links>.name-link-manager>h3{margin-top:0}#player-links>[role=status]:empty{display:none}
 
-.admin-menu{margin:0}.page-tabs.admin-tabs{background:#101218;margin-bottom:0;border-top:0}
+.admin-menu{margin:0}.page-tabs.admin-tabs{background:#101218;margin-bottom:0}
 
-.intro+.overview{margin-top:0;margin-bottom:0}.overview+#admin-menu{margin-bottom:20px}
+.intro+.overview{margin-top:0;margin-bottom:0}.overview+#admin-menu{margin:20px 0}
