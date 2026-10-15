@@ -167,7 +167,17 @@
           "winner": "k1-2"
         }
       ],
-      "result": null,
+      "result": {
+        "teams": [
+          "t1",
+          "t5"
+        ],
+        "scores": [
+          6,
+          7
+        ],
+        "players": {}
+      },
       "map": "Debris"
     },
     {
