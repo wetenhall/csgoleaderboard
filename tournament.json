@@ -14,13 +14,188 @@
     "Sam"
   ],
   "name": "custom game",
-  "teams": [],
+  "teams": [
+    {
+      "id": "t1",
+      "name": "Team 01",
+      "tag": "01",
+      "players": [
+        {
+          "id": "p6",
+          "name": "Grayzee"
+        },
+        {
+          "id": "p3",
+          "name": "Don"
+        }
+      ]
+    },
+    {
+      "id": "t2",
+      "name": "Team 02",
+      "tag": "02",
+      "players": [
+        {
+          "id": "p8",
+          "name": "Kzy"
+        },
+        {
+          "id": "p4",
+          "name": "Finesse"
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "name": "Team 03",
+      "tag": "03",
+      "players": [
+        {
+          "id": "p1",
+          "name": "Aatori"
+        },
+        {
+          "id": "p5",
+          "name": "Froppo"
+        }
+      ]
+    },
+    {
+      "id": "t4",
+      "name": "Team 04",
+      "tag": "04",
+      "players": [
+        {
+          "id": "p9",
+          "name": "Lukinss"
+        },
+        {
+          "id": "p12",
+          "name": "Sam"
+        }
+      ]
+    },
+    {
+      "id": "t5",
+      "name": "Team 05",
+      "tag": "05",
+      "players": [
+        {
+          "id": "p10",
+          "name": "Omnii"
+        },
+        {
+          "id": "p11",
+          "name": "Part"
+        }
+      ]
+    },
+    {
+      "id": "t6",
+      "name": "Team 06",
+      "tag": "06",
+      "players": [
+        {
+          "id": "p2",
+          "name": "Cantlon"
+        },
+        {
+          "id": "p7",
+          "name": "Hans"
+        }
+      ]
+    }
+  ],
   "groups": [],
-  "matches": [],
+  "matches": [
+    {
+      "id": "k1-2",
+      "round": 0,
+      "sources": [
+        {
+          "team": "t4"
+        },
+        {
+          "team": "t5"
+        }
+      ],
+      "result": null,
+      "map": "Inferno"
+    },
+    {
+      "id": "k1-4",
+      "round": 0,
+      "sources": [
+        {
+          "team": "t3"
+        },
+        {
+          "team": "t6"
+        }
+      ],
+      "result": null,
+      "map": "Vertigo"
+    },
+    {
+      "id": "k2-1",
+      "round": 1,
+      "sources": [
+        {
+          "team": "t1"
+        },
+        {
+          "winner": "k1-2"
+        }
+      ],
+      "result": null,
+      "map": "Debris"
+    },
+    {
+      "id": "k2-2",
+      "round": 1,
+      "sources": [
+        {
+          "team": "t2"
+        },
+        {
+          "winner": "k1-4"
+        }
+      ],
+      "result": null,
+      "map": "Poseidon"
+    },
+    {
+      "id": "f1",
+      "round": 2,
+      "sources": [
+        {
+          "winner": "k2-1"
+        },
+        {
+          "winner": "k2-2"
+        }
+      ],
+      "result": null,
+      "map": "Nuke"
+    }
+  ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
     "banner": "custom game"
   },
-  "registrationEnabled": false
+  "registrationEnabled": false,
+  "format": "knockout",
+  "qualifiersPerGroup": 2,
+  "teamSize": 2,
+  "mode": "duos",
+  "mapPool": [
+    "Inferno",
+    "Nuke",
+    "Vertigo",
+    "Overpass",
+    "Poseidon",
+    "Debris",
+    "Eldorado"
+  ]
 }
