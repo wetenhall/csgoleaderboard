@@ -1,4 +1,4 @@
-function createSetupStages({isBusy,isLocked,validateOptions,validatePlayers,preparePlayers,signature,summary,resetDraw}) {
+function createSetupStages({isBusy,isLocked,validateGame,validateOptions,validatePlayers,preparePlayers,signature,summary,resetDraw}) {
   const $=id=>document.getElementById(id);
   let step=1,unlocked=1,confirmed=null;
   function render(){
@@ -17,6 +17,7 @@ function createSetupStages({isBusy,isLocked,validateOptions,validatePlayers,prep
   }
   function go(next){
     if(isBusy() || next>unlocked)return;
+    if(next>1){const error=validateGame?.();if(error){$('setup-status').textContent=error;return;}}
     if(next<4 && isLocked()){
       resetDraw();if(isLocked())return;
       confirmed=null;unlocked=3;
@@ -29,7 +30,7 @@ function createSetupStages({isBusy,isLocked,validateOptions,validatePlayers,prep
   for(let i=2;i<=4;i++)$('setup-back-'+i).onclick=()=>go(i-1);
   for(let i=1;i<=3;i++)$('setup-next-'+i).onclick=()=>{
     if(isBusy())return;
-    const error=i===2?validateOptions():i===3?validatePlayers():'';
+    const error=i===1?(validateGame?.() || ''):i===2?validateOptions():i===3?validatePlayers():'';
     if(error){$('setup-status').textContent=error;$('setup-status').scrollIntoView?.({block:'center',behavior:'smooth'});return;}
     if(i===3)confirmed=signature();
     unlocked=Math.max(unlocked,i+1);go(i+1);

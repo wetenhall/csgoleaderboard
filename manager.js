@@ -306,8 +306,8 @@ if (typeof document !== 'undefined') (() => {
   function controls() {
     if(discordEventUI)loadedDiscordEvent=discordEventUI.getSelectedEvent();
     discordEventUI?.render();
-    $('custom-saved-players').hidden=!!loadedDiscordEvent;
-    $('custom-player-entry').hidden=!!loadedDiscordEvent;
+    $('custom-saved-players').hidden=$('game-source').value==='discord';
+    $('custom-player-entry').hidden=$('game-source').value==='discord';
     $('player-pool-heading').textContent=loadedDiscordEvent?'Discord event players':'Player pool';
     $('setup-next-3').textContent=loadedDiscordEvent?'Confirm Discord players & continue':'Confirm players & continue';
     $('player-pool-help').textContent=loadedDiscordEvent?'Players are loaded from Discord. Select who is playing below, then lock the pool.':'Choose who is playing this time. Add saved players above or enter names below, then load the pool and select your players.';
@@ -1053,7 +1053,7 @@ if (typeof document !== 'undefined') (() => {
     $('map-options').querySelectorAll('input').forEach(input=>{input.checked=source.mapPool.includes(input.value);});updateMapCount();
     selected=Array.from({length:source.teamSize},(_,i)=>source.teams.map(team=>structuredClone(team.players[i]))).flat();remaining=[];draw=source;delete draw.activeMatchId;delete draw.mapVeto;delete draw.mapMethod;draw.matches.forEach(match=>{match.result=null;});drawOrder=source.teams.map(t=>t.id);drawnMap=null;lock(true);$('pool-count').textContent=(source.teamSize*2)+' players retained · Two teams of '+source.teamSize+' · Rematch';configureDraw();controls();setupUI?.showDraw();selectTab($('tab-team-setup'),true);$('draw-stage').scrollIntoView({block:'start'});announce('Same teams are ready. Spin for a new map or use map vetoes. A completed previous match is archived when you publish.');
   }});
-  setupUI=createSetupStages({preparePlayers:()=>{
+  setupUI=createSetupStages({validateGame:()=> $('game-source').value==='discord' && !discordEventUI?.getSelectedEvent()?'Select a published Discord event to continue.':'',preparePlayers:()=>{
     loadedDiscordEvent=discordEventUI?.getSelectedEvent() || null;
     if(!loadedDiscordEvent || locked || busy){controls();return;}
     const names=loadedDiscordEvent.players;
@@ -1062,7 +1062,7 @@ if (typeof document !== 'undefined') (() => {
     }
     controls();
   },isBusy:()=>busy || spinning || skippingAnimation,isLocked:()=>locked,
-    signature:()=>JSON.stringify({game:$('discord-event').value,size:$('team-size').value,format:$('tournament-format').value,groups:$('group-count').value,qualifiers:$('qualifiers-per-group').value,maps:selectedMaps(),players:[...$('pool-list').querySelectorAll('input:checked')].map(input=>input.value)}),
+    signature:()=>JSON.stringify({source:$('game-source').value,game:$('discord-event').value,size:$('team-size').value,format:$('tournament-format').value,groups:$('group-count').value,qualifiers:$('qualifiers-per-group').value,maps:selectedMaps(),players:[...$('pool-list').querySelectorAll('input:checked')].map(input=>input.value)}),
     summary:()=>{const count=$('pool-list').querySelectorAll('input:checked').length;return (loadedDiscordEvent?.title || 'Custom game')+' · '+$('team-size').value+'v'+$('team-size').value+' · '+count+' players · '+$('tournament-format').selectedOptions[0].textContent;},
     validateOptions:()=>{if(Number($('team-size').value)!==1 && !selectedMaps().length)return 'Select at least one fixture map to continue.';if($('tournament-format').value==='groups' && (!Number($('group-count').value) || (Number($('group-count').value)===1 && Number($('qualifiers-per-group').value)===1)))return 'Choose valid groups: Top 1 requires at least two groups.';return '';},
     validatePlayers:()=>{const ids=[...$('pool-list').querySelectorAll('input:checked')].map(input=>input.value),players=pool.filter(player=>ids.includes(player.id));try{makeTournament(players,Number($('team-size').value),current,undefined,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value),$('tournament-format').value);return '';}catch(error){return error.message;}},

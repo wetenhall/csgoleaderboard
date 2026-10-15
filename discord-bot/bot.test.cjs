@@ -23,14 +23,14 @@ test('event input rejects unsafe roster shape, duplicate IDs and names',()=>{
 });
 test('website loads selected roster, handles cancellation and locks controls during a draw',async()=>{
   const vm=require('node:vm'),fs=require('node:fs');
-  const nodes=Object.fromEntries(['discord-event','load-discord-event','refresh-discord-events','discord-event-status'].map(id=>[id,{value:'',replaceChildren(){},add(){}}]));
+  const nodes=Object.fromEntries(['game-source','discord-event-choice','discord-event','load-discord-event','refresh-discord-events','discord-event-status'].map(id=>[id,{value:'',replaceChildren(){},add(){}}]));
   let allowed=true,loaded=null,cancel=false,notices=0;
   const context={document:{getElementById:id=>nodes[id]},Option:function(text,value){this.text=text;this.value=value;},fetch:async()=>({ok:true,json:async()=>({version:1,events:[{id:'friday',title:'Friday',players:['Alice','Bob']}]})})};
   vm.createContext(context);vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../discord-events.js'),'utf8'),context);
   const loader=context.createDiscordEventLoader({canLoad:()=>allowed,load:e=>{if(cancel)return false;loaded=e;},notify:()=>notices++});
-  await new Promise(resolve=>setImmediate(resolve));nodes['discord-event'].value='friday';nodes['discord-event'].onchange();
+  await new Promise(resolve=>setImmediate(resolve));nodes['game-source'].value='discord';nodes['discord-event'].value='friday';nodes['discord-event'].onchange();
   assert.equal(loaded.title,'Friday');assert.equal(loader.getSelectedEvent().title,'Friday');assert.equal(notices,1);
   cancel=true;nodes['discord-event'].onchange();assert.equal(notices,1);
-  cancel=false;nodes['discord-event'].value='';nodes['discord-event'].onchange();assert.equal(loaded,null);assert.equal(notices,2);
+  cancel=false;nodes['discord-event'].value='';nodes['discord-event'].onchange();assert.equal(loaded,null);assert.equal(notices,1);nodes['game-source'].value='custom';nodes['game-source'].onchange();assert.equal(nodes['discord-event-choice'].hidden,true);
   allowed=false;loader.render();assert.equal(nodes['discord-event'].disabled,true);assert.equal(nodes['refresh-discord-events'].disabled,true);
 });
