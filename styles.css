@@ -247,3 +247,5 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 #registration-description{white-space:pre-line}
 
 .connect-launch{display:inline-block;background:var(--accent);color:#111;padding:12px 18px;font-weight:700;text-decoration:none}.connection-command{display:block;overflow-wrap:anywhere;white-space:pre-wrap;background:#101316;padding:16px;margin-top:16px}#connect-dialog .game-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}#connect-dialog .game-actions button{margin:0}
+
+.match-published-actions .match-extra-actions{flex:1}.game-actions [data-server-toggle]{margin-left:auto}
