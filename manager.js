@@ -197,9 +197,11 @@ function tournamentAwards(data) {
 }
 function updateHeaders(data, brand, banner) {
   if(typeof brand!=='string' || !brand.trim() || brand.trim().length>80 || typeof banner!=='string' || !banner.trim() || banner.trim().length>120) throw Error('Enter both headings: top header up to 80 characters and banner up to 120.');
-  return {...data,headers:{brand:brand.trim(),banner:banner.trim()}};
+  return {...data,headers:{...data.headers,brand:brand.trim(),banner:banner.trim()}};
 }
 function validateData(data, resolve) {
+  if(data?.headers?.registrationTitle!==undefined && (typeof data.headers.registrationTitle!=='string' || data.headers.registrationTitle.length>80))throw Error('Registration heading must be up to 80 characters.');
+  if(data?.headers?.registrationDescription!==undefined && (typeof data.headers.registrationDescription!=='string' || data.headers.registrationDescription.length>500))throw Error('Registration description must be up to 500 characters.');
   if(data?.qualifiersPerGroup!==undefined && ![1,2].includes(data.qualifiersPerGroup))throw Error('Choose Top 1 or Top 2 from each group.');
   if(data?.format!==undefined && !['groups','knockout','double','single'].includes(data.format))throw Error('Invalid tournament format.');
   if (data?.registrationEnabled !== undefined && typeof data.registrationEnabled !== 'boolean') throw Error('Registration setting must be enabled or disabled.');
@@ -453,6 +455,8 @@ if (typeof document !== 'undefined') (() => {
     if(!activeTab || activeTab.hidden)selectTab(defaultTab(),false,false);
     $('option-brand').value=current.headers?.brand || current.name;
     $('option-banner').value=current.headers?.banner || current.name;
+    $('option-registration-title').value=current.headers?.registrationTitle || 'Register to play';
+    $('option-registration-description').value=current.headers?.registrationDescription || 'Enter your player name to register for the next tournament.';
     $('option-server').value=current.serverAddress || '';
     $('option-registration').checked=current.registrationEnabled!==false;
   }
@@ -460,6 +464,8 @@ if (typeof document !== 'undefined') (() => {
     if(busy)return;
     $('option-brand').value=current.headers?.brand || current.name;
     $('option-banner').value=current.headers?.banner || current.name;
+    $('option-registration-title').value=current.headers?.registrationTitle || 'Register to play';
+    $('option-registration-description').value=current.headers?.registrationDescription || 'Enter your player name to register for the next tournament.';
     $('option-server').value=current.serverAddress || '';
     $('option-registration').checked=current.registrationEnabled!==false;
     $('options-status').textContent=$('connection-status').textContent;
@@ -475,6 +481,8 @@ if (typeof document !== 'undefined') (() => {
     event.preventDefault();if(busy || !token)return;
     try {
       const next=updateHeaders(current,$('option-brand').value,$('option-banner').value);
+      next.headers.registrationTitle=$('option-registration-title').value.trim() || 'Register to play';
+      next.headers.registrationDescription=$('option-registration-description').value.trim() || 'Enter your player name to register for the next tournament.';
       next.registrationEnabled=$('option-registration').checked;
       next.serverAddress=validServerAddress($('option-server').value);
       await publish(next,'Update page settings');

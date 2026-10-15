@@ -230,6 +230,8 @@ function renderTournament(data) {
   document.getElementById('champion').textContent = 'One team takes it all.';
   document.getElementById('champion-note').textContent = 'Decided in the grand final';
   const headers=data.headers || {brand:data.name,banner:data.name};
+  document.getElementById('register-heading').textContent=headers.registrationTitle?.trim() || 'Register to play';
+  document.getElementById('registration-description').textContent=headers.registrationDescription?.trim() || 'Enter your player name to register for the next tournament.';
   document.title = headers.brand;
   document.querySelectorAll('meta[property="og:title"],meta[name="twitter:title"]').forEach(meta=>{meta.content=headers.brand;});
   document.querySelectorAll('meta[name="description"],meta[property="og:description"],meta[name="twitter:description"]').forEach(meta=>{meta.content=headers.banner;});
