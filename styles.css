@@ -243,3 +243,5 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 
 
 .group-team-players{display:block;margin-top:5px;font-size:12px;font-weight:400;line-height:1.5;color:var(--muted);white-space:normal;overflow-wrap:anywhere}.group-panel .scoreboard-identity .team-name{min-width:0}
+
+#registration-description{white-space:pre-line}
