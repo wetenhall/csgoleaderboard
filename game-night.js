@@ -80,6 +80,7 @@ function createGameNightTools({getData,getDraft,isOrganiser,isBusy,setMap,getMap
   function renderDraft(){
     const wasHidden=methodRoot.hidden;
     draftRoot.replaceChildren();methodRoot.replaceChildren();const draft=getDraft();methodRoot.hidden=!draft || draft.format!=='single';draftRoot.hidden=true;
+    $('draw-stage').classList.toggle('map-selection-stage',!methodRoot.hidden);
     $('draw-stage').classList.toggle('map-veto',!methodRoot.hidden && draft.mapMethod==='veto');
     if(methodRoot.hidden){pendingMethod='';$('draw-stage').querySelector('.draw-roster').before($('draw-stage').querySelector('.wheel-panel'));return;}
     draftRoot.after($('draw-stage').querySelector('.wheel-panel'));

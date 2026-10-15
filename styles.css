@@ -232,3 +232,9 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .auto-spin-toggle input:checked+.auto-spin-track{background:var(--accent);border-color:var(--accent)}.auto-spin-toggle input:checked+.auto-spin-track:after{transform:translateX(18px);background:#171a21}
 .auto-spin-toggle input:focus-visible+.auto-spin-track{outline:2px solid var(--blue);outline-offset:3px}.auto-spin-toggle input:disabled+.auto-spin-track{opacity:.45}
 @media(prefers-reduced-motion:reduce){.auto-spin-track,.auto-spin-track:after{transition:none}}
+
+/* Map selection uses full-width rows, with both completed teams alongside each other. */
+.draw-stage.map-selection-stage,.draw-stage.map-selection-stage:fullscreen,.draw-stage.map-selection-stage.fullscreen-fallback{grid-template-columns:minmax(0,1fr)}
+.draw-stage.map-selection-stage>.draw-roster,.draw-stage.map-selection-stage>.wheel-panel{grid-column:1/-1;min-width:0;width:100%}
+.draw-stage.map-selection-stage .draw-roster .teams{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-height:none}
+@media(max-width:650px){.draw-stage.map-selection-stage .draw-roster .teams{grid-template-columns:1fr}}
