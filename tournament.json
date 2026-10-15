@@ -13,7 +13,7 @@
     "Part",
     "Sam"
   ],
-  "name": "2v2",
+  "name": "playtest2",
   "teams": [
     {
       "id": "t1",
@@ -21,12 +21,16 @@
       "tag": "01",
       "players": [
         {
-          "id": "p1",
-          "name": "Grayzee"
+          "id": "p6",
+          "name": "Coach Goro"
         },
         {
           "id": "p2",
-          "name": "OMNII-GODZ"
+          "name": "Spongoat"
+        },
+        {
+          "id": "p4",
+          "name": "lukinss"
         }
       ]
     },
@@ -36,12 +40,16 @@
       "tag": "02",
       "players": [
         {
-          "id": "p4",
-          "name": "gorogay"
+          "id": "p1",
+          "name": "LilRibe"
+        },
+        {
+          "id": "p5",
+          "name": "Aatori"
         },
         {
           "id": "p3",
-          "name": "Spongoat"
+          "name": "Grayzee"
         }
       ]
     }
@@ -60,34 +68,38 @@
         }
       ],
       "result": null,
-      "label": "Single Game · 2v2",
-      "map": "Nuke"
+      "label": "Single Game · 3v3",
+      "map": "Inferno"
     }
   ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
-    "banner": "2v2",
+    "banner": "playtest2",
     "registrationTitle": "Register to play",
     "registrationDescription": "Enter your player name to register for the next 1v1 tournament.\n\nDate: Thursday 29th October \nTime: 7pm GMT"
   },
   "registrationEnabled": false,
   "format": "single",
   "qualifiersPerGroup": 2,
-  "teamSize": 2,
-  "mode": "duos",
+  "teamSize": 3,
+  "mode": "trios",
   "mapPool": [
+    "Mirage",
+    "Dust2",
     "Inferno",
     "Nuke",
+    "Ancient",
+    "Anubis",
     "Vertigo",
+    "Cache",
+    "Train",
     "Overpass",
-    "Poseidon",
-    "Debris",
-    "Eldorado"
+    "Office",
+    "Italy"
   ],
-  "serverAddress": "138.199.44.113:26580",
+  "serverAddress": "",
   "mapMethod": "wheel",
   "mapVeto": [],
-  "discordEventId": "201e9b2c-92ee-4828-b066-2ef2c40236a2",
-  "serverPassword": "u1rrrn"
+  "discordEventId": "339b874f-6a09-4592-8f47-f794132251e4"
 }
