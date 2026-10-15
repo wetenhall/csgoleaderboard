@@ -14,89 +14,13 @@
     "Sam"
   ],
   "name": "custom game",
-  "teams": [
-    {
-      "id": "t1",
-      "name": "Team 01",
-      "tag": "01",
-      "players": [
-        {
-          "id": "p5",
-          "name": "Aatori"
-        },
-        {
-          "id": "p2",
-          "name": "lukinss"
-        },
-        {
-          "id": "p1",
-          "name": "cantlon"
-        }
-      ]
-    },
-    {
-      "id": "t2",
-      "name": "Team 02",
-      "tag": "02",
-      "players": [
-        {
-          "id": "p3",
-          "name": "Grayzee"
-        },
-        {
-          "id": "p6",
-          "name": "Coach Goro"
-        },
-        {
-          "id": "p4",
-          "name": "LilRibe"
-        }
-      ]
-    }
-  ],
+  "teams": [],
   "groups": [],
-  "matches": [
-    {
-      "id": "f1",
-      "round": 0,
-      "sources": [
-        {
-          "team": "t1"
-        },
-        {
-          "team": "t2"
-        }
-      ],
-      "result": null,
-      "label": "Single Game · 3v3",
-      "map": "Anubis"
-    }
-  ],
+  "matches": [],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
     "banner": "custom game"
   },
-  "registrationEnabled": false,
-  "format": "single",
-  "qualifiersPerGroup": 2,
-  "teamSize": 3,
-  "mode": "trios",
-  "mapPool": [
-    "Mirage",
-    "Dust2",
-    "Inferno",
-    "Nuke",
-    "Ancient",
-    "Anubis",
-    "Vertigo",
-    "Cache",
-    "Train",
-    "Overpass",
-    "Office",
-    "Italy"
-  ],
-  "serverAddress": "",
-  "mapMethod": "case",
-  "mapVeto": []
+  "registrationEnabled": false
 }
