@@ -254,3 +254,5 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 
 
 footer{flex-wrap:wrap}.footer-status{flex-basis:100%;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 24px}.footer-status .connection-status,.footer-status .viewer-update{margin:0;font-size:12px;line-height:1.5}
+
+.fixture-import{padding:20px;border:1px solid var(--border);border-top:3px solid var(--accent);margin:20px 0;background:var(--panel)}.fixture-import label{display:block;margin:14px 0}.fixture-import select{width:100%}

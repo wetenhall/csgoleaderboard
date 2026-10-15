@@ -85,3 +85,21 @@ test('match connection validates the server and refuses stale event links',async
   const unsafe=await run({...data,serverAddress:'host;quit'},'cup');assert.equal(unsafe.connection.hidden,true);
   const missing=await run({...data,serverAddress:''},'cup');assert.match(missing.status.textContent,/not added/);
 });
+
+test('FACEIT normalization retains stats and excludes Steam and account identifiers',()=>{
+  const {normalizeFaceitMatch}=require('./faceit.cjs');const match={match_id:'match',status:'FINISHED',finished_at:100,teams:{one:{name:'Blue'},two:{name:'Orange'}}};
+  const stats={rounds:[{round_stats:{Map:'de_nuke'},teams:['one','two'].map((id,i)=>({team_id:id,team_stats:{'Final Score':String(13-i)},players:[{nickname:'Player '+i,player_id:'private-faceit-id',game_player_id:'private-steam-id',player_stats:{Kills:'15',Deaths:'10',Assists:'3'}}]}))}]};
+  const games=normalizeFaceitMatch(match,stats);assert.equal(games.length,1);assert.equal(games[0].teams[0].players[0].assists,3);assert.equal(JSON.stringify(games).includes('private-'),false);assert.deepEqual(normalizeFaceitMatch({...match,status:'CANCELLED'},stats),[]);
+});
+
+test('FACEIT sync excludes cancelled games and avoids unchanged GitHub writes',async()=>{
+  const {syncFaceitGames}=require('./faceit.cjs');let writes=0,statsCalls=0;
+  const game={id:'done:0',matchId:'done',teams:[]};
+  const old={hubId:'hub',games:[game]};
+  await syncFaceitGames({FACEIT_API_KEY:'fake',FACEIT_HUB_ID:'hub',GITHUB_REPOSITORY:'owner/repo',GITHUB_BRANCH:'main',GITHUB_TOKEN:'fake'},async(url,options)=>{
+    if(options.method==='PUT'){writes++;throw Error('Unexpected write');}
+    if(url.includes('api.github.com'))return {ok:true,json:async()=>({sha:'sha',content:Buffer.from(JSON.stringify(old)).toString('base64')})};
+    if(url.includes('/stats')){statsCalls++;throw Error('Unexpected stats request');}
+    return {ok:true,json:async()=>({items:[{match_id:'cancelled',status:'CANCELLED'},{match_id:'done',status:'FINISHED'}]})};
+  });assert.equal(writes,0);assert.equal(statsCalls,0);
+});

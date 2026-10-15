@@ -26,3 +26,9 @@ The default event file is empty. No fake participants are deployed. To test, cre
 Back up the private data file. Only one bot instance may access it. Published events remain in the website dropdown; pending events survive restarts on the persistent disk. This version does not include event deletion or reopening a published roster.
 
 
+
+## FACEIT result imports
+
+Set FACEIT_API_KEY privately in .env. FACEIT_HUB_ID defaults to the Pull up gang 1v1 queue. The bot checks the latest 100 queue entries every five minutes and publishes only completed games with available stats to faceit-games.json. This file contains match IDs, names, scores and KDA, never player Steam or FACEIT account IDs. Unchanged games do not cause commits. GitHub Pages deployment makes refreshed games available to the website.
+
+Select FACEIT in tournament Options, or use Game platform on Fixtures for an existing tournament. Open a ready fixture, select a game, map every imported name to a fixture player and confirm the import. Name mappings are saved by provider and leaderboard name for future imports. Both full team rosters must match; duplicate use of the same game on another active fixture is rejected. Scores use FACEIT rounds won; imported KDA remains separate, including for 1v1. Corrections retain the existing protection for downstream playoff results. Leetify imports are deferred.

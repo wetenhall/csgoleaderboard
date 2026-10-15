@@ -2,6 +2,7 @@ const fs=require('node:fs'),path=require('node:path'),{randomUUID}=require('node
 const {Client,GatewayIntentBits,Events,PermissionFlagsBits,SlashCommandBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,StringSelectMenuBuilder,ModalBuilder,TextInputBuilder,TextInputStyle,EmbedBuilder,escapeMarkdown,MessageFlags}=require('discord.js');
 const {register,publishEvent,teamAnnouncements}=require('./core.cjs');
 const {renderTeamImages}=require('./team-image.cjs');
+const {syncFaceitGames}=require('./faceit.cjs');
 for(const key of ['DISCORD_TOKEN','DISCORD_GUILD_ID','GITHUB_TOKEN','GITHUB_REPOSITORY','GITHUB_BRANCH','SITE_URL'])if(!process.env[key])throw Error('Missing '+key);
 if(!/^[\w.-]+\/[\w.-]+$/.test(process.env.GITHUB_REPOSITORY))throw Error('Invalid repository.');
 if(new URL(process.env.SITE_URL).protocol!=='https:')throw Error('SITE_URL must use HTTPS.');
@@ -28,6 +29,7 @@ client.once(Events.ClientReady,async()=>{
   for(const event of data.events){try{await update(event);}catch{console.error('Could not refresh an existing event card. Check channel permissions.');}}
   console.log('Registration bot ready.');
   void syncTeams();setInterval(()=>void syncTeams(),30000);
+  let faceitSyncing=false;const refreshFaceit=async()=>{if(faceitSyncing)return;faceitSyncing=true;try{await syncFaceitGames();}catch(error){console.error('FACEIT game sync failed. Will retry in five minutes.');}finally{faceitSyncing=false;}};void refreshFaceit();setInterval(()=>void refreshFaceit(),300000);
 });
 let queue=Promise.resolve();
 let syncingTeams=false;

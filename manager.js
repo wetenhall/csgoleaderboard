@@ -146,7 +146,7 @@ function orderedMatches(matches) {
 }
 function resultPlayerStats(data,result) {
   if(!result)return {};
-  if(data.teamSize!==1)return result.players || {};
+  if(data.teamSize!==1 || result.importSource)return result.players || {};
   return Object.fromEntries(result.teams.map((teamId,i)=>{
     const player=data.teams.find(team=>team.id===teamId)?.players?.[0];
     if(!player)throw Error('A 1v1 result needs one player on each side.');
@@ -204,6 +204,7 @@ function validateData(data, resolve) {
   if(data?.headers?.registrationDescription!==undefined && (typeof data.headers.registrationDescription!=='string' || data.headers.registrationDescription.length>500))throw Error('Registration description must be up to 500 characters.');
   if(data?.discordEventId!==undefined && (typeof data.discordEventId!=='string' || !/^[a-zA-Z0-9_-]{1,80}$/.test(data.discordEventId)))throw Error('Invalid Discord event link.');
   if(data?.qualifiersPerGroup!==undefined && ![1,2].includes(data.qualifiersPerGroup))throw Error('Choose Top 1 or Top 2 from each group.');
+  if(data?.gameProvider!==undefined && !['manual','faceit'].includes(data.gameProvider))throw Error('Invalid game platform.');
   if(data?.format!==undefined && !['groups','knockout','double','single'].includes(data.format))throw Error('Invalid tournament format.');
   if (data?.registrationEnabled !== undefined && typeof data.registrationEnabled !== 'boolean') throw Error('Registration setting must be enabled or disabled.');
   if (!data || typeof data.name !== 'string' || data.name.length > 100 || !Array.isArray(data.teams) || !Array.isArray(data.groups) || data.groups.length > 4 || !Array.isArray(data.matches)) throw Error('Invalid tournament structure.');
@@ -268,7 +269,7 @@ function applyResult(data, id, result, resolve) {
   validateData(next, resolve);
   return { next, cleared };
 }
-function emptyTournament(data) { return {...(data.savedPlayers!==undefined?{savedPlayers:structuredClone(data.savedPlayers)}:{}),...(data.serverAddress?{serverAddress:data.serverAddress}:{}),name:data.name,teams:[],groups:[],matches:[],...(data.history?{history:structuredClone(data.history)}:{}),...(data.headers?{headers:structuredClone(data.headers)}:{}),...(data.registrationEnabled!==undefined?{registrationEnabled:data.registrationEnabled}:{})}; }
+function emptyTournament(data) { return {...(data.importAliases?{importAliases:structuredClone(data.importAliases)}:{}),...(data.gameProvider?{gameProvider:data.gameProvider}:{}),...(data.savedPlayers!==undefined?{savedPlayers:structuredClone(data.savedPlayers)}:{}),...(data.serverAddress?{serverAddress:data.serverAddress}:{}),name:data.name,teams:[],groups:[],matches:[],...(data.history?{history:structuredClone(data.history)}:{}),...(data.headers?{headers:structuredClone(data.headers)}:{}),...(data.registrationEnabled!==undefined?{registrationEnabled:data.registrationEnabled}:{})}; }
 function drawPublishReason(draw,state) {
   if(!state.connected)return 'Connect as organiser to publish teams.';
   if(state.busy)return 'Wait for the current save to finish.';
@@ -286,6 +287,7 @@ if (typeof document !== 'undefined') (() => {
   const repository=repositorySettings(document.querySelector('meta[name=dashboard-repository]')?.content,document.querySelector('meta[name=dashboard-branch]')?.content,location.hostname,location.pathname);
   const api=repository?.api;
   let current = structuredClone(TOURNAMENT), token = '', fileSha = '', busy = false;
+  $('game-provider').value=current.gameProvider || 'manual';
   let setupUI=null,featureUI=null,gameNightUI=null,discordEventUI=null,loadedDiscordEvent=null,customPlayerNames='',rematchSource=null;
   let skippingAnimation=false;
   let drawnMap=null,manualAssignments=[],manualNames=[],autoSpinTimer=null,captainDraft=null;
@@ -384,8 +386,8 @@ if (typeof document !== 'undefined') (() => {
     $('publish-draw').disabled=!!publishReason;$('publish-expanded').disabled=!!publishReason;
     $('publish-draw').hidden=!locked || !manual || draw?.format==='single';$('publish-status').hidden=$('publish-draw').hidden;
     for(const id of ['publish-status','publish-expanded-status']){$(id).textContent=publishReason || 'Teams are ready to publish.';}
-    document.querySelectorAll('.result-form button, .tie-form button').forEach(b => { b.disabled = busy || !token; });
-    featureUI?.controls();gameNightUI?.controls();setupUI?.render();queueAutoSpin();
+    document.querySelectorAll('.result-form button, .tie-form button, #fixture-platform select').forEach(b => { b.disabled = busy || !token; });
+    document.querySelectorAll('.fixture-import,#fixture-platform').forEach(el=>el.hidden=!token);featureUI?.controls();gameNightUI?.controls();setupUI?.render();queueAutoSpin();
   }
   async function request(method, body, credential = token) {
     if(!repository)throw Error('Repository not configured. Deploy with the included GitHub Actions workflow, or set GITHUB_REPOSITORY and GITHUB_REF_NAME when building.');
@@ -517,6 +519,9 @@ if (typeof document !== 'undefined') (() => {
     input.type='number'; input.min='0'; input.max=String(max); input.step='1'; input.value=value ?? ''; input.inputMode='numeric'; wrap.append(input); return {wrap,input};
   }
   function renderSchedule() {
+    document.getElementById('fixture-platform')?.remove();
+    if(token){const label=element('label','fixture-platform','Game platform'),select=element('select');label.id='fixture-platform';for(const [value,text] of [['manual','Other · Manual results'],['faceit','FACEIT · Pull up gang queue']]){const o=element('option','',text);o.value=value;select.append(o);}select.value=current.gameProvider || 'manual';select.disabled=busy;select.onchange=async()=>{try{const next=structuredClone(current);next.gameProvider=select.value;await publish(next,'Update fixture game platform');}catch(error){say(error.message);select.value=current.gameProvider || 'manual';}};label.append(select);$('schedule').before(label);}
+
     $('schedule').replaceChildren(); const state = resolveTournament(current);
     if (!state.matches.length) { $('schedule').append(element('p','rules','No fixtures yet. Create and publish a tournament in Team setup.')); return; }
     const matches = orderedMatches(state.matches); let markedNext = false;
@@ -554,7 +559,7 @@ if (typeof document !== 'undefined') (() => {
       const body = element('div','result-body');
       body.append(element('p','rules',`${match.id.toUpperCase()} · ${match.group ? `Group ${match.group}` : knockoutRoundName(match,state.matches)}`));
       if (!ready) { body.append(element('p','','Teams will appear once qualification is confirmed.')); details.append(body); container.append(details); return; }
-      const solo=current.teamSize===1;
+      const solo=current.teamSize===1 && !match.result?.importSource;
       const form = element('form','result-form'); const scores = names.map((name,i) => numeric(`${name} — ${solo?'kills':'rounds won'}`,match.result?.scores[i],99));
       form.append(element('h4','entry-heading',solo?'Match score · Kills':'1. Match score'),element('p','entry-help',solo?'Enter each player’s kills. Deaths are calculated from the opponent’s kills automatically. A 4–6 result records 4 kills / 6 deaths and 6 kills / 4 deaths.':'Enter the final number of rounds won by each side, not kills.'));
       const scoreRow = element('div','score-inputs');
@@ -609,7 +614,7 @@ if (typeof document !== 'undefined') (() => {
             if (values.some(v=>v==='')) throw Error('Enter kills, deaths and assists together, or leave all three blank.');
             players[id] = Object.fromEntries(['kills','deaths','assists'].map((key,i)=>[key,Number(values[i])]));
           }
-          const result = {teams:match.ids,scores:scores.map(s=>Number(s.input.value)),players};
+          const result = {teams:match.ids,scores:scores.map(s=>Number(s.input.value)),players,...(match.result?.importSource?{importSource:structuredClone(match.result.importSource)}:{})};
           if (!match.group && result.scores[0]===result.scores[1]) {
             if (!tiebreakSelect.value) throw Error('Select the tiebreak winner so a team can advance.');
             result.tiebreakWinner=tiebreakSelect.value;
@@ -619,6 +624,15 @@ if (typeof document !== 'undefined') (() => {
           await publish(next,`Update ${match.id.toUpperCase()} result and player stats`);
         } catch(error) {note.textContent=error.message;}
       };
+      if(token && current.gameProvider==='faceit')body.append(createFixtureImporter({data:structuredClone(current),fixture:match,isBusy:()=>busy,isOrganiser:()=>!!token,save:async(result,aliases)=>{
+        if(busy || !token)throw Error('Connect as organiser before importing.');
+        const live=resolveTournament(current).matches.find(m=>m.id===match.id);if(!live || JSON.stringify(live.ids)!==JSON.stringify(result.teams))throw Error('Fixture teams changed. Reload the fixture.');
+        if([...current.matches.filter(m=>m.id!==match.id),...(current.history||[]).flatMap(e=>e.tournament.matches)].some(m=>m.result?.importSource?.id===result.importSource.id))throw Error('This game is already linked to another fixture.');
+        if(live.result && !confirm('Replace the saved result and player stats with this imported game?'))return;
+        const {next,cleared}=applyResult(current,match.id,result,resolveTournament);next.importAliases={...current.importAliases,faceit:aliases};
+        if(cleared.length && !confirm('Importing this result clears changed playoff results: '+cleared.join(', ')+'. Continue?'))return;
+        await publish(next,'Import FACEIT result for '+match.id);
+      }}));
       body.append(form); details.append(body); container.append(details);
     });
   }
@@ -990,7 +1004,7 @@ if (typeof document !== 'undefined') (() => {
   }
   $('group-count').onchange = $('qualifiers-per-group').onchange = ()=>{selectionCount();configureDraw();controls();};
   $('reset-draw').onclick=()=>{if(spinning || busy)return;if(selected.length && !confirm('Discard this unpublished draw?'))return;stopAutoSpin();captainDraft=null;$('captain-choices').replaceChildren();$('captain-case-grid').replaceChildren();manualAssignments=[];manualNames=[];$('manual-team-list').replaceChildren();rematchSource=null;drawnMap=null;selected=[];remaining=[];draw=null;gameNightUI?.renderDraft();lock(false);$('spin').disabled=true;$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();$('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();announce('Select your players to start a new draw.');};
-  $('publish-draw').onclick=async()=>{if($('publish-draw').disabled){announce($('publish-status').textContent);return;}try{const next=structuredClone(draw);if(!rematchSource){next.serverAddress='';delete next.serverPassword;}if(loadedDiscordEvent){next.discordEventId=loadedDiscordEvent.id;next.name=loadedDiscordEvent.title;next.headers={...next.headers,banner:loadedDiscordEvent.title};}else if(rematchSource && current.discordEventId){next.discordEventId=current.discordEventId;}if(current.savedPlayers!==undefined)next.savedPlayers=structuredClone(current.savedPlayers);if(rematchSource && rematchSource!==JSON.stringify(current))throw Error('The saved match changed. Reload it and start the rematch again.');if(current.history)next.history=structuredClone(current.history);else delete next.history;if(rematchSource && completedCup(current,resolveTournament))next.history=archiveCup(current,resolveTournament,emptyTournament,((current.headers?.banner || current.name)+' · '+(current.matches[0].map || '5v5')).slice(0,120)).history;await publish(next,'Publish new player draw and tournament groups');stopAutoSpin();captainDraft=null;draw=null;selected=[];lock(false);$('captain-choices').replaceChildren();$('captain-case-grid').replaceChildren();manualAssignments=[];manualNames=[];rematchSource=null;gameNightUI?.renderDraft();$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();setExpandedDraw(false);selectTab($('tab-leaderboard'),true);$('panel-leaderboard').scrollIntoView({block:'start'});setupUI?.reset();say('Teams published. Your '+(current.format==='single'?'match is ready on the Match tab.':'tournament is ready on the Leader board.'));}catch(error){announce(error.message);}};
+  $('publish-draw').onclick=async()=>{if($('publish-draw').disabled){announce($('publish-status').textContent);return;}try{const next=structuredClone(draw);next.gameProvider=$('game-provider').value;if(!rematchSource){next.serverAddress='';delete next.serverPassword;}if(loadedDiscordEvent){next.discordEventId=loadedDiscordEvent.id;next.name=loadedDiscordEvent.title;next.headers={...next.headers,banner:loadedDiscordEvent.title};}else if(rematchSource && current.discordEventId){next.discordEventId=current.discordEventId;}if(current.savedPlayers!==undefined)next.savedPlayers=structuredClone(current.savedPlayers);if(rematchSource && rematchSource!==JSON.stringify(current))throw Error('The saved match changed. Reload it and start the rematch again.');if(current.history)next.history=structuredClone(current.history);else delete next.history;if(rematchSource && completedCup(current,resolveTournament))next.history=archiveCup(current,resolveTournament,emptyTournament,((current.headers?.banner || current.name)+' · '+(current.matches[0].map || '5v5')).slice(0,120)).history;await publish(next,'Publish new player draw and tournament groups');stopAutoSpin();captainDraft=null;draw=null;selected=[];lock(false);$('captain-choices').replaceChildren();$('captain-case-grid').replaceChildren();manualAssignments=[];manualNames=[];rematchSource=null;gameNightUI?.renderDraft();$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();setExpandedDraw(false);selectTab($('tab-leaderboard'),true);$('panel-leaderboard').scrollIntoView({block:'start'});setupUI?.reset();say('Teams published. Your '+(current.format==='single'?'match is ready on the Match tab.':'tournament is ready on the Leader board.'));}catch(error){announce(error.message);}};
   $('reset-edit-draw').onclick=()=>{
     if(busy || spinning || skippingAnimation)return;
     $('reset-draw').onclick();
@@ -1092,7 +1106,7 @@ if (typeof document !== 'undefined') (() => {
     }
     controls();
   },isBusy:()=>busy || spinning || skippingAnimation,isLocked:()=>locked,
-    signature:()=>JSON.stringify({source:$('game-source').value,game:$('discord-event').value,size:$('team-size').value,format:$('tournament-format').value,groups:$('group-count').value,qualifiers:$('qualifiers-per-group').value,maps:selectedMaps(),players:[...$('pool-list').querySelectorAll('input:checked')].map(input=>input.value)}),
+    signature:()=>JSON.stringify({source:$('game-source').value,game:$('discord-event').value,provider:$('game-provider').value,size:$('team-size').value,format:$('tournament-format').value,groups:$('group-count').value,qualifiers:$('qualifiers-per-group').value,maps:selectedMaps(),players:[...$('pool-list').querySelectorAll('input:checked')].map(input=>input.value)}),
     summary:()=>{const count=$('pool-list').querySelectorAll('input:checked').length;return (loadedDiscordEvent?.title || 'Custom game')+' · '+$('team-size').value+'v'+$('team-size').value+' · '+count+' players · '+$('tournament-format').selectedOptions[0].textContent;},
     validateOptions:()=>{if(Number($('team-size').value)!==1 && !selectedMaps().length)return 'Select at least one fixture map to continue.';if($('tournament-format').value==='groups' && (!Number($('group-count').value) || (Number($('group-count').value)===1 && Number($('qualifiers-per-group').value)===1)))return 'Choose valid groups: Top 1 requires at least two groups.';return '';},
     validatePlayers:()=>{const ids=[...$('pool-list').querySelectorAll('input:checked')].map(input=>input.value),players=pool.filter(player=>ids.includes(player.id));try{makeTournament(players,Number($('team-size').value),current,undefined,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value),$('tournament-format').value);return '';}catch(error){return error.message;}},
