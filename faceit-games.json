@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
+  "updatedAt": "2026-10-15T12:15:31.262Z",
+  "games": [
+    {
+      "id": "1-43c98adb-67fe-4793-813a-40a475078391:0",
+      "matchId": "1-43c98adb-67fe-4793-813a-40a475078391",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1791830085,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 10,
+          "players": [
+            {
+              "name": "lukinss",
+              "kills": 10,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Aatori",
+              "kills": 13,
+              "deaths": 10,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
