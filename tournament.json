@@ -191,7 +191,17 @@
           "winner": "k1-4"
         }
       ],
-      "result": null,
+      "result": {
+        "teams": [
+          "t2",
+          "t3"
+        ],
+        "scores": [
+          6,
+          5
+        ],
+        "players": {}
+      },
       "map": "Poseidon"
     },
     {
