@@ -187,3 +187,8 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 @media(max-width:650px){.setup-steps{grid-template-columns:1fr 1fr}.setup-steps button{font-size:13px;padding:10px}#setup-stage-2{display:block}.setup-navigation{flex-wrap:wrap}}
 
 .setup-maintenance{margin-top:24px;border-top:1px solid var(--border);padding-top:16px}.setup-maintenance>summary{cursor:pointer;color:var(--muted)}
+
+/* Once the live draw starts, keep its toolbar and teams in focus. */
+#draw-panel.live-draw>.section-heading,#draw-panel.live-draw>.setup-steps,#draw-panel.live-draw>p,
+#draw-panel.live-draw #setup-back-4,#draw-panel.live-draw #setup-summary,#draw-panel.live-draw #team-creation-label,#draw-panel.live-draw #reset-draw{display:none}
+#draw-panel.live-draw #setup-stage-4,#draw-panel.live-draw #setup-stage-4>.draw-layout,#draw-panel.live-draw #draw-stage{margin-top:0}
