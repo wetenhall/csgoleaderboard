@@ -1,4 +1,4 @@
-let importCentreState={inbox:false,links:false};
+let importCentreState={open:false,inbox:false,links:false};
 let faceitFeedCache=null;
 async function loadFaceitFeed(force=false){if(!faceitFeedCache || force)faceitFeedCache=fetch('faceit-games.json?v='+Date.now(),{cache:'no-store'}).then(async response=>{if(!response.ok)throw Error('Game list is not available yet. Check that the bot is running.');return response.json();}).catch(error=>{faceitFeedCache=null;throw error;});return faceitFeedCache;}
 function importedFixtureResult(data,fixture,game,links){
@@ -46,9 +46,9 @@ function suggestImportFixtures(data,game,resolve){
   }return suggestions;
 }
 function createImportCentre({data,resolve,isBusy,isOrganiser,saveImport,saveAliases,undo}){
-  const root=element('section','import-centre'),note=element('p','rules');
+  const root=element('details','import-centre'),note=element('p','rules');
   const button=(text,fn)=>{const b=element('button','secondary',text);b.type='button';b.onclick=async()=>{if(isBusy()||!isOrganiser())return;b.disabled=true;try{await fn();}catch(error){note.textContent=error.message;}finally{b.disabled=false;}};return b;};
-  root.append(element('h3','','Imports & result changes'));
+  root.append(element('summary','import-centre-heading','Imports & result changes'));root.open=importCentreState.open;root.addEventListener('toggle',event=>{if(event.target===root)importCentreState.open=root.open;});
   const last=data.resultRevisions?.at(-1);if(last){root.append(element('p','rules','Last result change: '+last.fixtureId.toUpperCase()+' · '+new Date(last.at).toLocaleString()),button('Undo last result change',async()=>{if(confirm('Restore the previous results and player stats, including affected playoff results? Name links are unchanged.'))await undo();}));}
   const inbox=element('details','import-inbox'),inboxBody=element('div');inbox.append(element('summary','','FACEIT import inbox'),inboxBody);
   const manager=element('details','name-link-manager'),managerBody=element('div');manager.append(element('summary','','Manage player name links'),element('p','rules','Change or unlink remembered names here. This affects future imports only; to correct an existing result, undo it or reimport the game with the correct links.'),managerBody);root.append(inbox,manager,note);

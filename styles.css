@@ -261,3 +261,5 @@ footer{flex-wrap:wrap}.footer-status{flex-basis:100%;display:flex;justify-conten
 
 .page-tabs{margin-bottom:32px}
 
+
+.import-centre>.import-centre-heading{font-size:22px;line-height:1.4;color:var(--accent)}
