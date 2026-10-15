@@ -18,3 +18,9 @@ test('large tournaments paginate without losing teams',()=>{
   assert.deepEqual(files.map(f=>f.name),['teams-1.png','teams-2.png','teams-3.png']);
   assert.deepEqual(renderTeamImages({teams:[]}),[]);
 });
+
+test('Discord result cards resolve the winner and generate a readable image',async()=>{
+  const {resultCards,resultImage}=require('./results.cjs'),{makeTournament,applyResult}=require('../manager.js'),{resolveTournament}=require('../app.js'),{loadImage}=require('@napi-rs/canvas');
+  const data=makeTournament([{id:'a',name:'Alice'},{id:'b',name:'Bob'}],1,{name:'Cup'},['t1','t2'],0,[],2,'knockout');
+  assert.deepEqual(resultCards(data),[]);const next=applyResult(data,'f1',{teams:['t1','t2'],scores:[13,10]},resolveTournament).next,card=resultCards(next)[0];assert.equal(card.winner,'Alice');assert.deepEqual(card.scores,[13,10]);const image=await loadImage(resultImage(card));assert.equal(image.width,1200);assert.equal(image.height,460);
+});

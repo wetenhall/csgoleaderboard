@@ -3,6 +3,7 @@ const {Client,GatewayIntentBits,Events,PermissionFlagsBits,SlashCommandBuilder,A
 const {register,publishEvent,teamAnnouncements}=require('./core.cjs');
 const {renderTeamImages}=require('./team-image.cjs');
 const {syncFaceitGames}=require('./faceit.cjs');
+const {syncResultCards}=require('./results.cjs');
 for(const key of ['DISCORD_TOKEN','DISCORD_GUILD_ID','GITHUB_TOKEN','GITHUB_REPOSITORY','GITHUB_BRANCH','SITE_URL'])if(!process.env[key])throw Error('Missing '+key);
 if(!/^[\w.-]+\/[\w.-]+$/.test(process.env.GITHUB_REPOSITORY))throw Error('Invalid repository.');
 if(new URL(process.env.SITE_URL).protocol!=='https:')throw Error('SITE_URL must use HTTPS.');
@@ -45,8 +46,9 @@ async function syncTeams(){
     const roster=teamAnnouncements(tournament,escapeMarkdown),signature='team-connect-auto-v1:'+JSON.stringify([roster,tournament.serverAddress||'']);
     const map=tournament.format==='single'?tournament.matches?.[0]?.map:null;
     const descriptions=['Teams ready · '+tournament.teamSize+'v'+tournament.teamSize+(map?' · '+escapeMarkdown(map):'')];
-    if(event.teamSignature===signature)return;
     const channel=await client.channels.fetch(event.channelId),registration=await channel.messages.fetch(event.messageId);
+    await syncResultCards({tournament,event,channel,registration,save});
+    if(event.teamSignature===signature)return;
     const images=renderTeamImages(tournament);
     event.teamMessageIds ||= [];
     for(let i=0;i<descriptions.length;i++){

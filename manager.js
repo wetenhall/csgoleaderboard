@@ -85,7 +85,7 @@ function makeTournament(players, size, template, groupOrder, groupCount = player
   if(format==='single' && (size<2 || players.length!==size*2))throw Error('Single Game needs exactly '+(size*2)+' players in two '+size+'v'+size+' teams (2v2–5v5 only).');
   if(format==='knockout' || format==='double' || format==='single')groupCount=0;
   const data = structuredClone(template);
-  delete data.discordEventId;delete data.activeMatchId;delete data.mapMethod;delete data.mapVeto;
+  delete data.resultRevisions;delete data.discordEventId;delete data.activeMatchId;delete data.mapMethod;delete data.mapVeto;
   data.format=format;
   if(![1,2].includes(qualifiersPerGroup))throw Error('Choose Top 1 or Top 2 from each group.');
   if(groupCount && groupCount*qualifiersPerGroup<2)throw Error('Top 1 needs at least two groups to create a knockout stage.');
@@ -254,6 +254,7 @@ function validateData(data, resolve) {
 }
 function applyResult(data, id, result, resolve) {
   const next = structuredClone(data);
+  next.resultRevisions=[...(data.resultRevisions||[]),{fixtureId:id,at:new Date().toISOString(),matches:data.matches.map(m=>({id:m.id,result:structuredClone(m.result||null)})),...(data.activeMatchId?{activeMatchId:data.activeMatchId}:{})}].slice(-10);
   next.matches.find(m => m.id === id).result = {...result,players:resultPlayerStats(data,result)};
   // Recompute later participants. Keep valid results; clear only stale descendants.
   const oldPlayoffs = next.matches.filter(m => !m.group).map(m => [m.id,m.result]);
@@ -269,6 +270,11 @@ function applyResult(data, id, result, resolve) {
   validateData(next, resolve);
   return { next, cleared };
 }
+function undoResultChange(data,resolve){
+  const next=structuredClone(data),revision=next.resultRevisions?.pop();if(!revision)throw Error('No result change to undo.');
+  if(revision.matches.length!==next.matches.length || revision.matches.some(m=>!next.matches.some(n=>n.id===m.id)))throw Error('The fixture structure has changed.');
+  revision.matches.forEach(old=>{next.matches.find(m=>m.id===old.id).result=old.result;});delete next.activeMatchId;if(revision.activeMatchId)next.activeMatchId=revision.activeMatchId;validateData(next,resolve);return next;
+}
 function emptyTournament(data) { return {...(data.importAliases?{importAliases:structuredClone(data.importAliases)}:{}),...(data.gameProvider?{gameProvider:data.gameProvider}:{}),...(data.savedPlayers!==undefined?{savedPlayers:structuredClone(data.savedPlayers)}:{}),...(data.serverAddress?{serverAddress:data.serverAddress}:{}),name:data.name,teams:[],groups:[],matches:[],...(data.history?{history:structuredClone(data.history)}:{}),...(data.headers?{headers:structuredClone(data.headers)}:{}),...(data.registrationEnabled!==undefined?{registrationEnabled:data.registrationEnabled}:{})}; }
 function drawPublishReason(draw,state) {
   if(!state.connected)return 'Connect as organiser to publish teams.';
@@ -281,7 +287,7 @@ function drawPublishReason(draw,state) {
   if(draw.format==='single' && !state.drawnMap)return 'Choose a map selection method, confirm it, then select the match map before publishing.';
   return '';
 }
-if (typeof module !== 'undefined') module.exports = { drawPublishReason, makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament, tournamentAwards, updateHeaders, repositorySettings, soloDrawGroups, drawTeamMembers };
+if (typeof module !== 'undefined') module.exports = { undoResultChange, drawPublishReason, makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament, tournamentAwards, updateHeaders, repositorySettings, soloDrawGroups, drawTeamMembers };
 if (typeof document !== 'undefined') (() => {
   const $ = id => document.getElementById(id);
   const repository=repositorySettings(document.querySelector('meta[name=dashboard-repository]')?.content,document.querySelector('meta[name=dashboard-branch]')?.content,location.hostname,location.pathname);
@@ -387,7 +393,7 @@ if (typeof document !== 'undefined') (() => {
     $('publish-draw').hidden=!locked || !manual || draw?.format==='single';$('publish-status').hidden=$('publish-draw').hidden;
     for(const id of ['publish-status','publish-expanded-status']){$(id).textContent=publishReason || 'Teams are ready to publish.';}
     document.querySelectorAll('.result-form button, .tie-form button, #fixture-platform select').forEach(b => { b.disabled = busy || !token; });
-    document.querySelectorAll('.fixture-import,#fixture-platform').forEach(el=>el.hidden=!token);featureUI?.controls();gameNightUI?.controls();setupUI?.render();queueAutoSpin();
+    document.querySelectorAll('.fixture-import,#fixture-platform,#import-centre').forEach(el=>el.hidden=!token);featureUI?.controls();gameNightUI?.controls();setupUI?.render();queueAutoSpin();
   }
   async function request(method, body, credential = token) {
     if(!repository)throw Error('Repository not configured. Deploy with the included GitHub Actions workflow, or set GITHUB_REPOSITORY and GITHUB_REF_NAME when building.');
@@ -518,8 +524,19 @@ if (typeof document !== 'undefined') (() => {
     const wrap = element('label','',label); const input = element('input');
     input.type='number'; input.min='0'; input.max=String(max); input.step='1'; input.value=value ?? ''; input.inputMode='numeric'; wrap.append(input); return {wrap,input};
   }
+  async function saveImportedFixture(id,result,aliases){
+    if(busy || !token)throw Error('Connect as organiser before importing.');
+    const live=resolveTournament(current).matches.find(m=>m.id===id);if(!live || JSON.stringify(live.ids)!==JSON.stringify(result.teams))throw Error('Fixture teams changed. Reload the fixture.');
+    if(importedGameUsage(current,result.importSource.id).some(use=>use.archived || use.fixtureId!==id))throw Error('This game is already imported elsewhere.');
+    if(live.result && !confirm('Replace the saved result and player stats with this imported game?'))return;
+    const {next,cleared}=applyResult(current,id,result,resolveTournament);next.importAliases={...current.importAliases,faceit:aliases};
+    if(cleared.length && !confirm('Importing this result clears changed playoff results: '+cleared.join(', ')+'. Continue?'))return;
+    await publish(next,'Import FACEIT result for '+id);
+  }
   function renderSchedule() {
-    document.getElementById('fixture-platform')?.remove();
+    document.getElementById('fixture-platform')?.remove();document.getElementById('import-centre')?.remove();
+    if(token){const centre=createImportCentre({data:structuredClone(current),resolve:resolveTournament,isBusy:()=>busy,isOrganiser:()=>!!token,saveImport:saveImportedFixture,saveAliases:async aliases=>{const next=structuredClone(current);next.importAliases={...current.importAliases,faceit:aliases};await publish(next,'Update FACEIT player name links');},undo:async()=>{await publish(undoResultChange(current,resolveTournament),'Undo last result change');}});centre.id='import-centre';$('schedule').before(centre);}
+
     if(token){const label=element('label','fixture-platform','Game platform'),select=element('select');label.id='fixture-platform';for(const [value,text] of [['manual','Other · Manual results'],['faceit','FACEIT · Pull up gang queue']]){const o=element('option','',text);o.value=value;select.append(o);}select.value=current.gameProvider || 'manual';select.disabled=busy;select.onchange=async()=>{try{const next=structuredClone(current);next.gameProvider=select.value;await publish(next,'Update fixture game platform');}catch(error){say(error.message);select.value=current.gameProvider || 'manual';}};label.append(select);$('schedule').before(label);}
 
     $('schedule').replaceChildren(); const state = resolveTournament(current);
@@ -624,15 +641,7 @@ if (typeof document !== 'undefined') (() => {
           await publish(next,`Update ${match.id.toUpperCase()} result and player stats`);
         } catch(error) {note.textContent=error.message;}
       };
-      if(token && current.gameProvider==='faceit')body.append(createFixtureImporter({data:structuredClone(current),fixture:match,isBusy:()=>busy,isOrganiser:()=>!!token,save:async(result,aliases)=>{
-        if(busy || !token)throw Error('Connect as organiser before importing.');
-        const live=resolveTournament(current).matches.find(m=>m.id===match.id);if(!live || JSON.stringify(live.ids)!==JSON.stringify(result.teams))throw Error('Fixture teams changed. Reload the fixture.');
-        if([...current.matches.filter(m=>m.id!==match.id),...(current.history||[]).flatMap(e=>e.tournament.matches)].some(m=>m.result?.importSource?.id===result.importSource.id))throw Error('This game is already linked to another fixture.');
-        if(live.result && !confirm('Replace the saved result and player stats with this imported game?'))return;
-        const {next,cleared}=applyResult(current,match.id,result,resolveTournament);next.importAliases={...current.importAliases,faceit:aliases};
-        if(cleared.length && !confirm('Importing this result clears changed playoff results: '+cleared.join(', ')+'. Continue?'))return;
-        await publish(next,'Import FACEIT result for '+match.id);
-      }}));
+      if(token && current.gameProvider==='faceit')body.append(createFixtureImporter({data:structuredClone(current),fixture:match,isBusy:()=>busy,isOrganiser:()=>!!token,save:(result,aliases)=>saveImportedFixture(match.id,result,aliases)}));
       body.append(form); details.append(body); container.append(details);
     });
   }

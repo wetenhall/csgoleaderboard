@@ -9,7 +9,7 @@ test('Discord sync posts once, skips unchanged teams and edits the existing repl
   let sent=0,edited=0,postedPayload;
   class Embed{setTitle(){return this;}setColor(){return this;}setDescription(){return this;}setURL(){return this;}setImage(){return this;}}
   const message={id:'teams',edit:async()=>{edited++;}},registration={reply:async payload=>{sent++;postedPayload=payload;return message;}};
-  const context={queue:Promise.resolve(),syncingTeams:false,process:{env:{GITHUB_REPOSITORY:'owner/repo',GITHUB_BRANCH:'main',GITHUB_TOKEN:'fake',SITE_URL:'https://example.com'}},data:{events:[event]},Buffer,AbortSignal,EmbedBuilder:Embed,ActionRowBuilder:class{addComponents(){return this;}},ButtonBuilder:class{setLabel(){return this;}setStyle(){return this;}setURL(){return this;}},ButtonStyle:{Link:5},escapeMarkdown:value=>value,teamAnnouncements:require('./core.cjs').teamAnnouncements,renderTeamImages:()=>[{name:'teams-1.png',attachment:Buffer.from('png')}],save(){},console:{error(){}},fetch:async()=>({ok:true,json:async()=>({content:Buffer.from(JSON.stringify(tournament)).toString('base64')})}),client:{channels:{fetch:async()=>({messages:{fetch:async id=>id==='registration'?registration:message,delete:async()=>{}}})}}};
+  const context={queue:Promise.resolve(),syncingTeams:false,process:{env:{GITHUB_REPOSITORY:'owner/repo',GITHUB_BRANCH:'main',GITHUB_TOKEN:'fake',SITE_URL:'https://example.com'}},data:{events:[event]},Buffer,AbortSignal,EmbedBuilder:Embed,ActionRowBuilder:class{addComponents(){return this;}},ButtonBuilder:class{setLabel(){return this;}setStyle(){return this;}setURL(){return this;}},ButtonStyle:{Link:5},escapeMarkdown:value=>value,syncResultCards:async()=>{},teamAnnouncements:require('./core.cjs').teamAnnouncements,renderTeamImages:()=>[{name:'teams-1.png',attachment:Buffer.from('png')}],save(){},console:{error(){}},fetch:async()=>({ok:true,json:async()=>({content:Buffer.from(JSON.stringify(tournament)).toString('base64')})}),client:{channels:{fetch:async()=>({messages:{fetch:async id=>id==='registration'?registration:message,delete:async()=>{}}})}}};
   vm.runInNewContext(source.slice(source.indexOf('async function syncTeams(){'),source.indexOf('client.on(Events.InteractionCreate')),context);
   await context.syncTeams();assert.equal(sent,1);assert.equal(postedPayload.files[0].name,'teams-1.png');assert.deepEqual(Array.from(event.teamMessageIds),['teams']);
   await context.syncTeams();assert.equal(sent,1);assert.equal(edited,0);
@@ -102,4 +102,11 @@ test('FACEIT sync excludes cancelled games and avoids unchanged GitHub writes',a
     if(url.includes('/stats')){statsCalls++;throw Error('Unexpected stats request');}
     return {ok:true,json:async()=>({items:[{match_id:'cancelled',status:'CANCELLED'},{match_id:'done',status:'FINISHED'}]})};
   });assert.equal(writes,0);assert.equal(statsCalls,0);
+});
+
+test('Discord result sync posts once, edits corrections and removes undone results',async()=>{
+  const {syncResultCards}=require('./results.cjs'),{makeTournament,applyResult}=require('../manager.js'),{resolveTournament}=require('../app.js');let sent=0,edited=0,deleted=0;
+  const base=makeTournament([{id:'a',name:'Alice'},{id:'b',name:'Bob'}],1,{name:'Cup'},['t1','t2'],0,[],2,'knockout'),event={};let tournament=applyResult(base,'f1',{teams:['t1','t2'],scores:[13,10]},resolveTournament).next;
+  const message={id:'result',edit:async()=>edited++},context={event,channel:{messages:{fetch:async()=>message,delete:async()=>deleted++}},registration:{reply:async()=>{sent++;return message;}},save(){}};
+  await syncResultCards({...context,tournament});await syncResultCards({...context,tournament});assert.equal(sent,1);assert.equal(edited,0);tournament=applyResult(tournament,'f1',{teams:['t1','t2'],scores:[10,13]},resolveTournament).next;await syncResultCards({...context,tournament});assert.equal(edited,1);await syncResultCards({...context,tournament:base});assert.equal(deleted,1);assert.deepEqual(event.resultMessages,{});
 });

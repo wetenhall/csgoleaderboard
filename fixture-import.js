@@ -1,3 +1,4 @@
+let importCentreState={inbox:false,links:false};
 let faceitFeedCache=null;
 async function loadFaceitFeed(force=false){if(!faceitFeedCache || force)faceitFeedCache=fetch('faceit-games.json?v='+Date.now(),{cache:'no-store'}).then(async response=>{if(!response.ok)throw Error('Game list is not available yet. Check that the bot is running.');return response.json();}).catch(error=>{faceitFeedCache=null;throw error;});return faceitFeedCache;}
 function importedFixtureResult(data,fixture,game,links){
@@ -20,10 +21,10 @@ function importedFixtureResult(data,fixture,game,links){
   if(game.teams.flatMap(t=>t.players).some((p,i,a)=>a.findIndex(x=>x.name===p.name)!==i))throw Error('Duplicate imported names require manual result entry.');
   return {teams:[...fixture.ids],scores,players,importSource:{provider:'faceit',id:game.id,matchId:game.matchId,map:game.map}};
 }
-function createFixtureImporter({data,fixture,save,isBusy,isOrganiser}){
+function createFixtureImporter({data,fixture,save,isBusy,isOrganiser,gameId}){
   const root=element('section','fixture-import'),status=element('p','rules'),select=element('select'),load=element('button','secondary','Refresh FACEIT games'),preview=element('div');
   load.type='button';select.setAttribute('aria-label','Available FACEIT games');let games=[];const label=element('label','','Import game');label.append(select);root.append(element('h4','','Import FACEIT results'),label,load,status,preview);
-  async function refresh(force=false){load.disabled=true;status.textContent='Loading completed queue games…';try{const feed=await loadFaceitFeed(force);games=feed.games||[];select.replaceChildren(element('option','','Select a completed game'));select.firstChild.value='';for(const game of games){const option=element('option','',new Date(game.finishedAt*1000).toLocaleString()+' · '+game.map+' · '+game.teams.map(t=>t.players.map(p=>p.name).join(', ')).join(' vs ')+' · '+game.teams.map(t=>t.score).join('–'));option.value=game.id;select.append(option);}status.textContent=games.length+' games available (latest 100 queue entries) · Synced '+new Date(feed.updatedAt).toLocaleString();preview.replaceChildren();}catch(error){status.textContent=error.message;}finally{load.disabled=false;}}
+  async function refresh(force=false){load.disabled=true;status.textContent='Loading completed queue games…';try{const feed=await loadFaceitFeed(force);games=feed.games||[];select.replaceChildren(element('option','','Select a completed game'));select.firstChild.value='';for(const game of games){const option=element('option','',new Date(game.finishedAt*1000).toLocaleString()+' · '+game.map+' · '+game.teams.map(t=>t.players.map(p=>p.name).join(', ')).join(' vs ')+' · '+game.teams.map(t=>t.score).join('–'));option.value=game.id;const used=importedGameUsage(data,game.id);if(used.length){option.textContent+=' · Already imported: '+used.map(u=>u.label).join(', ');option.disabled=used.some(u=>u.archived || u.fixtureId!==fixture.id);}select.append(option);}status.textContent=games.length+' games available (latest 100 queue entries) · Synced '+new Date(feed.updatedAt).toLocaleString();preview.replaceChildren();if(gameId){select.value=gameId;select.onchange();}}catch(error){status.textContent=error.message;}finally{load.disabled=false;}}
   load.onclick=()=>refresh(true);
   select.onchange=()=>{preview.replaceChildren();const game=games.find(g=>g.id===select.value);if(!game)return;const roster=data.teams.filter(t=>fixture.ids.includes(t.id)).flatMap(t=>t.players),links=Object.create(null),aliases=data.importAliases?.faceit||{};
     preview.append(element('p','rules','Link FACEIT names to fixture players. Scores use rounds won; imported kills, deaths and assists are kept as reported. Check the map and date before importing.'));
@@ -32,4 +33,38 @@ function createFixtureImporter({data,fixture,save,isBusy,isOrganiser}){
   };
   void refresh();return root;
 }
-if(typeof module!=='undefined')module.exports={importedFixtureResult};
+if(typeof module!=='undefined')module.exports={importedFixtureResult,importedGameUsage,suggestImportFixtures};
+function importedGameUsage(data,id){
+  return [...data.matches.filter(m=>m.result?.importSource?.id===id).map(m=>({fixtureId:m.id,archived:false,label:m.id.toUpperCase()})),...(data.history||[]).flatMap(entry=>entry.tournament.matches.filter(m=>m.result?.importSource?.id===id).map(m=>({fixtureId:m.id,archived:true,label:entry.title+' / '+m.id.toUpperCase()})))];
+}
+function suggestImportFixtures(data,game,resolve){
+  if(importedGameUsage(data,game.id).length)return [];
+  const aliases=data.importAliases?.faceit||{},state=resolve(data),suggestions=[];
+  for(const fixture of state.matches.filter(m=>!m.result && !m.skipped && m.ids.every(Boolean))){const roster=data.teams.filter(t=>fixture.ids.includes(t.id)).flatMap(t=>t.players),links=Object.create(null);
+    for(const p of game.teams.flatMap(t=>t.players)){const candidates=roster.filter(x=>x.name===aliases[p.name.normalize('NFKC').toLowerCase()]);if(candidates.length===1)links[p.name]=candidates[0].id;}
+    try{importedFixtureResult(data,fixture,game,links);suggestions.push(fixture.id);}catch{}
+  }return suggestions;
+}
+function createImportCentre({data,resolve,isBusy,isOrganiser,saveImport,saveAliases,undo}){
+  const root=element('section','import-centre'),note=element('p','rules');
+  const button=(text,fn)=>{const b=element('button','secondary',text);b.type='button';b.onclick=async()=>{if(isBusy()||!isOrganiser())return;b.disabled=true;try{await fn();}catch(error){note.textContent=error.message;}finally{b.disabled=false;}};return b;};
+  root.append(element('h3','','Imports & result changes'));
+  const last=data.resultRevisions?.at(-1);if(last){root.append(element('p','rules','Last result change: '+last.fixtureId.toUpperCase()+' · '+new Date(last.at).toLocaleString()),button('Undo last result change',async()=>{if(confirm('Restore the previous results and player stats, including affected playoff results? Name links are unchanged.'))await undo();}));}
+  const inbox=element('details','import-inbox'),inboxBody=element('div');inbox.append(element('summary','','FACEIT import inbox'),inboxBody);
+  const manager=element('details','name-link-manager'),managerBody=element('div');manager.append(element('summary','','Manage player name links'),element('p','rules','Change or unlink remembered names here. This affects future imports only; to correct an existing result, undo it or reimport the game with the correct links.'),managerBody);root.append(inbox,manager,note);
+  inbox.open=importCentreState.inbox;manager.open=importCentreState.links;let feed=null;
+  const load=async(force=false)=>{note.textContent='Loading FACEIT games…';try{feed=await loadFaceitFeed(force);if(!root.isConnected)return;renderInbox();renderLinks();note.textContent='Game list synced '+new Date(feed.updatedAt).toLocaleString()+'.';}catch(error){note.textContent=error.message;}};
+  inboxBody.append(button('Load available games',()=>load()));managerBody.append(button('Load player name links',()=>load()));
+  inbox.addEventListener('toggle',()=>{importCentreState.inbox=inbox.open;if(inbox.open&&!feed)void load();});manager.addEventListener('toggle',()=>{importCentreState.links=manager.open;if(manager.open&&!feed)void load();});
+  function renderInbox(){inboxBody.replaceChildren(button('Refresh games',()=>load(true)));const games=feed.games||[],pending=games.filter(g=>!importedGameUsage(data,g.id).length);inboxBody.append(element('p','rules',pending.length+' new games · '+(games.length-pending.length)+' already imported'));
+    for(const game of games){const used=importedGameUsage(data,game.id),card=element('details','import-game'),body=element('div'),suggestions=suggestImportFixtures(data,game,resolve);card.append(element('summary','',game.map+' · '+game.teams.map(t=>t.players.map(p=>p.name).join(', ')).join(' vs ')+' · '+game.teams.map(t=>t.score).join('–')+' · '+new Date(game.finishedAt*1000).toLocaleString()+(used.length?' · Already imported: '+used.map(u=>u.label).join(', '):suggestions.length===1?' · Suggested '+suggestions[0].toUpperCase():suggestions.length>1?' · Multiple possible fixtures':' · Link players to suggest a fixture')));
+      if(!used.length){const label=element('label','','Choose fixture'),pick=element('select'),preview=element('div');pick.append(element('option','','Select fixture'));pick.firstChild.value='';for(const fixture of resolve(data).matches.filter(m=>!m.skipped && m.ids.every(Boolean))){const o=element('option','',fixture.id.toUpperCase()+' · '+fixture.ids.map(id=>data.teams.find(t=>t.id===id).players.map(p=>p.name).join(', ')).join(' vs ')+(fixture.result?' · Replace saved result':''));o.value=fixture.id;pick.append(o);}label.append(pick);body.append(label,preview);pick.onchange=()=>{preview.replaceChildren();const fixture=resolve(data).matches.find(m=>m.id===pick.value);if(fixture)preview.append(createFixtureImporter({data,fixture,gameId:game.id,isBusy,isOrganiser,save:(result,aliases)=>saveImport(fixture.id,result,aliases)}));};if(suggestions.length===1)pick.value=suggestions[0];let opened=false;card.addEventListener('toggle',()=>{if(card.open&&!opened){opened=true;if(pick.value)pick.onchange();}});}
+      card.append(body);inboxBody.append(card);
+    }
+  }
+  function renderLinks(){managerBody.replaceChildren();const aliases=data.importAliases?.faceit||{},names=[...new Set([...Object.keys(aliases),...(feed.games||[]).flatMap(g=>g.teams.flatMap(t=>t.players.map(p=>p.name.normalize('NFKC').toLowerCase())))])].sort(),choices=[...new Set([...(data.savedPlayers||[]),...data.teams.flatMap(t=>t.players.map(p=>p.name)),...Object.values(aliases)])].sort();
+    if(!names.length)managerBody.append(element('p','rules','No imported names or remembered links yet.'));
+    for(const name of names){const row=element('div','name-link-row'),label=element('label','',name),pick=element('select');pick.append(element('option','','Unlinked'));pick.firstChild.value='';choices.forEach(value=>{const o=element('option','',value);o.value=value;pick.append(o);});pick.value=aliases[name]||'';label.append(pick);row.append(label,button('Save link',async()=>{const next=Object.assign(Object.create(null),aliases);if(pick.value)next[name]=pick.value;else delete next[name];await saveAliases(next);}),button('Unlink',async()=>{const next=Object.assign(Object.create(null),aliases);delete next[name];await saveAliases(next);}));managerBody.append(row);}
+  }
+  return root;
+}
