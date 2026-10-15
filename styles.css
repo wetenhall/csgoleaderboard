@@ -273,3 +273,5 @@ footer{flex-wrap:wrap}.footer-status{flex-basis:100%;display:flex;justify-conten
 .admin-menu{margin:0}.page-tabs.admin-tabs{background:#101218;margin-bottom:0}
 
 .intro+.overview{margin-top:0;margin-bottom:0}.overview+#admin-menu{margin:20px 0}
+
+.faceit-link-row select{width:100%;min-height:44px;margin:0}.faceit-link-row.profile-saved select{flex:1;min-width:0;font-size:12px}
