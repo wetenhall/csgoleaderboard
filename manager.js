@@ -273,7 +273,7 @@ function drawPublishReason(draw,state) {
   if(draw.teamSize!==state.teamSize || draw.format!==state.format)return 'Tournament settings changed. Reset the draw and create teams again.';
   if(draw.groups.length!==state.groups || draw.qualifiersPerGroup!==state.qualifiers)return 'Review the group count and qualifiers outside expanded view.';
   if(state.teamSize!==1 && !state.maps.length)return 'Select at least one fixture map outside expanded view.';
-  if(draw.format==='single' && !state.drawnMap)return 'Select the match map before publishing.';
+  if(draw.format==='single' && !state.drawnMap)return 'Choose a map selection method, confirm it, then select the match map before publishing.';
   return '';
 }
 if (typeof module !== 'undefined') module.exports = { drawPublishReason, makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament, tournamentAwards, updateHeaders, repositorySettings, soloDrawGroups, drawTeamMembers };
@@ -315,13 +315,14 @@ if (typeof document !== 'undefined') (() => {
     $('player-pool-heading').textContent=loadedDiscordEvent?'Event players':'Player pool';
     $('setup-next-3').textContent='Continue';
     $('player-pool-help').textContent=loadedDiscordEvent?'Select who is playing below, then confirm your players.':'Choose who is playing this time. Add saved players above or enter names below, then load the pool and select your players.';
-    $('skip-animation').disabled=busy || spinning || skippingAnimation || !token || (!remaining.length && !(draw?.format==='single' && !drawnMap && draw.mapMethod!=='veto' && selectedMaps().length)) || (remaining.length>0 && ['manual','captains'].includes($('team-creation').value));
+    $('skip-animation').disabled=busy || spinning || skippingAnimation || !token || (!remaining.length && !(draw?.format==='single' && !drawnMap && draw.mapMethod && draw.mapMethod!=='veto' && selectedMaps().length)) || (remaining.length>0 && ['manual','captains'].includes($('team-creation').value));
     const manual=$('team-creation').value==='manual';
     const captains=$('team-creation').value==='captains';
     $('captain-case-panel').hidden=!captains || !locked;
-    document.querySelector('.wheel-panel').hidden=captains && (!draw || draw.format!=='single');
+    const selectingMap=draw?.format==='single' && !remaining.length;
+    document.querySelector('.wheel-panel').hidden=(captains && (!draw || draw.format!=='single')) || (selectingMap && (!draw.mapMethod || draw.mapMethod==='veto'));
     document.querySelector('.spin-actions').hidden=document.querySelector('.wheel-panel').hidden;
-    $('draw-animation').closest('label').hidden=captains && !draw;
+    $('draw-animation').closest('label').hidden=selectingMap || (captains && !draw);
     $('draw-stage').classList.toggle('captain-style',captains);
     $('captain-choices').querySelectorAll('select,button').forEach(input=>{input.disabled=busy || spinning || !!captainDraft || !token;});
     $('captain-case-grid').querySelectorAll('button').forEach((button,i)=>{button.disabled=busy || spinning || !token || !!captainDraft?.cases[i].opened;});
@@ -370,7 +371,7 @@ if (typeof document !== 'undefined') (() => {
     const mapPending=draw?.format==='single' && !remaining.length && !drawnMap;
     $('spin').textContent=mapPending?'Spin for map':'Spin for next player';
     $('wheel').setAttribute('aria-label',mapPending?'Map selection wheel':'Player selection wheel');
-    $('spin').disabled = (captains && (!draw || remaining.length>0)) || busy || spinning || (!remaining.length && !mapPending) || (mapPending && (!selectedMaps().length || draw.mapMethod==='veto'));
+    $('spin').disabled = (captains && (!draw || remaining.length>0)) || busy || spinning || (!remaining.length && !mapPending) || (mapPending && (!selectedMaps().length || !draw.mapMethod || draw.mapMethod==='veto'));
     $('disconnect').disabled = busy;
     $('remember-token').disabled = busy;
     const publishReason=drawPublishReason(draw,{busy,spinning,connected:!!token,drawnMap,format:$('tournament-format').value,groups:Number($('group-count').value),qualifiers:Number($('qualifiers-per-group').value),teamSize:Number($('team-size').value),maps:selectedMaps()});
@@ -943,13 +944,13 @@ if (typeof document !== 'undefined') (() => {
           draw=makeTournament(selected,size,current,undefined,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value),$('tournament-format').value);
           drawOrder=draw.groups.length?draw.groups.flatMap(g=>g.teams):draw.teams.map(team=>team.id);
         }
-        configureDraw();announce(draw.format==='single'?'Teams complete. Spin again to select the map before publishing.':size===1 && $('tournament-format').value==='groups' && Number($('group-count').value)>0?'Draw complete. Review your groups, then publish. Your selected qualifiers from each group advance to knockouts.':'Draw complete. Review team names and tournament format, then publish.');
+        configureDraw();announce(draw.format==='single'?'Teams complete. Choose and confirm a map selection method before publishing.':size===1 && $('tournament-format').value==='groups' && Number($('group-count').value)>0?'Draw complete. Review your groups, then publish. Your selected qualifiers from each group advance to knockouts.':'Draw complete. Review team names and tournament format, then publish.');
       }
       showDrawTeams(picked.id);
     } finally {spinning=false;$('reset-draw').disabled=false;controls();}
   };
   async function spinMap(){
-    if(busy || spinning || !draw || drawnMap || draw.mapMethod==='veto' || !selectedMaps().length)return;
+    if(busy || spinning || !draw || drawnMap || !draw.mapMethod || draw.mapMethod==='veto' || !selectedMaps().length)return;
     const names=selectedMaps().map(name=>({name})),index=randomIndex(names.length),target=2880+360-(index+.5)*360/names.length;
     spinning=true;controls();$('reset-draw').disabled=true;
     try{
@@ -1062,7 +1063,7 @@ if (typeof document !== 'undefined') (() => {
     $('pool-input').value=mergePlayerNames($('pool-input').value,names);
     $('load-pool').click();
   },save:publish,resetDraw:resetDrawState,notify:say,goToFixtures:()=>selectTab($('tab-fixtures'),true)});
-  gameNightUI=createGameNightTools({getData:()=>current,getDraft:()=>draw,isOrganiser:()=>!!token,isBusy:()=>busy || spinning,refreshDraft:configureDraw,getMaps:selectedMaps,setMap:map=>{drawnMap=map;configureDraw();controls();},notify:say,beginRematch:()=>{
+  gameNightUI=createGameNightTools({getData:()=>current,getDraft:()=>draw,isOrganiser:()=>!!token,isBusy:()=>busy || spinning,refreshDraft:configureDraw,getMaps:selectedMaps,setMapMethod:method=>{if(!draw || busy || spinning)return;drawnMap=null;draw.mapVeto=[];if(method)draw.mapMethod=method;else delete draw.mapMethod;if(method==='wheel' || method==='case'){$('draw-animation').value=method;$('draw-animation').onchange();}configureDraw();controls();},setMap:map=>{drawnMap=map;configureDraw();controls();},notify:say,beginRematch:()=>{
     if(!token || busy || spinning || current.format!=='single')return;
     if((draw || remaining.length) && !confirm('Replace the unpublished draw with a rematch?'))return;
     const source=structuredClone(current);discordEventUI?.resetChoice();loadedDiscordEvent=null;resetDrawState();rematchSource=JSON.stringify(current);
