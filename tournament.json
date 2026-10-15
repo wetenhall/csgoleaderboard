@@ -21,12 +21,12 @@
       "tag": "01",
       "players": [
         {
-          "id": "p2",
-          "name": "OMNII-GODZ"
+          "id": "p1",
+          "name": "Grayzee"
         },
         {
-          "id": "p3",
-          "name": "Spongoat"
+          "id": "p2",
+          "name": "OMNII-GODZ"
         }
       ]
     },
@@ -36,12 +36,12 @@
       "tag": "02",
       "players": [
         {
-          "id": "p1",
-          "name": "Grayzee"
-        },
-        {
           "id": "p4",
           "name": "gorogay"
+        },
+        {
+          "id": "p3",
+          "name": "Spongoat"
         }
       ]
     }
@@ -61,7 +61,7 @@
       ],
       "result": null,
       "label": "Single Game · 2v2",
-      "map": "Vertigo"
+      "map": "Nuke"
     }
   ],
   "history": [],
