@@ -21,16 +21,16 @@
       "tag": "01",
       "players": [
         {
-          "id": "p2",
-          "name": "Spongoat"
+          "id": "p1",
+          "name": "LilRibe"
+        },
+        {
+          "id": "p3",
+          "name": "Grayzee"
         },
         {
           "id": "p4",
           "name": "lukinss"
-        },
-        {
-          "id": "p1",
-          "name": "LilRibe"
         }
       ]
     },
@@ -40,8 +40,8 @@
       "tag": "02",
       "players": [
         {
-          "id": "p3",
-          "name": "Grayzee"
+          "id": "p2",
+          "name": "Spongoat"
         },
         {
           "id": "p5",
@@ -69,7 +69,7 @@
       ],
       "result": null,
       "label": "One match · 3v3",
-      "map": "Inferno"
+      "map": "Italy"
     }
   ],
   "history": [],
