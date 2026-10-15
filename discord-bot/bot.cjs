@@ -40,7 +40,9 @@ async function syncTeams(){
     const file=await response.json(),tournament=JSON.parse(Buffer.from(file.content,'base64').toString('utf8'));
     const event=data.events.find(event=>event.id===tournament.discordEventId && event.publishedAt);
     if(!event || !tournament.teams?.length)return;
-    const descriptions=teamAnnouncements(tournament,escapeMarkdown),signature='team-images-v1:'+JSON.stringify(descriptions);
+    const roster=teamAnnouncements(tournament,escapeMarkdown),signature='team-images-v2:'+JSON.stringify(roster);
+    const map=tournament.format==='single'?tournament.matches?.[0]?.map:null;
+    const descriptions=['Teams ready · '+tournament.teamSize+'v'+tournament.teamSize+(map?' · '+escapeMarkdown(map):'')];
     if(event.teamSignature===signature)return;
     const channel=await client.channels.fetch(event.channelId),registration=await channel.messages.fetch(event.messageId);
     const images=renderTeamImages(tournament);
@@ -48,6 +50,7 @@ async function syncTeams(){
     for(let i=0;i<descriptions.length;i++){
       const payload={embeds:[new EmbedBuilder().setTitle((event.title+' · Teams').slice(0,256)).setColor(0xf5a623).setDescription(descriptions[i]).setURL(process.env.SITE_URL)],allowedMentions:{parse:[],repliedUser:false}};
       payload.attachments=[];
+      payload.components=[new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel('View game').setStyle(ButtonStyle.Link).setURL(process.env.SITE_URL))];
       if(i===0 && images.length){
         payload.files=images;payload.embeds[0].setImage('attachment://'+images[0].name);
         for(const image of images.slice(1))payload.embeds.push(new EmbedBuilder().setImage('attachment://'+image.name));

@@ -9,7 +9,7 @@ test('team cards render valid PNGs for each team size',async()=>{
     assert.equal(files.length,1);
     assert.equal(files[0].attachment.subarray(1,4).toString(),'PNG');
     const image=await loadImage(files[0].attachment);
-    assert.equal(image.width,1600);assert.equal(image.height,900);
+    assert.equal(image.width,1600);assert.equal(image.height,375+size*86);
   }
 });
 test('large tournaments paginate without losing teams',()=>{
