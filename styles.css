@@ -271,3 +271,5 @@ footer{flex-wrap:wrap}.footer-status{flex-basis:100%;display:flex;justify-conten
 #player-links>.name-link-manager{padding:20px;background:var(--panel);border:1px solid var(--border);border-top:3px solid var(--accent)}#player-links>.name-link-manager>h3{margin-top:0}#player-links>[role=status]:empty{display:none}
 
 .admin-menu{margin:0}.page-tabs.admin-tabs{background:#101218;margin-bottom:0;border-top:0}
+
+.intro+.overview{margin-top:0;margin-bottom:0}.overview+#admin-menu{margin-bottom:20px}
