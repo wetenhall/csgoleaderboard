@@ -328,7 +328,7 @@ if (typeof document !== 'undefined') (() => {
     $('team-creation').disabled=busy || locked;
     $('start-draw').hidden=locked;
     $('reset-draw').hidden=!locked;
-    $('start-draw').textContent=captains?'Lock players & choose captains':manual?'Lock players & create teams':$('team-creation').value==='random'?'Lock players & assign random teams':$('team-creation').value==='case'?'Lock players & start reel':'Lock players & start draw';
+    $('start-draw').textContent='Start team creation';
     $('manual-teams').hidden=!manual || !locked || !manualAssignments.length;
     $('manual-team-list').querySelectorAll('input,select').forEach(input=>{input.disabled=busy || !token;});
     $('use-manual-teams').disabled=busy || !token || manualAssignments.some(id=>!id) || !manualAssignments.length || new Set(manualAssignments).size!==manualAssignments.length;
