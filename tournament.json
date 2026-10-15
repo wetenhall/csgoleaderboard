@@ -19,19 +19,18 @@
       "id": "t1",
       "name": "Team 01",
       "tag": "01",
-      "captainId": "p2",
       "players": [
-        {
-          "id": "p2",
-          "name": "lukinss"
-        },
         {
           "id": "p5",
           "name": "Aatori"
         },
         {
-          "id": "p3",
-          "name": "Grayzee"
+          "id": "p2",
+          "name": "lukinss"
+        },
+        {
+          "id": "p1",
+          "name": "cantlon"
         }
       ]
     },
@@ -39,19 +38,18 @@
       "id": "t2",
       "name": "Team 02",
       "tag": "02",
-      "captainId": "p1",
       "players": [
         {
-          "id": "p1",
-          "name": "cantlon"
-        },
-        {
-          "id": "p4",
-          "name": "LilRibe"
+          "id": "p3",
+          "name": "Grayzee"
         },
         {
           "id": "p6",
           "name": "Coach Goro"
+        },
+        {
+          "id": "p4",
+          "name": "LilRibe"
         }
       ]
     }
@@ -71,7 +69,7 @@
       ],
       "result": null,
       "label": "Single Game · 3v3",
-      "map": "Ancient"
+      "map": "Anubis"
     }
   ],
   "history": [],
@@ -99,6 +97,6 @@
     "Italy"
   ],
   "serverAddress": "",
-  "mapMethod": "wheel",
+  "mapMethod": "case",
   "mapVeto": []
 }
