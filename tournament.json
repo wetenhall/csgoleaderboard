@@ -19,27 +19,18 @@
       "id": "t1",
       "name": "Team 01",
       "tag": "01",
-      "captainId": "p3",
       "players": [
         {
-          "id": "p3",
-          "name": "Don"
-        },
-        {
           "id": "p4",
-          "name": "Finesse"
+          "name": "lukinss"
         },
         {
-          "id": "p5",
-          "name": "Froppo"
+          "id": "p6",
+          "name": "Coach Goro"
         },
         {
-          "id": "p2",
-          "name": "Cantlon"
-        },
-        {
-          "id": "p8",
-          "name": "Kzy"
+          "id": "p3",
+          "name": "Grayzee"
         }
       ]
     },
@@ -47,27 +38,18 @@
       "id": "t2",
       "name": "Team 02",
       "tag": "02",
-      "captainId": "p9",
       "players": [
         {
-          "id": "p9",
-          "name": "Lukinss"
-        },
-        {
-          "id": "p6",
-          "name": "Grayzee"
-        },
-        {
-          "id": "p7",
-          "name": "Hans"
-        },
-        {
-          "id": "p10",
-          "name": "Omnii"
-        },
-        {
           "id": "p1",
+          "name": "LilRibe"
+        },
+        {
+          "id": "p5",
           "name": "Aatori"
+        },
+        {
+          "id": "p2",
+          "name": "Spongoat"
         }
       ]
     }
@@ -86,7 +68,7 @@
         }
       ],
       "result": null,
-      "label": "One match · 5v5",
+      "label": "One match · 3v3",
       "map": "Office"
     }
   ],
@@ -98,8 +80,8 @@
   "registrationEnabled": false,
   "format": "single",
   "qualifiersPerGroup": 2,
-  "teamSize": 5,
-  "mode": "squads",
+  "teamSize": 3,
+  "mode": "trios",
   "mapPool": [
     "Mirage",
     "Dust2",
