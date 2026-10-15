@@ -13,24 +13,25 @@
     "Part",
     "Sam"
   ],
-  "name": "playtest2",
+  "name": "custom game",
   "teams": [
     {
       "id": "t1",
       "name": "Team 01",
       "tag": "01",
+      "captainId": "p2",
       "players": [
         {
-          "id": "p1",
-          "name": "LilRibe"
+          "id": "p2",
+          "name": "lukinss"
+        },
+        {
+          "id": "p5",
+          "name": "Aatori"
         },
         {
           "id": "p3",
           "name": "Grayzee"
-        },
-        {
-          "id": "p4",
-          "name": "lukinss"
         }
       ]
     },
@@ -38,14 +39,15 @@
       "id": "t2",
       "name": "Team 02",
       "tag": "02",
+      "captainId": "p1",
       "players": [
         {
-          "id": "p2",
-          "name": "Spongoat"
+          "id": "p1",
+          "name": "cantlon"
         },
         {
-          "id": "p5",
-          "name": "Aatori"
+          "id": "p4",
+          "name": "LilRibe"
         },
         {
           "id": "p6",
@@ -68,14 +70,14 @@
         }
       ],
       "result": null,
-      "label": "One match · 3v3",
-      "map": "Italy"
+      "label": "Single Game · 3v3",
+      "map": "Ancient"
     }
   ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
-    "banner": "playtest2"
+    "banner": "custom game"
   },
   "registrationEnabled": false,
   "format": "single",
@@ -95,5 +97,8 @@
     "Overpass",
     "Office",
     "Italy"
-  ]
+  ],
+  "serverAddress": "",
+  "mapMethod": "wheel",
+  "mapVeto": []
 }
