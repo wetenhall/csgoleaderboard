@@ -71,7 +71,7 @@
     "registrationTitle": "Register to play",
     "registrationDescription": "Enter your player name to register for the next 1v1 tournament.\n\nDate: Thursday 29th October \nTime: 7pm GMT"
   },
-  "registrationEnabled": true,
+  "registrationEnabled": false,
   "format": "single",
   "qualifiersPerGroup": 2,
   "teamSize": 2,
@@ -85,9 +85,9 @@
     "Debris",
     "Eldorado"
   ],
-  "serverAddress": "138.199.44.113:25477",
+  "serverAddress": "138.199.44.113:26580",
   "mapMethod": "wheel",
   "mapVeto": [],
   "discordEventId": "201e9b2c-92ee-4828-b066-2ef2c40236a2",
-  "serverPassword": "07ayn"
+  "serverPassword": "u1rrrn"
 }
