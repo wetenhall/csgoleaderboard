@@ -279,3 +279,5 @@ footer{flex-wrap:wrap}.footer-status{flex-basis:100%;display:flex;justify-conten
 .leetify-import{margin-top:28px;padding-top:20px;border-top:1px solid var(--border)}.leetify-import>label{margin:16px 0 8px}.leetify-import select,.leetify-import input{margin-bottom:0}.leetify-source{display:inline-block;color:#f84982;text-decoration:underline;margin:8px 0 16px}
 
 .leetify-attribution{display:inline-block;margin:8px 0}.leetify-attribution img{display:block;width:160px;max-width:100%;height:auto}
+
+.fixture-import-tabs{margin-top:0}.import-centre>.leetify-import{margin-top:0;padding-top:0;border-top:0}
