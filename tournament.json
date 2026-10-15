@@ -143,7 +143,17 @@
           "team": "t6"
         }
       ],
-      "result": null,
+      "result": {
+        "teams": [
+          "t3",
+          "t6"
+        ],
+        "scores": [
+          7,
+          6
+        ],
+        "players": {}
+      },
       "map": "Vertigo"
     },
     {
