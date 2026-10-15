@@ -77,7 +77,7 @@ test('website loads selected roster, handles cancellation and locks controls dur
 test('match connection validates the server and refuses stale event links',async()=>{
   const fs=require('node:fs'),vm=require('node:vm');
   const source=fs.readFileSync(require('node:path').join(__dirname,'../connect.js'),'utf8');
-  async function run(data,event){const nodes=Object.fromEntries(['status','command','launch','copy','connection'].map(id=>[id,{hidden:true}]));await vm.runInNewContext(source,{document:{getElementById:id=>nodes[id]},location:{search:'?event='+event},URLSearchParams,encodeURIComponent,validServerAddress:require('../game-night.js').validServerAddress,fetch:async()=>({ok:true,json:async()=>data})});return nodes;}
+  async function run(data,event){const nodes=Object.fromEntries(['status','command','launch','copy','connection'].map(id=>[id,{hidden:true}]));await vm.runInNewContext(source,{document:{getElementById:id=>nodes[id]},location:{search:'?event='+event},URLSearchParams,encodeURIComponent,validServerAddress:require('../game-night.js').validServerAddress,serverConnectionCommand:require('../game-night.js').serverConnectionCommand,fetch:async()=>({ok:true,json:async()=>data})});return nodes;}
   const data={discordEventId:'cup',serverAddress:'server.example.com:27015'};
   const ok=await run(data,'cup');assert.equal(ok.connection.hidden,false);assert.equal(ok.launch.href,'steam://run/730//%2Bconnect%20server.example.com%3A27015/');
   const stale=await run(data,'old');assert.equal(stale.connection.hidden,true);assert.match(stale.status.textContent,/no longer/);

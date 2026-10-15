@@ -746,3 +746,14 @@ test('captain duos validate captains, pool and hidden case assignments',()=>{
   assert.throws(()=>createCaptainCases(players,5,['p0','p1'],['p3','p2']));
   assert.throws(()=>openCaptainCase(draft,-1));
 });
+
+test('server connections accept pasted commands and preserve required passwords',()=>{
+  const {parseServerConnection,serverConnectionCommand}=require('./game-night.js');
+  const connection=parseServerConnection('connect 127.0.0.1:27015; password example123');
+  assert.deepEqual(connection,{serverAddress:'127.0.0.1:27015',serverPassword:'example123'});
+  assert.equal(serverConnectionCommand(connection),'connect 127.0.0.1:27015; password "example123"');
+  assert.equal(serverConnectionCommand(connection,true),'+password "example123" +connect 127.0.0.1:27015');
+  assert.deepEqual(parseServerConnection(''),{serverAddress:'',serverPassword:''});
+  assert.equal(parseServerConnection('host:27015; password "two words"').serverPassword,'two words');
+  for(const value of ['connect host; quit','connect host; password x; quit','connect host; password "x\ny"'])assert.throws(()=>parseServerConnection(value));
+});

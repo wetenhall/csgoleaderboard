@@ -6,6 +6,20 @@ function validServerAddress(value) {
   const port=value.match(/:(\d+)$/);if(port && (+port[1]<1 || +port[1]>65535))throw Error('Server port must be between 1 and 65535.');
   return value;
 }
+function parseServerConnection(value) {
+  const match=String(value).trim().match(/^(?:connect\s+)?([^;\s]+)(?:\s*;\s*password\s+(?:"([^"\r\n]*)"|([^\s;"\r\n]+)))?\s*;?$/i);
+  if(!String(value).trim())return {serverAddress:'',serverPassword:''};
+  if(!match)throw Error('Paste a server address or connect address:port; password yourpassword.');
+  const password=match[2] ?? match[3] ?? '';
+  if(password.length>128 || /[;"\r\n\x00-\x1f]/.test(password))throw Error('Invalid server password.');
+  return {serverAddress:validServerAddress(match[1]),serverPassword:password};
+}
+function serverConnectionCommand(data,launch=false) {
+  const connection=parseServerConnection((data.serverAddress || '')+(data.serverPassword?' ; password "'+data.serverPassword+'"':''));
+  if(!connection.serverAddress)return '';
+  const password=connection.serverPassword;
+  return launch?(password?'+password "'+password+'" ':'')+'+connect '+connection.serverAddress:'connect '+connection.serverAddress+(password?'; password "'+password+'"':'');
+}
 function balanceRosters(teams,random=Math.random) {
   const size=teams[0]?.players.length,players=teams.flatMap(t=>t.players);
   if(!size || teams.some(t=>t.players.length!==size))throw Error('Balance complete teams only.');
@@ -66,7 +80,7 @@ function openCaptainCase(state,index){
   next.cases[index].opened=true;next.cases[index].teamId=team.id;team.players.push(next.cases[index].player);next.turn++;
   return next;
 }
-if(typeof module!=='undefined')module.exports={validServerAddress,balanceRosters,swapDraftPlayers,discordMatchText,advanceMapVeto,manualRosters,createCaptainCases,openCaptainCase};
+if(typeof module!=='undefined')module.exports={validServerAddress,parseServerConnection,serverConnectionCommand,balanceRosters,swapDraftPlayers,discordMatchText,advanceMapVeto,manualRosters,createCaptainCases,openCaptainCase};
 
 function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,setMap,getMaps,setMapMethod,beginRematch,notify}) {
   const $=id=>document.getElementById(id);
@@ -118,17 +132,17 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
   function render(){
     publicRoot.replaceChildren();const data=getData(),actions=element('div','game-actions');
     if(data.teams.length)actions.append(makeButton('Copy match details for Discord',()=>copy(discordMatchText(getData(),resolveTournament))));
-    if(data.serverAddress)actions.append(makeButton('Copy server connection',()=>copy('connect '+validServerAddress(getData().serverAddress))));
+    if(data.serverAddress)actions.append(makeButton('Copy server connection',()=>copy(serverConnectionCommand(getData()))));
     if(data.format==='single' && data.teamSize>=2){const rematch=makeButton('Rematch · Same teams, new map',beginRematch);rematch.dataset.rematch='';actions.append(rematch);}
     const matchActions=document.querySelector('.match-published-actions');
     if(matchActions){actions.classList.add('match-extra-actions');matchActions.querySelector('.match-extra-actions')?.remove();matchActions.append(actions);}
     else publicRoot.append(actions);
     if(data.format==='single' && data.teams.length){
       const form=element('form','setup-card');form.dataset.serverEditor='';
-      form.append(element('h3','','Match server'),element('p','rules','Once your game server is ready, add its address here. Saving updates Connect to match in Discord. Leave blank to remove it.'));
-      const label=element('label','','Server address'),input=document.createElement('input');input.value=data.serverAddress || '';input.placeholder='server.example.com:27015';input.maxLength=253;input.autocomplete='off';label.append(input);
+      form.append(element('h3','','Match server'),element('p','rules','Once your game server is ready, add its address here. Saving updates Connect to match in Discord. Paste the full connect command, including a password if required. These details are published for players on the website and in its public repository. Leave blank to remove them.'));
+      const label=element('label','','Server connection details'),input=document.createElement('input');input.value=data.serverAddress?serverConnectionCommand(data):'';input.placeholder='server.example.com:27015';input.maxLength=450;input.autocomplete='off';label.append(input);
       const status=element('p','rules');status.setAttribute('role','status');const actions=element('div','setup-navigation'),save=element('button','','Save server details');save.type='submit';actions.append(save);form.append(label,status,actions);
-      form.onsubmit=async event=>{event.preventDefault();if(!isOrganiser() || isBusy())return;try{await saveServer(validServerAddress(input.value));notify('Server details saved. Discord updates automatically within 30 seconds.');}catch(error){status.textContent=error.message;}};
+      form.onsubmit=async event=>{event.preventDefault();if(!isOrganiser() || isBusy())return;try{await saveServer(input.value);notify('Server details saved. Discord updates automatically within 30 seconds.');}catch(error){status.textContent=error.message;}};
       publicRoot.append(form);
     }
     const past=(data.history || []).filter(entry=>entry.tournament.format==='single').slice(-8).reverse();

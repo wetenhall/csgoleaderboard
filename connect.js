@@ -7,9 +7,9 @@
     if(event && data.discordEventId!==event)throw Error('This event is no longer the current match. Check the latest team announcement.');
     const server=validServerAddress(data.serverAddress || '');
     if(!server)throw Error('The organiser has not added a server address yet.');
-    const command='connect '+server;
+    const command=serverConnectionCommand(data);
     document.getElementById('command').textContent=command;
-    document.getElementById('launch').href='steam://run/730//'+encodeURIComponent('+connect '+server)+'/';
+    document.getElementById('launch').href='steam://run/730//'+encodeURIComponent(serverConnectionCommand(data,true))+'/';
     document.getElementById('copy').onclick=async()=>{try{await navigator.clipboard.writeText(command);status.textContent='Connection command copied.';}catch{status.textContent='Copy the command shown below into the CS2 console.';}};
     status.textContent='Your match server: '+server;
     document.getElementById('connection').hidden=false;
