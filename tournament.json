@@ -69,7 +69,7 @@
       ],
       "result": null,
       "label": "Single Game · 3v3",
-      "map": "Italy"
+      "map": "Mirage"
     }
   ],
   "history": [],
@@ -108,13 +108,13 @@
     "Office",
     "Italy"
   ],
-  "mapMethod": "wheel",
-  "mapVeto": [],
-  "discordEventId": "339b874f-6a09-4592-8f47-f794132251e4",
   "importAliases": {
     "faceit": {
       "lukinss": "Lukinss",
       "aatori": "Aatori"
     }
-  }
+  },
+  "mapMethod": "case",
+  "mapVeto": [],
+  "discordEventId": "339b874f-6a09-4592-8f47-f794132251e4"
 }
