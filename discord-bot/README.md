@@ -1,5 +1,7 @@
 # Discord registration bot
 
+After selecting a Discord event on the site and clicking Publish teams, the bot automatically replies beneath that event's registration card with the confirmed teams, players, captains and Single Game map. It checks the repository every 30 seconds while running. Republishing changed teams updates the same reply; score changes do not create new announcements. Custom games without a Discord event are not posted. Existing teams published before this feature need publishing again from their selected event to link them.
+
 The website stays on GitHub Pages. This Node.js bot connects to Discord using the Gateway, so no public HTTP endpoint or Interactions Endpoint URL is needed. Run one instance on an always-on computer or a Node hosting service with a persistent disk. It only requests the Guilds intent, not message-content access.
 
 ## Configure

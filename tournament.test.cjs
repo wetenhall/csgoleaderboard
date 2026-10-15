@@ -4,6 +4,14 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const { resolveTournament } = require('./app.js');
 const { cupMode, cupFinal, completedCup, archiveCup, careerRecords, matchNight } = require('./extras.js');
+test('new draws do not inherit another Discord event link and valid links survive validation',()=>{
+  const {makeTournament,validateData,emptyTournament}=require('./manager.js');
+  const players=Array.from({length:4},(_,i)=>({id:'p'+i,name:'Player '+i}));
+  const cup=makeTournament(players,2,{name:'Cup',discordEventId:'previous'},undefined,0,['Nuke']);
+  assert.equal(cup.discordEventId,undefined);cup.discordEventId='new-event';validateData(cup,resolveTournament);
+  assert.equal(emptyTournament(cup).discordEventId,undefined);
+  assert.throws(()=>validateData({...cup,discordEventId:'bad/link'},resolveTournament),/Discord event link/);
+});
 test('remembered organiser token persists on device and clears both device and legacy storage',()=>{
   const source=fs.readFileSync('manager.js','utf8'),persistent=new Map(),legacy=new Map([['repo','legacy']]);
   const context={tokenStorageKey:'repo',localStorage:{setItem:(k,v)=>persistent.set(k,v),removeItem:k=>persistent.delete(k)},sessionStorage:{removeItem:k=>legacy.delete(k)}};

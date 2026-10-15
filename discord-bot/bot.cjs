@@ -1,6 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),{randomUUID}=require('node:crypto');
 const {Client,GatewayIntentBits,Events,PermissionFlagsBits,SlashCommandBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,StringSelectMenuBuilder,ModalBuilder,TextInputBuilder,TextInputStyle,EmbedBuilder,escapeMarkdown,MessageFlags}=require('discord.js');
-const {register,publishEvent}=require('./core.cjs');
+const {register,publishEvent,teamAnnouncements}=require('./core.cjs');
 for(const key of ['DISCORD_TOKEN','DISCORD_GUILD_ID','GITHUB_TOKEN','GITHUB_REPOSITORY','GITHUB_BRANCH','SITE_URL'])if(!process.env[key])throw Error('Missing '+key);
 if(!/^[\w.-]+\/[\w.-]+$/.test(process.env.GITHUB_REPOSITORY))throw Error('Invalid repository.');
 if(new URL(process.env.SITE_URL).protocol!=='https:')throw Error('SITE_URL must use HTTPS.');
@@ -26,8 +26,36 @@ client.once(Events.ClientReady,async()=>{
   await client.application.commands.create(new SlashCommandBuilder().setName('playpublish').setDescription('Open your private event publishing panel').setDMPermission(false),process.env.DISCORD_GUILD_ID);
   for(const event of data.events){try{await update(event);}catch{console.error('Could not refresh an existing event card. Check channel permissions.');}}
   console.log('Registration bot ready.');
+  void syncTeams();setInterval(()=>void syncTeams(),30000);
 });
 let queue=Promise.resolve();
+let syncingTeams=false;
+async function syncTeams(){
+  if(syncingTeams)return;syncingTeams=true;
+  const operation=queue.then(async()=>{
+    const url='https://api.github.com/repos/'+process.env.GITHUB_REPOSITORY+'/contents/tournament.json?ref='+encodeURIComponent(process.env.GITHUB_BRANCH);
+    const response=await fetch(url,{headers:{Authorization:'Bearer '+process.env.GITHUB_TOKEN,Accept:'application/vnd.github+json'},signal:AbortSignal.timeout(15000)});
+    if(!response.ok)throw Error('Team sync read failed.');
+    const file=await response.json(),tournament=JSON.parse(Buffer.from(file.content,'base64').toString('utf8'));
+    const event=data.events.find(event=>event.id===tournament.discordEventId && event.publishedAt);
+    if(!event || !tournament.teams?.length)return;
+    const descriptions=teamAnnouncements(tournament,escapeMarkdown),signature=JSON.stringify(descriptions);
+    if(event.teamSignature===signature)return;
+    const channel=await client.channels.fetch(event.channelId),registration=await channel.messages.fetch(event.messageId);
+    event.teamMessageIds ||= [];
+    for(let i=0;i<descriptions.length;i++){
+      const payload={embeds:[new EmbedBuilder().setTitle((event.title+' · Teams').slice(0,256)).setColor(0xf5a623).setDescription(descriptions[i]).setURL(process.env.SITE_URL)],allowedMentions:{parse:[],repliedUser:false}};
+      let message=null;
+      if(event.teamMessageIds[i])try{message=await channel.messages.fetch(event.teamMessageIds[i]);}catch(error){if(error.code!==10008)throw error;}
+      if(message)await message.edit(payload);
+      else {message=await registration.reply(payload);event.teamMessageIds[i]=message.id;save();}
+    }
+    for(const id of event.teamMessageIds.slice(descriptions.length))try{await channel.messages.delete(id);}catch(error){if(error.code!==10008)throw error;}
+    event.teamMessageIds=event.teamMessageIds.slice(0,descriptions.length);event.teamSignature=signature;save();
+  });
+  queue=operation.catch(()=>{});
+  try{await operation;}catch{console.error('Could not sync published teams to Discord. Will retry automatically.');}finally{syncingTeams=false;}
+}
 client.on(Events.InteractionCreate,async i=>{
   if(i.guildId!==process.env.DISCORD_GUILD_ID)return;
   try{

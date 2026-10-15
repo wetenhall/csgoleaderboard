@@ -1,6 +1,34 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {register,publishEvent}=require('./core.cjs');
 const {validateDiscordEvents}=require('../discord-events.js');
+test('Discord sync posts once, skips unchanged teams and edits the existing reply on changes',async()=>{
+  const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+  const source=fs.readFileSync(path.join(__dirname,'bot.cjs'),'utf8');
+  const event={id:'event1',publishedAt:'now',title:'Cup',channelId:'channel',messageId:'registration'};
+  const tournament={discordEventId:'event1',teamSize:2,teams:[{name:'Team 01',players:[{name:'Alice'},{name:'Bob'}]}]};
+  let sent=0,edited=0;
+  class Embed{setTitle(){return this;}setColor(){return this;}setDescription(){return this;}setURL(){return this;}}
+  const message={id:'teams',edit:async()=>{edited++;}},registration={reply:async()=>{sent++;return message;}};
+  const context={queue:Promise.resolve(),syncingTeams:false,process:{env:{GITHUB_REPOSITORY:'owner/repo',GITHUB_BRANCH:'main',GITHUB_TOKEN:'fake',SITE_URL:'https://example.com'}},data:{events:[event]},Buffer,AbortSignal,EmbedBuilder:Embed,escapeMarkdown:value=>value,teamAnnouncements:require('./core.cjs').teamAnnouncements,save(){},console:{error(){}},fetch:async()=>({ok:true,json:async()=>({content:Buffer.from(JSON.stringify(tournament)).toString('base64')})}),client:{channels:{fetch:async()=>({messages:{fetch:async id=>id==='registration'?registration:message,delete:async()=>{}}})}}};
+  vm.runInNewContext(source.slice(source.indexOf('async function syncTeams(){'),source.indexOf('client.on(Events.InteractionCreate')),context);
+  await context.syncTeams();assert.equal(sent,1);assert.deepEqual(Array.from(event.teamMessageIds),['teams']);
+  await context.syncTeams();assert.equal(sent,1);assert.equal(edited,0);
+  tournament.teams[0].name='Renamed team';await context.syncTeams();assert.equal(sent,1);assert.equal(edited,1);
+});
+test('team announcement includes rosters, captains and map, and ignores score changes',()=>{
+  const {teamAnnouncements}=require('./core.cjs');
+  const data={discordEventId:'cup',teamSize:2,format:'single',matches:[{map:'Nuke'}],teams:[{name:'Team 01',captainId:'a',players:[{id:'a',name:'Alice'},{id:'b',name:'Bob'}]},{name:'Team 02',players:[{id:'c',name:'Carol'},{id:'d',name:'Don'}]}]};
+  const text=teamAnnouncements(data)[0];assert.match(text,/2v2 · Nuke/);assert.match(text,/Alice · Captain\nBob/);assert.match(text,/Team 02/);
+  data.matches[0].result={scores:[13,9]};assert.equal(teamAnnouncements(data)[0],text);
+  delete data.discordEventId;assert.deepEqual(teamAnnouncements(data),[]);
+});
+test('large team announcements keep every player within Discord message limits',()=>{
+  const {teamAnnouncements}=require('./core.cjs');
+  const teams=Array.from({length:32},(_,i)=>({name:('Team '+i+' ').padEnd(60,'X'),players:[{name:('Player '+i+'a ').padEnd(40,'a')},{name:('Player '+i+'b ').padEnd(40,'b')}]}));
+  const chunks=teamAnnouncements({discordEventId:'cup',teamSize:2,teams});
+  assert.ok(chunks.length>1);assert.ok(chunks.every(text=>text.length<=3900));
+  for(const team of teams)for(const player of team.players)assert.ok(chunks.join('\n').includes(player.name));
+});
 test('clear events updates only the event file using the latest GitHub SHA',async()=>{
   const {clearPublishedDiscordEvents}=require('../discord-events.js');let saved;
   const config={api:'https://api.github.com/repos/owner/repo/contents/discord-events.json',branch:'main',token:'test'};

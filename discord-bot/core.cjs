@@ -25,4 +25,18 @@ async function publishEvent(event,config,request=fetch){
   if(!result.ok)throw Error(result.status===409?'The event file changed. Click Publish again to reload and retry.':'GitHub publish failed ('+result.status+').');
   return publishedAt;
 }
-module.exports={register,publishEvent};
+function teamAnnouncements(tournament,escape=value=>value){
+  if(!tournament.discordEventId || !Array.isArray(tournament.teams) || !tournament.teams.length)return [];
+  const map=tournament.format==='single'?tournament.matches?.[0]?.map:null;
+  const heading=tournament.teamSize+'v'+tournament.teamSize+(map?' · '+escape(map):'');
+  const chunks=[];let text=heading;
+  for(const team of tournament.teams){
+    const players=team.players || [];
+    const title=tournament.teamSize===1?escape(players[0]?.name || team.name):escape(team.name);
+    const block='\n\n**'+title+'**'+(tournament.teamSize===1?'':'\n'+players.map(player=>escape(player.name)+(player.id===team.captainId?' · Captain':'')).join('\n'));
+    if(text.length+block.length>3900){chunks.push(text);text=heading;}
+    text+=block;
+  }
+  if(text)chunks.push(text);return chunks;
+}
+module.exports={register,publishEvent,teamAnnouncements};
