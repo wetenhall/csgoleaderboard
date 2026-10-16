@@ -52,6 +52,7 @@ function createOperations({client,data,save,admin,update,serial,refreshImports,e
     if(!i.customId?.startsWith('ops:'))return false;
     let [,action,id]=i.customId.split(':');if(action==='panel')id=i.values[0];const e=data.events.find(e=>e.id===id);if(!e)throw Error('Event unavailable.');
     const publicActions=['wait','waitsubmit','leavewait','accept','withdrawrequest'];if(!publicActions.includes(action)&&!admin(i))throw Error('Only event organisers can use this control.');
+    if(['wait','waitsubmit'].includes(action)&&!e.publishedAt)throw Error('The waiting list opens after this event is published.');
     if(action==='wait'){await i.showModal(new ModalBuilder().setCustomId('ops:waitsubmit:'+id).setTitle('Join waiting list').addComponents(row(new TextInputBuilder().setCustomId('name').setLabel('Gaming name').setStyle(TextInputStyle.Short).setRequired(true).setMaxLength(40).setValue((e.waitingList?.find(p=>p.userId===i.user.id)?.name||i.member.displayName).slice(0,40)))));return true;}
     await i.deferReply({flags:MessageFlags.Ephemeral});await serial(async()=>{
       if(action==='panel')return i.editReply(panel(e));
