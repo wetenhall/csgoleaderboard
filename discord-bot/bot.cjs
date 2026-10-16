@@ -14,6 +14,7 @@ function save(){fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSy
 function admin(i){return i.memberPermissions?.has(PermissionFlagsBits.Administrator) || (process.env.DISCORD_ADMIN_ROLE_ID && i.member.roles.cache.has(process.env.DISCORD_ADMIN_ROLE_ID));}
 const client=new Client({intents:[GatewayIntentBits.Guilds,GatewayIntentBits.GuildVoiceStates]});
 function card(event){
+  if(event.cancelledAt)return {embeds:[new EmbedBuilder().setTitle(event.title).setColor(0xed4245).setDescription('Event cancelled by an organiser. Registration and voting are closed.')],components:[],allowedMentions:{parse:[]}};
   const rows=[new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('register:'+event.id).setLabel('Register me to play').setStyle(ButtonStyle.Primary).setDisabled(!!event.publishedAt),
     new ButtonBuilder().setCustomId(event.publishedAt?'ops:withdrawrequest:'+event.id:'withdraw:'+event.id).setLabel(event.publishedAt?'Request withdrawal':'Withdraw').setStyle(ButtonStyle.Secondary),
@@ -48,7 +49,7 @@ async function syncTeams(){
     const response=await fetch(url,{headers:{Authorization:'Bearer '+process.env.GITHUB_TOKEN,Accept:'application/vnd.github+json'},signal:AbortSignal.timeout(15000)});
     if(!response.ok)throw Error('Team sync read failed.');
     const file=await response.json(),tournament=JSON.parse(Buffer.from(file.content,'base64').toString('utf8'));
-    const event=data.events.find(event=>event.id===tournament.discordEventId && event.publishedAt);
+    const event=data.events.find(event=>event.id===tournament.discordEventId && event.publishedAt && !event.cancelledAt);
     if(!event || !tournament.teams?.length)return;
     const roster=teamAnnouncements(tournament,escapeMarkdown),signature='game-night-tools-v1:'+JSON.stringify([roster,tournament.serverAddress||'']);
     const map=tournament.format==='single'?tournament.matches?.[0]?.map:null;
@@ -86,14 +87,14 @@ client.on(Events.InteractionCreate,async i=>{
     if(await operations.handle(i))return;
     if(i.isChatInputCommand() && i.commandName==='playpublish'){
       if(!admin(i))return i.reply({content:'Only event organisers can open this panel.',flags:MessageFlags.Ephemeral});
-      const events=data.events.filter(e=>!e.publishedAt).slice(-25).reverse();
+      const events=data.events.filter(e=>!e.publishedAt && !e.cancelledAt).slice(-25).reverse();
       if(!events.length)return i.reply({content:'No unpublished events. Create one with /playgame.',flags:MessageFlags.Ephemeral});
       const menu=new StringSelectMenuBuilder().setCustomId('admin-select').setPlaceholder('Select an event to publish').addOptions(events.map(e=>({label:e.title,value:e.id,description:e.players.length+'/'+e.capacity+' players registered'})));
       return i.reply({content:'Select an event. This panel is visible only to you. Showing the latest 25 unpublished events.',components:[new ActionRowBuilder().addComponents(menu)],flags:MessageFlags.Ephemeral});
     }
     if(i.isStringSelectMenu() && i.customId==='admin-select'){
       if(!admin(i))throw Error('Only event organisers can publish.');
-      const event=data.events.find(e=>e.id===i.values[0]);if(!event)throw Error('Event unavailable.');
+      const event=data.events.find(e=>e.id===i.values[0]);if(!event || event.cancelledAt)throw Error('Event unavailable or cancelled.');
       return i.update({content:escapeMarkdown(event.title)+' · '+event.players.length+'/'+event.capacity+' players. Publishing locks registrations and makes gaming names public.',components:[new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('publish:'+event.id).setLabel('Publish to site').setStyle(ButtonStyle.Success).setDisabled(!!event.publishedAt || event.players.length!==event.capacity))]});
     }
     if(i.isChatInputCommand() && i.commandName==='playgame'){
@@ -104,7 +105,7 @@ client.on(Events.InteractionCreate,async i=>{
       const message=await i.channel.send(card(event));event.messageId=message.id;data.events.push(event);save();return i.editReply('Event created.');
     }
     if(!i.isButton() && !i.isModalSubmit())return;
-    const [action,id]=i.customId.split(':'),event=data.events.find(e=>e.id===id);if(!event)throw Error('Event unavailable.');
+    const [action,id]=i.customId.split(':'),event=data.events.find(e=>e.id===id);if(!event || event.cancelledAt)throw Error('Event unavailable or cancelled.');
     if(action==='register'){
       if(event.publishedAt)throw Error('Registration is closed.');
       const input=new TextInputBuilder().setCustomId('name').setLabel('Gaming name · Submit registers you to play').setStyle(TextInputStyle.Short).setRequired(true).setMaxLength(40).setValue((event.players.find(p=>p.userId===i.user.id)?.name || i.member.displayName).slice(0,40));
@@ -114,6 +115,7 @@ client.on(Events.InteractionCreate,async i=>{
     if(action==='publish' && !admin(i))throw Error('Only event organisers can publish.');
     await i.deferReply({flags:MessageFlags.Ephemeral});
     const operation=queue.then(async()=>{
+      if(event.cancelledAt)throw Error('This event has been cancelled.');
       if(action==='submit'){if(event.offer && !event.offer.acceptedAt && Date.now()-Date.parse(event.offer.createdAt)>600000){delete event.offer;save();}if(event.offer && !event.offer.outId && event.players.length>=event.capacity-1)throw Error('The last place is reserved for an offered substitute. Join the waiting list.');register(event,i.user.id,i.fields.getTextInputValue('name'));}
       if(action==='withdraw'){if(event.publishedAt)throw Error('Registration is closed.');event.players=event.players.filter(p=>p.userId!==i.user.id);if(event.waitingList?.length && !event.offer)await operations.offer(event);}
       if(action==='publish'){
