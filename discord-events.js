@@ -27,6 +27,14 @@ async function clearPublishedDiscordEvents(config,request=fetch){
   const response=await request(config.api,{method:'PUT',headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+config.token,'Content-Type':'application/json'},body:JSON.stringify({message:'Clear published Discord events',branch:config.branch,sha:file.sha,content:btoa(JSON.stringify({version:1,events:[]})+'\n')})});
   if(!response.ok)throw Error(response.status===409 || response.status===422?'Discord events changed while clearing. Refresh and try again.':'Could not clear Discord events ('+response.status+').');
 }
+async function requestDiscordCaptainVote(config,eventId,request=fetch){
+  const file=await readPublishedDiscordEvents(config,request),event=file.data.events.find(e=>e.id===eventId);
+  if(!event)throw Error('This Discord event was removed. Reload the event first.');
+  event.captainVoteRequest={id:crypto.randomUUID(),players:[...event.players]};
+  const content=btoa(Array.from(new TextEncoder().encode(JSON.stringify(file.data,null,2)+'\n'),b=>String.fromCharCode(b)).join(''));
+  const response=await request(config.api,{method:'PUT',headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+config.token,'Content-Type':'application/json'},body:JSON.stringify({message:'Request Discord captain vote',branch:config.branch,sha:file.sha,content})});
+  if(!response.ok)throw Error('Could not request the vote. Refresh the event and try again ('+response.status+').');
+}
 function createDiscordEventLoader({canLoad,load,notify,readEvents,clearEvents}) {
   const select=document.getElementById('discord-event'),refresh=document.getElementById('refresh-discord-events'),status=document.getElementById('discord-event-status');
   const source=document.getElementById('game-source'),choice=document.getElementById('discord-event-choice');
@@ -62,4 +70,4 @@ function createDiscordEventLoader({canLoad,load,notify,readEvents,clearEvents}) 
   };
   reload();return {render,getSelectedEvent:()=>source.value==='discord'?(events.find(event=>event.id===select.value) || null):null,resetChoice:()=>{source.value='custom';select.value='';render();}};
 }
-if(typeof module!=='undefined')module.exports={validateDiscordEvents,readPublishedDiscordEvents,clearPublishedDiscordEvents};
+if(typeof module!=='undefined')module.exports={validateDiscordEvents,readPublishedDiscordEvents,clearPublishedDiscordEvents,requestDiscordCaptainVote};

@@ -913,7 +913,14 @@ if (typeof document !== 'undefined') (() => {
         captainDraft=createCaptainCases(remaining,size,ids,shuffle(remaining.filter(p=>!ids.includes(p.id)).map(p=>p.id)));
         selected=captainDraft.teams.map(team=>team.players[0]);remaining=remaining.filter(player=>!ids.includes(player.id));renderCaptainCases();showDrawTeams();controls();
       }catch(error){$('captain-case-status').textContent=error.message;}
-    };root.append(start);
+    };const actions=element('div','tournament-actions');
+    if(loadedDiscordEvent){const vote=element('button','secondary','Start Discord vote');vote.type='button';vote.id='start-discord-captain-vote';vote.onclick=async()=>{
+      if(busy || spinning || !token)return;
+      vote.disabled=true;start.disabled=true;
+      try{await requestDiscordCaptainVote(discordEventConfig(),loadedDiscordEvent.id);$('captain-case-status').textContent='Vote requested. The bot will open it in Discord on its next check (within 30 seconds while online). Close the vote in Discord organiser controls, then refresh the event here to load the captains.';}
+      catch(error){vote.disabled=false;$('captain-case-status').textContent=error.message;}
+      finally{start.disabled=false;}
+    };actions.append(vote);}actions.append(start);root.append(actions);
   }
   function renderCaptainCases(){
     const root=$('captain-case-grid');root.replaceChildren();if(!captainDraft)return;

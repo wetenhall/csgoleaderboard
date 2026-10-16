@@ -130,6 +130,15 @@ function createOperations({client,data,save,admin,update,serial,refreshImports,e
       if(action==='sort')return i.editReply(await sortVoice(e,t));if(action==='cleanup')return i.editReply(await cleanup(e));if(action==='recap'){await postRecap(t,e);return i.editReply('Tournament recap posted or refreshed.');}
     });return true;
   }
-  return {handle,sync,offer,sortVoice,cleanup};
+  async function syncCaptainRequests(){
+    const file=await read('discord-events.json');
+    for(const entry of file.data.events){
+      const r=entry.captainVoteRequest,e=data.events.find(e=>e.id===entry.id && e.publishedAt);
+      if(!e || typeof r?.id!=='string' || e.handledCaptainVoteRequest===r.id || !Array.isArray(r.players) || JSON.stringify(r.players)!==JSON.stringify(e.players.map(p=>p.name)))continue;
+      if(e.captainVote?.status!=='open' || e.captainVote.roster!==JSON.stringify(e.players.map(p=>[p.userId,p.name])))startCaptainVote(e);
+      await refreshVote(e);e.handledCaptainVoteRequest=r.id;save();
+    }
+  }
+  return {handle,sync,syncCaptainRequests,offer,sortVoice,cleanup};
 }
 module.exports={createOperations};

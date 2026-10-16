@@ -43,6 +43,7 @@ const operations=createOperations({client,data,save,admin,update,serial,refreshI
 async function syncTeams(){
   if(syncingTeams)return;syncingTeams=true;
   const operation=queue.then(async()=>{
+    await operations.syncCaptainRequests();
     const url='https://api.github.com/repos/'+process.env.GITHUB_REPOSITORY+'/contents/tournament.json?ref='+encodeURIComponent(process.env.GITHUB_BRANCH);
     const response=await fetch(url,{headers:{Authorization:'Bearer '+process.env.GITHUB_TOKEN,Accept:'application/vnd.github+json'},signal:AbortSignal.timeout(15000)});
     if(!response.ok)throw Error('Team sync read failed.');
