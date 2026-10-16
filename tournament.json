@@ -97,7 +97,28 @@
           "team": "t5"
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t4",
+          "t5"
+        ],
+        "scores": [
+          6,
+          7
+        ],
+        "players": {
+          "p3": {
+            "kills": 6,
+            "deaths": 7,
+            "assists": 0
+          },
+          "p2": {
+            "kills": 7,
+            "deaths": 6,
+            "assists": 0
+          }
+        }
+      }
     },
     {
       "id": "de2",
@@ -279,5 +300,57 @@
       "aatori": "Aatori"
     }
   },
-  "discordEventId": "339b874f-6a09-4592-8f47-f794132251e4"
+  "discordEventId": "339b874f-6a09-4592-8f47-f794132251e4",
+  "resultRevisions": [
+    {
+      "fixtureId": "de1",
+      "at": "2026-10-16T14:46:17.911Z",
+      "matches": [
+        {
+          "id": "de1",
+          "result": null
+        },
+        {
+          "id": "de2",
+          "result": null
+        },
+        {
+          "id": "de3",
+          "result": null
+        },
+        {
+          "id": "de4",
+          "result": null
+        },
+        {
+          "id": "de5",
+          "result": null
+        },
+        {
+          "id": "de6",
+          "result": null
+        },
+        {
+          "id": "de7",
+          "result": null
+        },
+        {
+          "id": "de8",
+          "result": null
+        },
+        {
+          "id": "de9",
+          "result": null
+        },
+        {
+          "id": "f1",
+          "result": null
+        },
+        {
+          "id": "f2",
+          "result": null
+        }
+      ]
+    }
+  ]
 }
