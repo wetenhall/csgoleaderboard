@@ -29,9 +29,9 @@ client.once(Events.ClientReady,async()=>{
   const command=new SlashCommandBuilder().setName('playgame').setDescription('Create a tournament registration event').setDMPermission(false).addStringOption(o=>o.setName('title').setDescription('Event title').setRequired(true).setMaxLength(100)).addIntegerOption(o=>o.setName('players').setDescription('Required players').setRequired(true).setMinValue(2).setMaxValue(64));
   await client.application.commands.create(command,process.env.DISCORD_GUILD_ID);
   const commands=await client.application.commands.fetch({guildId:process.env.DISCORD_GUILD_ID});
-  for(const old of commands.values())if(['event','event-admin'].includes(old.name))await client.application.commands.delete(old.id,process.env.DISCORD_GUILD_ID);
+  for(const old of commands.values())if(['event','event-admin','organiser'].includes(old.name))await client.application.commands.delete(old.id,process.env.DISCORD_GUILD_ID);
   await client.application.commands.create(new SlashCommandBuilder().setName('playpublish').setDescription('Open your private event publishing panel').setDMPermission(false),process.env.DISCORD_GUILD_ID);
-  await client.application.commands.create(new SlashCommandBuilder().setName('organiser').setDescription('Private game-night controls, substitutes, imports and voice channels').setDMPermission(false),process.env.DISCORD_GUILD_ID);
+  await client.application.commands.create(new SlashCommandBuilder().setName('playorganiser').setDescription('Private game-night controls, substitutes, imports and voice channels').setDMPermission(false),process.env.DISCORD_GUILD_ID);
   for(const event of data.events){try{await update(event);}catch{console.error('Could not refresh an existing event card. Check channel permissions.');}}
   console.log('Registration bot ready.');
   void syncTeams();setInterval(()=>void syncTeams(),30000);
