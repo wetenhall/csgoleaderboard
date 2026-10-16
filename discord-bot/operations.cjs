@@ -62,6 +62,22 @@ function createOperations({client,data,save,admin,update,serial,refreshImports,e
       if(action==='accept'){if(e.offer?.userId!==i.user.id)throw Error('This offer is for another waiting player.');if(Date.now()-Date.parse(e.offer.createdAt)>600000)throw Error('This offer expired. Ask an organiser to offer the place again.');e.offer.acceptedAt=new Date().toISOString();save();return i.editReply('Place accepted. An organiser must confirm the replacement.');}
       if(action==='skipwait'){if(e.waitingList?.length){const first=e.waitingList.shift();e.waitingList.push(first);if(e.offer?.userId===first.userId)delete e.offer;save();}return i.editReply(panel(e));}
       if(action==='canceloffer'){delete e.offer;save();return i.editReply(panel(e));}
+      if(action==='publishwait'){
+        if(!e.publishedAt)throw Error('Publish the event first.');const candidate=e.waitingList?.[0];if(!candidate)throw Error('The waiting list is empty.');
+        const players=[...e.players].sort((a,b)=>Number((e.withdrawalRequests||[]).includes(b.userId))-Number((e.withdrawalRequests||[]).includes(a.userId))),pages=Math.ceil(players.length/25),page=Math.max(0,Math.min(pages-1,Number(i.customId.split(':')[3])||0)),token=randomUUID();
+        pending.set(token,{purpose:'roster',userId:i.user.id,eventId:e.id,inId:candidate.userId,expires:Date.now()+600000});
+        const components=[row(new StringSelectMenuBuilder().setCustomId('ops:rosterpick:'+id+':'+token).setPlaceholder('Choose the departing player').addOptions(players.slice(page*25,page*25+25).map(p=>({label:p.name,value:p.userId}))))],navigation=[];
+        if(page>0)navigation.push(btn('publishwait',id+':'+(page-1),'Previous'));if(page<pages-1)navigation.push(btn('publishwait',id+':'+(page+1),'Next'));if(navigation.length)components.push(row(...navigation));
+        return i.editReply({content:'Publish '+escapeMarkdown(candidate.name)+' from the waiting list. Select who they replace. This updates the event player pool only; recreate teams on the site afterwards. Page '+(page+1)+'/'+pages+'.',components});
+      }
+      if(action==='rosterpick'){
+        const token=i.customId.split(':')[3],entry=pending.get(token);if(!entry||entry.purpose!=='roster'||entry.userId!==i.user.id||entry.eventId!==e.id||entry.expires<Date.now())throw Error('Selection expired. Click Publish waiting player again.');
+        const incoming=e.waitingList?.find(p=>p.userId===entry.inId),out=e.players.find(p=>p.userId===i.values[0]);if(!incoming||!out)throw Error('The roster changed. Open Publish waiting player again.');
+        const next=structuredClone(e);next.players[next.players.findIndex(p=>p.userId===out.userId)]={userId:incoming.userId,name:incoming.name};next.waitingList=next.waitingList.filter(p=>p.userId!==incoming.userId);next.withdrawalRequests=(next.withdrawalRequests||[]).filter(user=>user!==out.userId);delete next.offer;
+        const file=await read('discord-events.json'),published=file.data.events.find(event=>event.id===e.id);if(!published)throw Error('This event was removed from the site.');published.players=next.players.map(p=>p.name);
+        await write({'discord-events.json':{sha:file.sha,data:file.data}},'Publish waiting player to event roster for team recreation');Object.assign(e,next);delete e.offer;save();pending.delete(token);await update(e);
+        return i.editReply(escapeMarkdown(incoming.name)+' replaced '+escapeMarkdown(out.name)+' in the published event roster. After deployment, refresh Discord events on the site, reload this event and recreate the teams. Existing teams and results are unchanged.');
+      }
       if(action==='offer'||action==='departpage'){
         if(!e.waitingList?.length)throw Error('No waiting players.');if(e.players.length<e.capacity){await offer(e);return i.editReply('Offered the vacant place to the next waiting player.');}
         const players=[...e.players].sort((a,b)=>Number((e.withdrawalRequests||[]).includes(b.userId))-Number((e.withdrawalRequests||[]).includes(a.userId))),pages=Math.ceil(players.length/25),page=Math.max(0,Math.min(pages-1,Number(i.customId.split(':')[3])||0)),candidates=players.slice(page*25,page*25+25),components=[row(new StringSelectMenuBuilder().setCustomId('ops:depart:'+id).setPlaceholder('Departing player').addOptions(candidates.map(p=>({label:p.name,value:p.userId}))))],navigation=[];
