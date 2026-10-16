@@ -11,6 +11,7 @@ function validateDiscordEvents(data) {
       const key=name.normalize('NFKC').toLocaleLowerCase('en');
       if(names.has(key))throw Error('Duplicate Discord player name.');names.add(key);
     }
+    if(event.captains!==undefined && (!Array.isArray(event.captains)||event.captains.length!==2||new Set(event.captains).size!==2||event.captains.some(name=>!event.players.includes(name))))throw Error('Voted captains must be two registered players.');
   }
   return data.events;
 }

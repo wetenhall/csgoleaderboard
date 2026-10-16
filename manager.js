@@ -904,6 +904,8 @@ if (typeof document !== 'undefined') (() => {
   function showCaptainChoices(){
     const root=$('captain-choices');root.replaceChildren();$('captain-case-status').textContent='Choose two captains. Each captain starts on their own team, then takes turns choosing a numbered case.';
     const picks=[0,1].map(i=>{const label=element('label','','Team '+String(i+1).padStart(2,'0')+' captain'),select=element('select'),blank=element('option','','Choose captain');blank.value='';select.append(blank);remaining.forEach(player=>{const option=element('option','',player.name);option.value=player.id;select.append(option);});label.append(select);root.append(label);return select;});
+    const elected=loadedDiscordEvent?.captains?.map(name=>remaining.find(p=>p.name.normalize('NFKC').toLowerCase()===name.normalize('NFKC').toLowerCase()));
+    if(elected?.length===2 && elected.every(Boolean) && elected[0].id!==elected[1].id){picks.forEach((select,i)=>select.value=elected[i].id);$('captain-case-status').textContent='Captains voted in Discord: '+elected.map(p=>p.name).join(' and ')+'. Review the selections, then start the captain draft.';}
     const start=element('button','','Start captain draft');start.type='button';start.onclick=()=>{
       if(busy || spinning || !token)return;
       try{const ids=picks.map(select=>select.value),size=Number($('team-size').value);

@@ -19,7 +19,7 @@ async function publishEvent(event,config,request=fetch){
   const file=await response.json(),data=JSON.parse(Buffer.from(file.content,'base64').toString('utf8'));
   validateDiscordEvents(data);
   const publishedAt=new Date().toISOString();
-  const next={id:event.id,title:event.title,players:event.players.map(p=>p.name),publishedAt};
+  const next={id:event.id,title:event.title,players:event.players.map(p=>p.name),...(event.captainVote?.status==='confirmed' && event.captainVote.roster===JSON.stringify(event.players.map(p=>[p.userId,p.name]))?{captains:event.captainVote.captains.map(id=>event.players.find(p=>p.userId===id).name)}:{}),publishedAt};
   const index=data.events.findIndex(e=>e.id===event.id);
   if(index<0)data.events.push(next);else data.events[index]=next;
   validateDiscordEvents(data);

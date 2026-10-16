@@ -1,0 +1,10 @@
+const {randomUUID}=require('node:crypto');
+const rosterKey=e=>JSON.stringify(e.players.map(p=>[p.userId,p.name]));
+function startCaptainVote(e){if(e.players.length<2)throw Error('Register at least two players first.');if(e.captainVote?.status==='open' && e.captainVote.roster===rosterKey(e))throw Error('A vote is already open. Close it before restarting.');e.captainVote={id:randomUUID(),status:'open',roster:rosterKey(e),candidates:structuredClone(e.players),votes:{}};return e.captainVote;}
+function validVote(e){const v=e.captainVote;if(!v || v.roster!==rosterKey(e))throw Error('The roster changed. Start a new captain vote.');return v;}
+function castCaptainVote(e,userId,candidate){const v=validVote(e);if(v.status!=='open')throw Error('Voting is closed.');if(!e.players.some(p=>p.userId===userId))throw Error('Only registered players can vote.');if(!v.candidates.some(p=>p.userId===candidate))throw Error('Invalid captain candidate.');v.votes[userId]=candidate;}
+function captainRanking(e){const v=validVote(e);return v.candidates.map(p=>({...p,count:Object.values(v.votes).filter(id=>id===p.userId).length})).sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name));}
+function closeCaptainVote(e){const v=validVote(e),rank=captainRanking(e);if(rank.filter(p=>p.count>0).length<2)throw Error('At least two different candidates need votes before closing.');const boundary=rank[1].count;v.required=rank.filter(p=>p.count>boundary).map(p=>p.userId);v.eligible=rank.filter(p=>p.count===boundary).map(p=>p.userId);v.tiePicks=[...v.required];v.status=v.eligible.length===2-v.required.length?'confirmed':'tie';if(v.status==='confirmed')v.captains=[...v.required,...v.eligible];return v;}
+function resolveCaptainTie(e,id){const v=validVote(e);if(v.status!=='tie'||!v.eligible.includes(id)||v.tiePicks.includes(id))throw Error('Select an available tied candidate.');v.tiePicks.push(id);if(v.tiePicks.length===2){v.captains=[...v.tiePicks];v.status='confirmed';}return v;}
+module.exports={startCaptainVote,castCaptainVote,captainRanking,closeCaptainVote,resolveCaptainTie,validVote};
+
