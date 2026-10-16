@@ -1,5 +1,5 @@
 const {ActionRowBuilder,ButtonBuilder,ButtonStyle,StringSelectMenuBuilder,ModalBuilder,TextInputBuilder,TextInputStyle,EmbedBuilder,MessageFlags,ChannelType,PermissionFlagsBits,escapeMarkdown}=require('discord.js');
-const {randomUUID}=require('node:crypto');
+const {randomUUID,createHash}=require('node:crypto');
 const {joinWaitingList,substitutePlayer,upcomingFixtures,recapData,voicePlan}=require('./game-night.cjs');
 const {resolveTournament}=require('../app.js');const {applyResult,validateData}=require('../manager.js');const {suggestImportFixtures,importedFixtureResult,importedGameUsage}=require('../fixture-import.js');
 function createOperations({client,data,save,admin,update,serial,refreshImports,env=process.env,request=fetch}){
@@ -43,6 +43,12 @@ function createOperations({client,data,save,admin,update,serial,refreshImports,e
   async function syncCard(e,key,payload){const signature=JSON.stringify(payload),old=e[key];if(old?.signature===signature)return;const channel=await client.channels.fetch(e.channelId),registration=await channel.messages.fetch(e.messageId);let message=old?.id?await channel.messages.fetch(old.id).catch(error=>{if(error.code!==10008)throw error;return null;}):null;if(message)await message.edit(payload);else message=await registration.reply({...payload,allowedMentions:{parse:[],repliedUser:false}});e[key]={id:message.id,signature};save();}
   async function sync(tournament,e){
     status.lastSync=new Date().toISOString();
+    if(tournament.serverAddress){
+      const link=new URL('connect.html',env.SITE_URL.endsWith('/')?env.SITE_URL:env.SITE_URL+'/');link.searchParams.set('event',e.id);link.searchParams.set('autoconnect','1');link.searchParams.set('v',createHash('sha256').update(JSON.stringify([tournament.serverAddress,tournament.serverPassword||''])).digest('hex').slice(0,12));
+      const map=tournament.format==='single'?tournament.matches[0]?.map:null;
+      await syncCard(e,'serverCard',{embeds:[new EmbedBuilder().setTitle('Server ready').setColor(0x57f287).setDescription((escapeMarkdown(e.title)+' · '+tournament.teamSize+'v'+tournament.teamSize+(map?' · '+escapeMarkdown(map):'')+'\n\nConnection details have been added. Click below to open Steam and join the match.').slice(0,3900)).toJSON()],components:[row(new ButtonBuilder().setLabel('Connect to match').setStyle(ButtonStyle.Link).setURL(link.href))],allowedMentions:{parse:[],repliedUser:false}});
+    }else if(e.serverCard){const channel=await client.channels.fetch(e.channelId);try{await channel.messages.delete(e.serverCard.id);}catch(error){if(error.code!==10008)throw error;}delete e.serverCard;save();}
+
     const fixtures=upcomingFixtures(tournament);if(!fixtures && e.fixtureCard){const channel=await client.channels.fetch(e.channelId);try{await channel.messages.delete(e.fixtureCard.id);}catch(error){if(error.code!==10008)throw error;}delete e.fixtureCard;save();}if(fixtures){const description=(fixtures.done?'All fixtures complete.':(fixtures.active?'**Playing now**\n'+escapeMarkdown(fixtures.active)+'\n\n':'')+'**Up next**\n'+(fixtures.next.map(escapeMarkdown).join('\n')||'Waiting for results.')+'\n\n'+fixtures.waiting+' fixtures awaiting qualification.')+'\n\nServer: '+(fixtures.serverReady?'Ready — connection available on the website':'Not added yet');await syncCard(e,'fixtureCard',{embeds:[new EmbedBuilder().setTitle('Next fixtures · '+e.title).setColor(0x70b4cd).setDescription(description.slice(0,3900)).toJSON()],components:[row(new ButtonBuilder().setLabel('View fixtures').setStyle(ButtonStyle.Link).setURL(env.SITE_URL+'#fixtures'))],allowedMentions:{parse:[]}});}
     const recap=recapData(tournament);if(recap)await postRecap(tournament,e,recap);else if(e.recapCard){const channel=await client.channels.fetch(e.channelId);try{await channel.messages.delete(e.recapCard.id);}catch(error){if(error.code!==10008)throw error;}delete e.recapCard;save();}
   }
