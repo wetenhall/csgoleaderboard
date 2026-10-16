@@ -21,8 +21,8 @@
       "tag": "01",
       "players": [
         {
-          "id": "p6",
-          "name": "Coach Goro"
+          "id": "p5",
+          "name": "Aatori"
         }
       ]
     },
@@ -32,8 +32,8 @@
       "tag": "02",
       "players": [
         {
-          "id": "p1",
-          "name": "LilRibe"
+          "id": "p3",
+          "name": "Grayzee"
         }
       ]
     },
@@ -43,8 +43,8 @@
       "tag": "03",
       "players": [
         {
-          "id": "p4",
-          "name": "lukinss"
+          "id": "p2",
+          "name": "Spongoat"
         }
       ]
     },
@@ -54,8 +54,8 @@
       "tag": "04",
       "players": [
         {
-          "id": "p3",
-          "name": "Grayzee"
+          "id": "p1",
+          "name": "LilRibe"
         }
       ]
     },
@@ -65,8 +65,8 @@
       "tag": "05",
       "players": [
         {
-          "id": "p2",
-          "name": "Spongoat"
+          "id": "p6",
+          "name": "Coach Goro"
         }
       ]
     },
@@ -76,8 +76,8 @@
       "tag": "06",
       "players": [
         {
-          "id": "p5",
-          "name": "Aatori"
+          "id": "p4",
+          "name": "lukinss"
         }
       ]
     }
@@ -97,28 +97,7 @@
           "team": "t5"
         }
       ],
-      "result": {
-        "teams": [
-          "t4",
-          "t5"
-        ],
-        "scores": [
-          6,
-          7
-        ],
-        "players": {
-          "p3": {
-            "kills": 6,
-            "deaths": 7,
-            "assists": 0
-          },
-          "p2": {
-            "kills": 7,
-            "deaths": 6,
-            "assists": 0
-          }
-        }
-      }
+      "result": null
     },
     {
       "id": "de2",
@@ -285,7 +264,7 @@
   "teamSize": 1,
   "mode": "1v1",
   "serverAddress": "",
-  "gameProvider": "manual",
+  "gameProvider": "faceit",
   "leetifyProfiles": {
     "cantlon": "https://leetify.com/app/profile/76561198169191946",
     "grayzee": "https://leetify.com/app/profile/76561197962400947",
@@ -300,57 +279,5 @@
       "aatori": "Aatori"
     }
   },
-  "discordEventId": "339b874f-6a09-4592-8f47-f794132251e4",
-  "resultRevisions": [
-    {
-      "fixtureId": "de1",
-      "at": "2026-10-16T14:46:17.911Z",
-      "matches": [
-        {
-          "id": "de1",
-          "result": null
-        },
-        {
-          "id": "de2",
-          "result": null
-        },
-        {
-          "id": "de3",
-          "result": null
-        },
-        {
-          "id": "de4",
-          "result": null
-        },
-        {
-          "id": "de5",
-          "result": null
-        },
-        {
-          "id": "de6",
-          "result": null
-        },
-        {
-          "id": "de7",
-          "result": null
-        },
-        {
-          "id": "de8",
-          "result": null
-        },
-        {
-          "id": "de9",
-          "result": null
-        },
-        {
-          "id": "f1",
-          "result": null
-        },
-        {
-          "id": "f2",
-          "result": null
-        }
-      ]
-    }
-  ]
+  "discordEventId": "339b874f-6a09-4592-8f47-f794132251e4"
 }
