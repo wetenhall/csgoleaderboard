@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-16T22:01:20.636Z",
+  "updatedAt": "2026-10-16T22:11:20.647Z",
   "games": [
+    {
+      "id": "1-823f4e02-68ee-4c0d-887b-b838d4f80af5:0",
+      "matchId": "1-823f4e02-68ee-4c0d-887b-b838d4f80af5",
+      "provider": "faceit",
+      "map": "awp_orange",
+      "finishedAt": 1792188407,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 14,
+          "players": [
+            {
+              "name": "GR4YZEE",
+              "kills": 14,
+              "deaths": 16,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 16,
+          "players": [
+            {
+              "name": "KzyK1",
+              "kills": 16,
+              "deaths": 14,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-90d3a8e8-08cd-4153-bde2-2db3540f1d9f:0",
       "matchId": "1-90d3a8e8-08cd-4153-bde2-2db3540f1d9f",
