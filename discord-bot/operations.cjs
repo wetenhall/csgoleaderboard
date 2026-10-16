@@ -60,11 +60,16 @@ function createOperations({client,data,save,admin,update,serial,refreshImports,e
   async function handle(i){
     if(i.isChatInputCommand()&&i.commandName==='playorganiser'){if(!admin(i))throw Error('Only organisers can open these controls.');const events=data.events.filter(e=>!e.cancelledAt).slice(-25).reverse();if(!events.length)throw Error('Create an event with /playgame first.');await i.reply({content:'Private organiser controls — select an event.',components:[row(new StringSelectMenuBuilder().setCustomId('ops:panel:select').setPlaceholder('Select event').addOptions(events.map(e=>({label:e.title.slice(0,100),value:e.id}))))],flags:MessageFlags.Ephemeral});return true;}
     if(!i.customId?.startsWith('ops:'))return false;
-    let [,action,id]=i.customId.split(':');if(action==='panel' && i.values?.length)id=i.values[0];const e=data.events.find(e=>e.id===id);if(!e || e.cancelledAt)throw Error('Event unavailable or cancelled.');
+    let [,action,id]=i.customId.split(':');if(action==='panel' && i.values?.length)id=i.values[0];const e=data.events.find(e=>e.id===id);if(!e)throw Error('Event unavailable.');
     const publicActions=['wait','waitsubmit','leavewait','accept','withdrawrequest','ballot','castvote'];if(!publicActions.includes(action)&&!admin(i))throw Error('Only event organisers can use this control.');
+    const editPanel=['panel','cancelevent','confirmcancel'].includes(action);
+    if(e.cancelledAt){
+      if(editPanel){await i.deferUpdate();try{await update(e);}catch{ return i.editReply({content:'Event is cancelled, but its registration card could not be updated. Check the bot’s channel permissions.',components:[]});}await i.editReply({content:'This event has already been cancelled. Registration and voting are closed. Create a replacement with /playgame.',components:[]});return true;}
+      throw Error('This event has been cancelled.');
+    }
     if(['wait','waitsubmit'].includes(action)&&!e.publishedAt)throw Error('The waiting list opens after this event is published.');
     if(action==='wait'){await i.showModal(new ModalBuilder().setCustomId('ops:waitsubmit:'+id).setTitle('Join waiting list').addComponents(row(new TextInputBuilder().setCustomId('name').setLabel('Gaming name').setStyle(TextInputStyle.Short).setRequired(true).setMaxLength(40).setValue((e.waitingList?.find(p=>p.userId===i.user.id)?.name||i.member.displayName).slice(0,40)))));return true;}
-    await i.deferReply({flags:MessageFlags.Ephemeral});await serial(async()=>{
+    if(editPanel)await i.deferUpdate();else await i.deferReply({flags:MessageFlags.Ephemeral});await serial(async()=>{
       if(e.cancelledAt)throw Error('This event has been cancelled.');
       if(action==='cancelvote'){if(e.publishedAt){const file=await read('discord-events.json'),entry=file.data.events.find(x=>x.id===e.id);if(entry?.captains){delete entry.captains;await write({'discord-events.json':{sha:file.sha,data:file.data}},'Clear cancelled captain vote');}}if(e.captainCard){const channel=await client.channels.fetch(e.channelId);try{await channel.messages.delete(e.captainCard.id);}catch(error){if(error.code!==10008)throw error;}}delete e.captainVote;delete e.captainCard;save();return i.editReply('Captain vote cancelled. You can start a new vote.');}
       if(action==='startvote'){const candidate=structuredClone(e);startCaptainVote(candidate);if(e.publishedAt){const file=await read('discord-events.json'),entry=file.data.events.find(x=>x.id===e.id);if(entry?.captains){delete entry.captains;await write({'discord-events.json':{sha:file.sha,data:file.data}},'Start a fresh captain election');}}e.captainVote=candidate.captainVote;save();await refreshVote(e);return i.editReply('Captain vote opened beneath the registration event.');}
@@ -79,7 +84,7 @@ function createOperations({client,data,save,admin,update,serial,refreshImports,e
         if(!confirmation || confirmation.cancelEvent!==e.id || confirmation.userId!==i.user.id || confirmation.expires<Date.now())throw Error('Confirmation expired. Open Cancel event again.');
         if(e.publishedAt){const file=await read('discord-events.json'),events=file.data.events.filter(entry=>entry.id!==e.id);if(events.length!==file.data.events.length){file.data.events=events;await write({'discord-events.json':{sha:file.sha,data:file.data}},'Cancel Discord registration event');}}
         e.cancelledAt=new Date().toISOString();delete e.offer;delete e.captainVote;save();pending.delete(key);
-        await update(e);
+        try{await update(e);}catch{ return i.editReply({content:'Event cancelled and removed from the event list, but the registration card could not update. Check the bot’s channel permissions, then use this panel again to retry.',components:[row(btn('panel',e.id,'Refresh cancelled event'))]});}
         if(e.captainCard){const channel=await client.channels.fetch(e.channelId);try{await channel.messages.edit(e.captainCard.id,{content:'Captain vote cancelled — event cancelled.',embeds:[],components:[]});}catch(error){if(error.code!==10008)throw error;}}
         return i.editReply({content:'Event cancelled. Create a new event with /playgame. Existing website teams and results have been kept.',components:[]});
       }
