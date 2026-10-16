@@ -13,7 +13,7 @@
     "Part",
     "Sam"
   ],
-  "name": "playtest2",
+  "name": "test2",
   "teams": [
     {
       "id": "t1",
@@ -21,16 +21,8 @@
       "tag": "01",
       "players": [
         {
-          "id": "p6",
-          "name": "Coach Goro"
-        },
-        {
-          "id": "p2",
-          "name": "Spongoat"
-        },
-        {
-          "id": "p3",
-          "name": "Grayzee"
+          "id": "p1",
+          "name": "lukinss"
         }
       ]
     },
@@ -40,16 +32,8 @@
       "tag": "02",
       "players": [
         {
-          "id": "p4",
-          "name": "lukinss"
-        },
-        {
-          "id": "p5",
-          "name": "Aatori"
-        },
-        {
-          "id": "p1",
-          "name": "LilRibe"
+          "id": "p2",
+          "name": "Grayzee"
         }
       ]
     }
@@ -67,23 +51,21 @@
           "team": "t2"
         }
       ],
-      "result": null,
-      "label": "Single Game · 3v3",
-      "map": "Mirage"
+      "result": null
     }
   ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
-    "banner": "playtest2",
+    "banner": "test2",
     "registrationTitle": "Register to play",
     "registrationDescription": "Enter your player name to register for the next 1v1 tournament.\n\nDate: Thursday 29th October \nTime: 7pm GMT"
   },
   "registrationEnabled": true,
-  "format": "single",
+  "format": "knockout",
   "qualifiersPerGroup": 2,
-  "teamSize": 3,
-  "mode": "trios",
+  "teamSize": 1,
+  "mode": "1v1",
   "serverAddress": "",
   "gameProvider": "faceit",
   "leetifyProfiles": {
@@ -94,27 +76,11 @@
     "lilribe": "https://leetify.com/app/profile/76561198017635867",
     "omnii": "https://leetify.com/app/profile/76561199090504360"
   },
-  "mapPool": [
-    "Mirage",
-    "Dust2",
-    "Inferno",
-    "Nuke",
-    "Ancient",
-    "Anubis",
-    "Vertigo",
-    "Cache",
-    "Train",
-    "Overpass",
-    "Office",
-    "Italy"
-  ],
   "importAliases": {
     "faceit": {
       "lukinss": "Lukinss",
       "aatori": "Aatori"
     }
   },
-  "mapMethod": "case",
-  "mapVeto": [],
-  "discordEventId": "339b874f-6a09-4592-8f47-f794132251e4"
+  "discordEventId": "27d2dd25-f0df-4a00-ad3d-cc99b6cde08b"
 }
