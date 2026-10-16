@@ -52,11 +52,11 @@ function careerRecords(history, mode, resolve, totals) {
     const state=resolve(data),champion=cupFinal(data,resolve)?.winner,stats=new Map(totals(data).map(p=>[p.id,p]));
     // Draw IDs are reused each cup: a normalized player name is the career identity.
     const seen=new Set();
-    for(const team of data.teams)for(const player of team.players || []) {
+    for(const team of data.teams)for(const player of [...(team.players || []),...(data.retiredPlayers||[]).filter(p=>p.teamId===team.id)]) {
       const key=player.name.trim().normalize('NFKC').toLocaleLowerCase('en');
       let row=records.get(key);if(!row){row={name:player.name.trim(),cups:0,trophies:0,games:0,wins:0,draws:0,recorded:0,kills:0,deaths:0,assists:0};records.set(key,row);}
       if(!seen.has(key)){row.cups++;row.trophies+=Number(team.id===champion);seen.add(key);}
-      for(const match of state.matches)if(match.result && match.ids.includes(team.id) && !match.skipped){row.games++;row.wins+=Number(match.winner===team.id);row.draws+=Number(!match.winner);}
+      for(const match of state.matches)if(match.result && match.ids.includes(team.id) && !match.skipped && (!match.result.lineups || match.result.lineups[team.id]?.some(p=>p.id===player.id))){row.games++;row.wins+=Number(match.winner===team.id);row.draws+=Number(!match.winner);}
       const stat=stats.get(player.id);if(stat){row.recorded+=stat.games;for(const field of ['kills','deaths','assists'])row[field]+=stat[field];}
     }
   }

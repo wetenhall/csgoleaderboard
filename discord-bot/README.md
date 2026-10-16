@@ -40,3 +40,15 @@ Fixtures includes an organiser-only import inbox and name-link manager. Suggesti
 The most recent 10 result changes can be undone in order. Undo restores scores, player stats and playoff results cleared by that change. Starting a new draw clears its undo stack. Name links are managed separately and are not rolled back by result undo.
 
 For tournaments linked to a Discord registration event, each saved fixture result gets a reply with a generated final-score card. Corrections edit that reply; undoing a result removes its card. The bot checks every 30 seconds and stores reply IDs to avoid duplicates. Custom tournaments without a linked Discord event do not announce results.
+
+## Game-night organiser tools
+
+Use `/organiser` to open a private event menu. It offers FACEIT import refresh/review, sync status, substitute offers/confirmation, Sort VC, voice cleanup and recap posting. Every action checks the organiser role or Administrator permission again. Import reviews use existing name mappings, show the proposed stats and require a separate confirmation. Unfamiliar or ambiguous names can still be reviewed on the website.
+
+Registration cards now include Join waiting list and Leave waiting list, including after publication. Published players can request withdrawal without immediately changing the roster. An organiser selects the departing player and offers the first waiting player a place; the offered player accepts within 10 minutes, then the organiser confirms. Offers mention only that waiting player. Before publication, a withdrawal offers a vacant place automatically when a queue exists. A pending vacant-place offer reserves that last registration slot. Cancel an offer to free the reservation or offer again.
+
+Confirmed replacements update the published roster and current linked tournament atomically. Historical lineups, player names and KDA are preserved; a substitute receives a new opaque player ID and appears in future games. Substitution clears the old result-undo stack because it changes the roster. Completed tournaments cannot be substituted.
+
+Sort VC appears under published teams and in the organiser panel. It creates one category per event and channels named after the published teams. Repeated sorts reuse those channels. Discord identities are matched privately to registered gaming names; only players already connected to voice are moved. The bot needs Manage Channels, Move Members, View Channel and Connect; GuildVoiceStates is a non-privileged intent enabled in code. Cleanup deletes only tracked empty channels and an empty bot-created category; occupied channels remain.
+
+Groups, knockout and double elimination get a single auto-updating next-fixtures card, checked every 30 seconds, with active/upcoming games, maps, qualification waits and server readiness. Single Game does not get a queue. Completed linked tournaments receive a recap with podium, final match score, match-win standings, top fragger and MVP. Corrections update the same recap; undoing completion removes it. Player mentions are disabled on automated fixture and recap updates.

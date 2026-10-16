@@ -85,7 +85,7 @@ function makeTournament(players, size, template, groupOrder, groupCount = player
   if(format==='single' && (size<2 || players.length!==size*2))throw Error('Single Game needs exactly '+(size*2)+' players in two '+size+'v'+size+' teams (2v2–5v5 only).');
   if(format==='knockout' || format==='double' || format==='single')groupCount=0;
   const data = structuredClone(template);
-  delete data.resultRevisions;delete data.discordEventId;delete data.activeMatchId;delete data.mapMethod;delete data.mapVeto;
+  delete data.retiredPlayers;delete data.resultRevisions;delete data.discordEventId;delete data.activeMatchId;delete data.mapMethod;delete data.mapVeto;
   data.format=format;
   if(![1,2].includes(qualifiersPerGroup))throw Error('Choose Top 1 or Top 2 from each group.');
   if(groupCount && groupCount*qualifiersPerGroup<2)throw Error('Top 1 needs at least two groups to create a knockout stage.');
@@ -148,13 +148,13 @@ function resultPlayerStats(data,result) {
   if(!result)return {};
   if(data.teamSize!==1 || result.importSource)return result.players || {};
   return Object.fromEntries(result.teams.map((teamId,i)=>{
-    const player=data.teams.find(team=>team.id===teamId)?.players?.[0];
+    const player=result.lineups?.[teamId]?.[0] || data.teams.find(team=>team.id===teamId)?.players?.[0];
     if(!player)throw Error('A 1v1 result needs one player on each side.');
     return [player.id,{kills:result.scores[i],deaths:result.scores[1-i],assists:0}];
   }));
 }
 function playerTotals(data) {
-  const totals = new Map(data.teams.flatMap(t => (t.players || []).map(p => [p.id,{...p,team:t.name,games:0,kills:0,deaths:0,assists:0}])));
+  const totals = new Map([...data.teams.flatMap(t => (t.players || []).map(p=>({...p,team:t.name}))),...(data.retiredPlayers||[])].map(p=>[p.id,{...p,games:0,kills:0,deaths:0,assists:0}]));
   for (const match of data.matches) for (const [id, stats] of Object.entries(resultPlayerStats(data,match.result))) {
     const row = totals.get(id);
     if (row) { row.games++; for (const field of ['kills','deaths','assists']) row[field] += stats[field]; }
@@ -242,11 +242,16 @@ function validateData(data, resolve) {
     if (games.length !== group.teams.length*(group.teams.length-1)/2 || new Set(pairs).size !== pairs.length || games.some(m => m.teams.length !== 2 || m.teams[0] === m.teams[1] || m.teams.some(id => !group.teams.includes(id)))) throw Error('Invalid round-robin schedule.');
   }
   const players = data.teams.flatMap(t => t.players || []);
+  if(data.retiredPlayers!==undefined && (!Array.isArray(data.retiredPlayers) || data.retiredPlayers.some(p=>!p || typeof p.id!=='string' || typeof p.name!=='string' || !p.name.trim() || p.name.length>40 || !teamIds.includes(p.teamId)) || new Set([...players,...data.retiredPlayers].map(p=>p.id)).size!==players.length+data.retiredPlayers.length))throw Error('Invalid substituted player history.');
   if (players.length && (![1,2,3,4,5].includes(data.teamSize) || data.teams.some(t => t.players?.length !== data.teamSize) || new Set(players.map(p => p.id)).size !== players.length || players.some(p => typeof p.name !== 'string' || !p.name.trim() || p.name.length > 40))) throw Error('Invalid player rosters.');
   const state = resolve(data);
   if (orderedMatches(state.matches).some(m => !m)) throw Error('Missing scheduled match.');
   for (const match of state.matches) {
-    const eligible = data.teams.filter(t => match.ids.includes(t.id)).flatMap(t => (t.players || []).map(p => p.id));
+    if(match.result?.lineups){
+      const known=[...players,...(data.retiredPlayers||[])];
+      if(typeof match.result.lineups!=='object' || Object.keys(match.result.lineups).length!==2 || match.ids.some(id=>!Array.isArray(match.result.lineups[id]) || match.result.lineups[id].length!==data.teamSize || match.result.lineups[id].some(p=>!known.some(k=>k.id===p.id && k.name===p.name))))throw Error('Invalid historical match lineup.');
+    }
+    const eligible = match.result?.lineups?match.ids.flatMap(id=>(match.result.lineups[id]||[]).map(p=>p.id)):data.teams.filter(t => match.ids.includes(t.id)).flatMap(t => (t.players || []).map(p => p.id));
     for (const [id, stats] of Object.entries(match.result?.players || {})) {
       if (!eligible.includes(id) || ['kills','deaths','assists'].some(f => !Number.isSafeInteger(stats[f]) || stats[f] < 0 || stats[f] > 999)) throw Error('Player stats must belong to this match and be whole numbers from 0 to 999.');
     }
@@ -256,7 +261,8 @@ function validateData(data, resolve) {
 function applyResult(data, id, result, resolve) {
   const next = structuredClone(data);
   next.resultRevisions=[...(data.resultRevisions||[]),{fixtureId:id,at:new Date().toISOString(),matches:data.matches.map(m=>({id:m.id,result:structuredClone(m.result||null)})),...(data.activeMatchId?{activeMatchId:data.activeMatchId}:{})}].slice(-10);
-  next.matches.find(m => m.id === id).result = {...result,players:resultPlayerStats(data,result)};
+  const savedResult={...result,...(!result.lineups && data.retiredPlayers?.length?{lineups:Object.fromEntries(result.teams.map(teamId=>[teamId,structuredClone(data.teams.find(t=>t.id===teamId).players)]))}:{})};
+  next.matches.find(m => m.id === id).result = {...savedResult,players:resultPlayerStats(data,savedResult)};
   // Recompute later participants. Keep valid results; clear only stale descendants.
   const oldPlayoffs = next.matches.filter(m => !m.group).map(m => [m.id,m.result]);
   next.matches.filter(m => !m.group).forEach(m => { m.result = null; });
@@ -561,7 +567,7 @@ if (typeof document !== 'undefined') (() => {
       const details = element('details','scheduled-match');
       const ready = match.ids.every(Boolean); const next = !markedNext && !match.result && ready;
       if (next) { markedNext = true; details.classList.add('next-match'); }
-      const names = match.ids.map((id,i) => state.teams.has(id) ? teamDisplayLabel(state.teams.get(id)) : matchPlaceholder(match,i));
+      const names = match.ids.map((id,i) => state.teams.has(id) ? teamDisplayLabel({...state.teams.get(id),...(match.result?.lineups?.[id]?{players:match.result.lineups[id]}:{})}) : matchPlaceholder(match,i));
       const summary=element('summary','fixture-summary');
       const meta=element('span','fixture-topline');
       meta.append(element('span','fixture-number','MATCH '+String(index+1).padStart(2,'0')),element('span','fixture-map',match.map || (current.teamSize===1?'Choose map in server':'Map not assigned')),element('span','fixture-status',match.result?'PLAYED':match.id===current.activeMatchId?'PLAYING NOW':next?'UP NEXT':ready?'SCHEDULED':'AWAITING TEAMS'));
@@ -612,7 +618,7 @@ if (typeof document !== 'undefined') (() => {
       stats.append(element('summary','','2. Player stats · optional'),element('p','entry-help','Kills = opponents eliminated · Deaths = times eliminated · Assists = assisted eliminations. For each player, fill all three fields or leave all three blank.'));
       const inputs = [];
       for (const teamId of solo?[]:match.ids) {
-        const team = state.teams.get(teamId);
+        const team = {...state.teams.get(teamId),...(match.result?.lineups?.[teamId]?{players:match.result.lineups[teamId]}:{})};
         const teamStats=element('fieldset','stats-team');teamStats.append(element('legend','',teamDisplayLabel(team)));
         for (const player of team.players || []) {
           const row = element('div','player-entry'); row.append(element('strong','',player.name));
@@ -635,7 +641,7 @@ if (typeof document !== 'undefined') (() => {
             if (values.some(v=>v==='')) throw Error('Enter kills, deaths and assists together, or leave all three blank.');
             players[id] = Object.fromEntries(['kills','deaths','assists'].map((key,i)=>[key,Number(values[i])]));
           }
-          const result = {teams:match.ids,scores:scores.map(s=>Number(s.input.value)),players,...(match.result?.importSource?{importSource:structuredClone(match.result.importSource)}:{})};
+          const result = {...(match.result?.lineups?{lineups:structuredClone(match.result.lineups)}:{}),teams:match.ids,scores:scores.map(s=>Number(s.input.value)),players,...(match.result?.importSource?{importSource:structuredClone(match.result.importSource)}:{})};
           if (!match.group && result.scores[0]===result.scores[1]) {
             if (!tiebreakSelect.value) throw Error('Select the tiebreak winner so a team can advance.');
             result.tiebreakWinner=tiebreakSelect.value;

@@ -196,7 +196,7 @@ function renderConnectedBracket(root,matches,teams) {
   for(const {match,x,y} of layout.nodes){
     const card=element('article','bracket-game'+(match.result?' is-played':''));card.style.left=x+'px';card.style.top=y+'px';card.setAttribute('aria-label',match.label+' · '+match.id.toUpperCase());
     card.append(element('div','bracket-game-label',match.id.toUpperCase()+' · '+match.label));
-    match.ids.forEach((id,i)=>{const team=teams.get(id),name=team?teamDisplayName(team):matchPlaceholder(match,i),row=element('div','bracket-player'+(id && id===match.winner?' winner':'')+(!team?' pending':''));row.title=name;row.append(element('span','bracket-seed',team?.tag||'—'),element('span','bracket-player-name',name),element('strong','bracket-score',match.result?String(match.result.scores[i]):'—'));card.append(row);});
+    match.ids.forEach((id,i)=>{const team=teams.get(id),name=team?teamDisplayName({...team,...(match.result?.lineups?.[id]?{players:match.result.lineups[id]}:{})}):matchPlaceholder(match,i),row=element('div','bracket-player'+(id && id===match.winner?' winner':'')+(!team?' pending':''));row.title=name;row.append(element('span','bracket-seed',team?.tag||'—'),element('span','bracket-player-name',name),element('strong','bracket-score',match.result?String(match.result.scores[i]):'—'));card.append(row);});
     if(match.resetOf)card.title='Only played if the losers bracket champion wins the first grand final.';
     canvas.append(card);
   }

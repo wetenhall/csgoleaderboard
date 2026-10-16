@@ -3,10 +3,12 @@ function register(event,userId,name){
   if(event.publishedAt)throw Error('This event is published. Registration is closed.');
   name=name.trim();
   if(!name || name.length>40 || /[\r\n]/.test(name))throw Error('Use a gaming name of 1–40 characters on one line.');
+  if((event.waitingList||[]).some(p=>p.userId!==userId && p.name.normalize('NFKC').toLowerCase()===name.normalize('NFKC').toLowerCase()))throw Error('That name is already on the waiting list.');
   if(event.players.some(p=>p.userId!==userId && p.name.normalize('NFKC').toLowerCase()===name.normalize('NFKC').toLowerCase()))throw Error('That gaming name is already registered.');
   const existing=event.players.find(p=>p.userId===userId);
   if(existing)existing.name=name;
   else {if(event.players.length>=event.capacity)throw Error('This event is full.');event.players.push({userId,name});}
+  if(event.waitingList)event.waitingList=event.waitingList.filter(p=>p.userId!==userId);
 }
 async function publishEvent(event,config,request=fetch){
   if(event.players.length!==event.capacity)throw Error('Fill all '+event.capacity+' places before publishing.');

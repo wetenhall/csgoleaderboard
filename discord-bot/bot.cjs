@@ -4,6 +4,7 @@ const {register,publishEvent,teamAnnouncements}=require('./core.cjs');
 const {renderTeamImages}=require('./team-image.cjs');
 const {syncFaceitGames}=require('./faceit.cjs');
 const {syncResultCards}=require('./results.cjs');
+const {createOperations}=require('./operations.cjs');
 for(const key of ['DISCORD_TOKEN','DISCORD_GUILD_ID','GITHUB_TOKEN','GITHUB_REPOSITORY','GITHUB_BRANCH','SITE_URL'])if(!process.env[key])throw Error('Missing '+key);
 if(!/^[\w.-]+\/[\w.-]+$/.test(process.env.GITHUB_REPOSITORY))throw Error('Invalid repository.');
 if(new URL(process.env.SITE_URL).protocol!=='https:')throw Error('SITE_URL must use HTTPS.');
@@ -11,14 +12,15 @@ const file=path.resolve(process.env.DATA_FILE || './data/events.json');
 let data=fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):{events:[]};
 function save(){fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file+'.tmp',JSON.stringify(data,null,2));fs.renameSync(file+'.tmp',file);}
 function admin(i){return i.memberPermissions?.has(PermissionFlagsBits.Administrator) || (process.env.DISCORD_ADMIN_ROLE_ID && i.member.roles.cache.has(process.env.DISCORD_ADMIN_ROLE_ID));}
-const client=new Client({intents:[GatewayIntentBits.Guilds]});
+const client=new Client({intents:[GatewayIntentBits.Guilds,GatewayIntentBits.GuildVoiceStates]});
 function card(event){
   const rows=[new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('register:'+event.id).setLabel('Register me to play').setStyle(ButtonStyle.Primary).setDisabled(!!event.publishedAt),
-    new ButtonBuilder().setCustomId('withdraw:'+event.id).setLabel('Withdraw').setStyle(ButtonStyle.Secondary).setDisabled(!!event.publishedAt),
+    new ButtonBuilder().setCustomId(event.publishedAt?'ops:withdrawrequest:'+event.id:'withdraw:'+event.id).setLabel(event.publishedAt?'Request withdrawal':'Withdraw').setStyle(ButtonStyle.Secondary),
     new ButtonBuilder().setCustomId('publish:'+event.id).setLabel('Publish game').setStyle(ButtonStyle.Success).setDisabled(!!event.publishedAt || event.players.length!==event.capacity))];
+  rows.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('ops:wait:'+event.id).setLabel('Join waiting list').setStyle(ButtonStyle.Secondary),new ButtonBuilder().setCustomId('ops:leavewait:'+event.id).setLabel('Leave waiting list').setStyle(ButtonStyle.Secondary)));
   if(event.publishedAt)rows.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel('View tournament').setStyle(ButtonStyle.Link).setURL(process.env.SITE_URL)));
-  return {embeds:[new EmbedBuilder().setTitle(event.title).setColor(0xf5a623).setDescription(event.players.length?event.players.map((p,i)=>(i+1)+'. '+escapeMarkdown(p.name)).join('\n'):'No players registered yet.').setFooter({text:event.players.length+'/'+event.capacity+' players · '+(event.publishedAt?'Published · roster locked':'Submit your gaming name to register. Names become public when published.')})],components:rows,allowedMentions:{parse:[]}};
+  return {embeds:[new EmbedBuilder().setTitle(event.title).setColor(0xf5a623).setDescription(event.players.length?event.players.map((p,i)=>(i+1)+'. '+escapeMarkdown(p.name)).join('\n'):'No players registered yet.').setFooter({text:event.players.length+'/'+event.capacity+' players · '+(event.waitingList?.length||0)+' waiting · '+(event.publishedAt?'Published · roster locked':'Submit your gaming name to register. Names become public when published.')})],components:rows,allowedMentions:{parse:[]}};
 }
 async function update(event){const channel=await client.channels.fetch(event.channelId);const message=await channel.messages.fetch(event.messageId);await message.edit(card(event));}
 client.once(Events.ClientReady,async()=>{
@@ -27,6 +29,7 @@ client.once(Events.ClientReady,async()=>{
   const commands=await client.application.commands.fetch({guildId:process.env.DISCORD_GUILD_ID});
   for(const old of commands.values())if(['event','event-admin'].includes(old.name))await client.application.commands.delete(old.id,process.env.DISCORD_GUILD_ID);
   await client.application.commands.create(new SlashCommandBuilder().setName('playpublish').setDescription('Open your private event publishing panel').setDMPermission(false),process.env.DISCORD_GUILD_ID);
+  await client.application.commands.create(new SlashCommandBuilder().setName('organiser').setDescription('Private game-night controls, substitutes, imports and voice channels').setDMPermission(false),process.env.DISCORD_GUILD_ID);
   for(const event of data.events){try{await update(event);}catch{console.error('Could not refresh an existing event card. Check channel permissions.');}}
   console.log('Registration bot ready.');
   void syncTeams();setInterval(()=>void syncTeams(),30000);
@@ -34,6 +37,8 @@ client.once(Events.ClientReady,async()=>{
 });
 let queue=Promise.resolve();
 let syncingTeams=false;
+const serial=operation=>{const next=queue.then(operation);queue=next.catch(()=>{});return next;};
+const operations=createOperations({client,data,save,admin,update,serial,refreshImports:()=>syncFaceitGames()});
 async function syncTeams(){
   if(syncingTeams)return;syncingTeams=true;
   const operation=queue.then(async()=>{
@@ -43,11 +48,12 @@ async function syncTeams(){
     const file=await response.json(),tournament=JSON.parse(Buffer.from(file.content,'base64').toString('utf8'));
     const event=data.events.find(event=>event.id===tournament.discordEventId && event.publishedAt);
     if(!event || !tournament.teams?.length)return;
-    const roster=teamAnnouncements(tournament,escapeMarkdown),signature='team-connect-auto-v1:'+JSON.stringify([roster,tournament.serverAddress||'']);
+    const roster=teamAnnouncements(tournament,escapeMarkdown),signature='game-night-tools-v1:'+JSON.stringify([roster,tournament.serverAddress||'']);
     const map=tournament.format==='single'?tournament.matches?.[0]?.map:null;
     const descriptions=['Teams ready · '+tournament.teamSize+'v'+tournament.teamSize+(map?' · '+escapeMarkdown(map):'')];
     const channel=await client.channels.fetch(event.channelId),registration=await channel.messages.fetch(event.messageId);
     await syncResultCards({tournament,event,channel,registration,save});
+    await operations.sync(tournament,event);
     if(event.teamSignature===signature)return;
     const images=renderTeamImages(tournament);
     event.teamMessageIds ||= [];
@@ -56,7 +62,7 @@ async function syncTeams(){
       payload.attachments=[];
       const actions=new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel('View game').setStyle(ButtonStyle.Link).setURL(process.env.SITE_URL));
       if(tournament.serverAddress){const link=new URL('connect.html',process.env.SITE_URL.endsWith('/')?process.env.SITE_URL:process.env.SITE_URL+'/');link.searchParams.set('event',event.id);link.searchParams.set('autoconnect','1');actions.addComponents(new ButtonBuilder().setLabel('Connect to match').setStyle(ButtonStyle.Link).setURL(link.href));}
-      payload.components=[actions];
+      payload.components=[actions,new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('ops:sort:'+event.id).setLabel('Sort VC').setStyle(ButtonStyle.Primary),new ButtonBuilder().setCustomId('ops:cleanup:'+event.id).setLabel('Clean up voice channels').setStyle(ButtonStyle.Secondary))];
       if(i===0 && images.length){
         payload.files=images;payload.embeds[0].setImage('attachment://'+images[0].name);
         for(const image of images.slice(1))payload.embeds.push(new EmbedBuilder().setImage('attachment://'+image.name));
@@ -75,6 +81,7 @@ async function syncTeams(){
 client.on(Events.InteractionCreate,async i=>{
   if(i.guildId!==process.env.DISCORD_GUILD_ID)return;
   try{
+    if(await operations.handle(i))return;
     if(i.isChatInputCommand() && i.commandName==='playpublish'){
       if(!admin(i))return i.reply({content:'Only event organisers can open this panel.',flags:MessageFlags.Ephemeral});
       const events=data.events.filter(e=>!e.publishedAt).slice(-25).reverse();
@@ -105,8 +112,8 @@ client.on(Events.InteractionCreate,async i=>{
     if(action==='publish' && !admin(i))throw Error('Only event organisers can publish.');
     await i.deferReply({flags:MessageFlags.Ephemeral});
     const operation=queue.then(async()=>{
-      if(action==='submit')register(event,i.user.id,i.fields.getTextInputValue('name'));
-      if(action==='withdraw'){if(event.publishedAt)throw Error('Registration is closed.');event.players=event.players.filter(p=>p.userId!==i.user.id);}
+      if(action==='submit'){if(event.offer && !event.offer.acceptedAt && Date.now()-Date.parse(event.offer.createdAt)>600000){delete event.offer;save();}if(event.offer && !event.offer.outId && event.players.length>=event.capacity-1)throw Error('The last place is reserved for an offered substitute. Join the waiting list.');register(event,i.user.id,i.fields.getTextInputValue('name'));}
+      if(action==='withdraw'){if(event.publishedAt)throw Error('Registration is closed.');event.players=event.players.filter(p=>p.userId!==i.user.id);if(event.waitingList?.length && !event.offer)await operations.offer(event);}
       if(action==='publish'){
         if(event.publishedAt)throw Error('Already published.');
         event.publishedAt=await publishEvent(event,{repository:process.env.GITHUB_REPOSITORY,token:process.env.GITHUB_TOKEN,branch:process.env.GITHUB_BRANCH});

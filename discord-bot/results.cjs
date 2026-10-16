@@ -2,7 +2,7 @@ const {resolveTournament}=require('../app.js');
 const path=require('node:path');
 function resultCards(tournament){
   const state=resolveTournament(tournament);
-  return state.matches.filter(m=>m.result && !m.skipped && m.ids.every(Boolean)).map(match=>{const teams=match.ids.map(id=>state.teams.get(id)),names=teams.map(t=>tournament.teamSize===1?t.players[0].name:t.name),winner=match.winner?names[match.ids.indexOf(match.winner)]:null;return {id:match.id,map:match.map||match.result.importSource?.map||'',names,scores:match.result.scores,winner,players:teams.map(t=>t.players.map(p=>p.name)),tiebreak:!!match.result.tiebreakWinner};});
+  return state.matches.filter(m=>m.result && !m.skipped && m.ids.every(Boolean)).map(match=>{const teams=match.ids.map(id=>({...state.teams.get(id),...(match.result.lineups?.[id]?{players:match.result.lineups[id]}:{})})),names=teams.map(t=>tournament.teamSize===1?t.players[0].name:t.name),winner=match.winner?names[match.ids.indexOf(match.winner)]:null;return {id:match.id,map:match.map||match.result.importSource?.map||'',names,scores:match.result.scores,winner,players:teams.map(t=>t.players.map(p=>p.name)),tiebreak:!!match.result.tiebreakWinner};});
 }
 function resultImage(card){
   const {createCanvas,GlobalFonts}=require('@napi-rs/canvas');GlobalFonts.registerFromPath(path.join(__dirname,'../assets/fonts/Rajdhani-Bold.ttf'),'Rajdhani');
