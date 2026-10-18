@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-17T18:31:22.553Z",
+  "updatedAt": "2026-10-18T21:41:23.814Z",
   "games": [
+    {
+      "id": "1-9004ee45-8176-469d-9b6c-b9d00233fccc:0",
+      "matchId": "1-9004ee45-8176-469d-9b6c-b9d00233fccc",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1792359411,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 4,
+          "players": [
+            {
+              "name": "GR4YZEE",
+              "kills": 4,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "OhNeil",
+              "kills": 13,
+              "deaths": 4,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-29b21d43-f2d0-4bd3-b8f3-237ba52c07ab:0",
       "matchId": "1-29b21d43-f2d0-4bd3-b8f3-237ba52c07ab",
