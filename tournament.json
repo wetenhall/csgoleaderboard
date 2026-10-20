@@ -100,7 +100,7 @@
   "qualifiersPerGroup": 2,
   "teamSize": 5,
   "mode": "squads",
-  "serverAddress": "",
+  "serverAddress": "138.199.44.115:25133",
   "gameProvider": "faceit",
   "leetifyProfiles": {
     "cantlon": "https://leetify.com/app/profile/76561198169191946",
@@ -126,5 +126,6 @@
   ],
   "mapMethod": "wheel",
   "mapVeto": [],
-  "discordEventId": "cb36f40f-20b6-4682-b61a-6091010fe239"
+  "discordEventId": "cb36f40f-20b6-4682-b61a-6091010fe239",
+  "serverPassword": "hs9ipj"
 }
