@@ -13,7 +13,7 @@
     "Part",
     "Sam"
   ],
-  "name": "playtest3",
+  "name": "custom game 1",
   "teams": [
     {
       "id": "t1",
@@ -21,8 +21,24 @@
       "tag": "01",
       "players": [
         {
+          "id": "p3",
+          "name": "lukinss"
+        },
+        {
           "id": "p1",
           "name": "Grayzee"
+        },
+        {
+          "id": "p4",
+          "name": "Spongoat"
+        },
+        {
+          "id": "p5",
+          "name": "finesse"
+        },
+        {
+          "id": "p6",
+          "name": "goro"
         }
       ]
     },
@@ -33,7 +49,23 @@
       "players": [
         {
           "id": "p2",
-          "name": "lukinss"
+          "name": "cantlon"
+        },
+        {
+          "id": "p7",
+          "name": "Aatori"
+        },
+        {
+          "id": "p9",
+          "name": "Millow"
+        },
+        {
+          "id": "p10",
+          "name": "little german boy"
+        },
+        {
+          "id": "p8",
+          "name": "sAM 25k prem btw"
         }
       ]
     }
@@ -41,10 +73,8 @@
   "groups": [],
   "matches": [
     {
-      "id": "de1",
+      "id": "f1",
       "round": 0,
-      "bracket": "upper",
-      "label": "Winners · Round 1",
       "sources": [
         {
           "team": "t1"
@@ -53,52 +83,23 @@
           "team": "t2"
         }
       ],
-      "result": null
-    },
-    {
-      "id": "f1",
-      "round": 1,
-      "bracket": "final",
-      "label": "Grand final",
-      "sources": [
-        {
-          "winner": "de1"
-        },
-        {
-          "loser": "de1"
-        }
-      ],
-      "result": null
-    },
-    {
-      "id": "f2",
-      "round": 2,
-      "bracket": "final",
-      "label": "Grand final reset · if needed",
-      "resetOf": "f1",
-      "sources": [
-        {
-          "winner": "de1"
-        },
-        {
-          "loser": "de1"
-        }
-      ],
-      "result": null
+      "result": null,
+      "label": "Single Game · 5v5",
+      "map": "Overpass"
     }
   ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
-    "banner": "playtest3",
+    "banner": "custom game 1",
     "registrationTitle": "Register to play",
     "registrationDescription": "Enter your player name to register for the next 1v1 tournament.\n\nDate: Thursday 29th October \nTime: 7pm GMT"
   },
   "registrationEnabled": true,
-  "format": "double",
+  "format": "single",
   "qualifiersPerGroup": 2,
-  "teamSize": 1,
-  "mode": "1v1",
+  "teamSize": 5,
+  "mode": "squads",
   "serverAddress": "",
   "gameProvider": "faceit",
   "leetifyProfiles": {
@@ -115,5 +116,15 @@
       "aatori": "Aatori"
     }
   },
-  "discordEventId": "685691dd-871c-4a98-8354-625bdd33f07f"
+  "mapPool": [
+    "Mirage",
+    "Nuke",
+    "Ancient",
+    "Anubis",
+    "Vertigo",
+    "Overpass"
+  ],
+  "mapMethod": "wheel",
+  "mapVeto": [],
+  "discordEventId": "cb36f40f-20b6-4682-b61a-6091010fe239"
 }
