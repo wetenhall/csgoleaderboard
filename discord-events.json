@@ -1,1 +1,22 @@
-{"version":1,"events":[]}
+{
+  "version": 1,
+  "events": [
+    {
+      "id": "cb36f40f-20b6-4682-b61a-6091010fe239",
+      "title": "custom game 1",
+      "players": [
+        "Grayzee",
+        "cantlon",
+        "lukinss",
+        "Spongoat",
+        "finesse",
+        "goro",
+        "Aatori",
+        "sAM 25k prem btw",
+        "Millow",
+        "little german boy"
+      ],
+      "publishedAt": "2026-10-20T17:50:04.077Z"
+    }
+  ]
+}
