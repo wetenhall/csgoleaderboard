@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-18T21:41:23.814Z",
+  "updatedAt": "2026-10-28T17:56:56.303Z",
   "games": [
+    {
+      "id": "1-c24f60e7-46c2-4380-97f0-a8a34116bc5a:0",
+      "matchId": "1-c24f60e7-46c2-4380-97f0-a8a34116bc5a",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793210106,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "hulions123",
+              "kills": 13,
+              "deaths": 4,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 4,
+          "players": [
+            {
+              "name": "cantlon_",
+              "kills": 4,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-9004ee45-8176-469d-9b6c-b9d00233fccc:0",
       "matchId": "1-9004ee45-8176-469d-9b6c-b9d00233fccc",
