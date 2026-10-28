@@ -106,7 +106,34 @@
           "winner": "de1"
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t1",
+          "t2"
+        ],
+        "scores": [
+          11,
+          13
+        ],
+        "players": {
+          "p1": {
+            "kills": 11,
+            "deaths": 13,
+            "assists": 0
+          },
+          "p2": {
+            "kills": 13,
+            "deaths": 11,
+            "assists": 0
+          }
+        },
+        "importSource": {
+          "provider": "faceit",
+          "id": "1-9226c452-a0d5-46e1-9c69-c226de0a3373:0",
+          "matchId": "1-9226c452-a0d5-46e1-9c69-c226de0a3373",
+          "map": "aim_redline_faceit"
+        }
+      }
     },
     {
       "id": "de3",
@@ -182,7 +209,8 @@
       "lukinss": "Lukinss",
       "aatori": "Aatori",
       "hulions123": "goro",
-      "cantlon_": "cantlon"
+      "cantlon_": "cantlon",
+      "gr4yzee": "Grayzee"
     }
   },
   "discordEventId": "93155e8b-e257-457d-9925-6cb3dcb29c19",
@@ -194,6 +222,59 @@
         {
           "id": "de1",
           "result": null
+        },
+        {
+          "id": "de2",
+          "result": null
+        },
+        {
+          "id": "de3",
+          "result": null
+        },
+        {
+          "id": "f1",
+          "result": null
+        },
+        {
+          "id": "f2",
+          "result": null
+        }
+      ]
+    },
+    {
+      "fixtureId": "de2",
+      "at": "2026-10-28T18:10:53.403Z",
+      "matches": [
+        {
+          "id": "de1",
+          "result": {
+            "teams": [
+              "t2",
+              "t3"
+            ],
+            "scores": [
+              13,
+              4
+            ],
+            "players": {
+              "p2": {
+                "kills": 13,
+                "deaths": 4,
+                "assists": 0
+              },
+              "p3": {
+                "kills": 4,
+                "deaths": 13,
+                "assists": 0
+              }
+            },
+            "importSource": {
+              "provider": "faceit",
+              "id": "1-c24f60e7-46c2-4380-97f0-a8a34116bc5a:0",
+              "matchId": "1-c24f60e7-46c2-4380-97f0-a8a34116bc5a",
+              "map": "aim_map_faceit"
+            }
+          }
         },
         {
           "id": "de2",
