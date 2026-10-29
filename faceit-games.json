@@ -1,8 +1,74 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T19:39:06.574Z",
+  "updatedAt": "2026-10-29T19:51:34.601Z",
   "games": [
+    {
+      "id": "1-ca685418-0ea9-43c7-8286-53ea39590b21:0",
+      "matchId": "1-ca685418-0ea9-43c7-8286-53ea39590b21",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793303394,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 14,
+          "players": [
+            {
+              "name": "MagicM0ri",
+              "kills": 14,
+              "deaths": 16,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 16,
+          "players": [
+            {
+              "name": "Pink-e",
+              "kills": 16,
+              "deaths": 14,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-169629d2-9d38-45d8-8364-75aeba13b3d9:0",
+      "matchId": "1-169629d2-9d38-45d8-8364-75aeba13b3d9",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793303358,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "hqns71",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "cantlon_",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-62e352af-c126-468a-9900-bc237023c0b9:0",
       "matchId": "1-62e352af-c126-468a-9900-bc237023c0b9",
