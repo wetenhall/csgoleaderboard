@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T21:06:34.502Z",
+  "updatedAt": "2026-10-29T21:16:34.301Z",
   "games": [
+    {
+      "id": "1-673e3948-9bcf-4940-bb56-2fa9a173a839:0",
+      "matchId": "1-673e3948-9bcf-4940-bb56-2fa9a173a839",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793308434,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "sisoh",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-9e575955-9883-44c2-a01b-157da66765e5:0",
       "matchId": "1-9e575955-9883-44c2-a01b-157da66765e5",
