@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T17:24:05.465Z",
+  "updatedAt": "2026-10-29T17:30:59.725Z",
   "games": [
+    {
+      "id": "1-6b3f27c2-a733-426a-a152-28078eca0cc0:0",
+      "matchId": "1-6b3f27c2-a733-426a-a152-28078eca0cc0",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1793295037,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 11,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 11,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 11,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-66fdd254-4ef3-4347-8d78-00a02cd97605:0",
       "matchId": "1-66fdd254-4ef3-4347-8d78-00a02cd97605",
