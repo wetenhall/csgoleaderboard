@@ -1,7 +1,7 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T20:01:34.186Z",
+  "updatedAt": "2026-10-29T20:04:06.160Z",
   "games": [
     {
       "id": "1-6d7a0da6-ea60-4fde-960e-b79ef9876a92:0",
@@ -30,6 +30,39 @@
               "name": "Pink-e",
               "kills": 13,
               "deaths": 10,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-b5ab9234-4a55-4662-9b55-5605de440307:0",
+      "matchId": "1-b5ab9234-4a55-4662-9b55-5605de440307",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793304199,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 14,
+          "players": [
+            {
+              "name": "hqns71",
+              "kills": 14,
+              "deaths": 16,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 16,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 16,
+              "deaths": 14,
               "assists": 0
             }
           ]
