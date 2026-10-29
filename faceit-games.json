@@ -1,7 +1,7 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T19:25:07.154Z",
+  "updatedAt": "2026-10-29T19:26:35.798Z",
   "games": [
     {
       "id": "1-be6ccfb4-57ec-4432-8501-bb5a08eccd56:0",
@@ -30,6 +30,39 @@
               "name": "SRC",
               "kills": 13,
               "deaths": 4,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-cb0a7745-9c71-41bf-81d8-cc4e4f237539:0",
+      "matchId": "1-cb0a7745-9c71-41bf-81d8-cc4e4f237539",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1793301947,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "sisoh",
+              "kills": 13,
+              "deaths": 11,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 11,
+          "players": [
+            {
+              "name": "MagicM0ri",
+              "kills": 11,
+              "deaths": 13,
               "assists": 0
             }
           ]
