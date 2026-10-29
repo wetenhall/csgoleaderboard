@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T17:15:59.646Z",
+  "updatedAt": "2026-10-29T17:17:35.396Z",
   "games": [
+    {
+      "id": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c:0",
+      "matchId": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1793294197,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 4,
+          "players": [
+            {
+              "name": "GR4YZEE",
+              "kills": 4,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 4,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-e4653beb-3c10-4e86-8a2b-9e67eea1b115:0",
       "matchId": "1-e4653beb-3c10-4e86-8a2b-9e67eea1b115",
