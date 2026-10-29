@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T20:26:34.392Z",
+  "updatedAt": "2026-10-29T20:28:06.517Z",
   "games": [
+    {
+      "id": "1-94c65b84-dd4a-447f-b2e1-57cfceb3b3ab:0",
+      "matchId": "1-94c65b84-dd4a-447f-b2e1-57cfceb3b3ab",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793305680,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 8,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 8,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "ECK5",
+              "kills": 13,
+              "deaths": 8,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-bb9fa274-6a7b-41e5-9aa1-376f162b4ca2:0",
       "matchId": "1-bb9fa274-6a7b-41e5-9aa1-376f162b4ca2",
