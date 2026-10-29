@@ -13,7 +13,7 @@
     "Part",
     "Sam"
   ],
-  "name": "1v1 test",
+  "name": "1 v 1 Pullup gang tournament",
   "teams": [
     {
       "id": "t1",
@@ -21,8 +21,8 @@
       "tag": "01",
       "players": [
         {
-          "id": "p1",
-          "name": "little german boy"
+          "id": "p7",
+          "name": "Grayzee"
         }
       ]
     },
@@ -32,8 +32,8 @@
       "tag": "02",
       "players": [
         {
-          "id": "p2",
-          "name": "Grayzee"
+          "id": "p5",
+          "name": "Froppo"
         }
       ]
     },
@@ -43,8 +43,8 @@
       "tag": "03",
       "players": [
         {
-          "id": "p4",
-          "name": "sAM"
+          "id": "p2",
+          "name": "cantlon"
         }
       ]
     },
@@ -54,8 +54,85 @@
       "tag": "04",
       "players": [
         {
-          "id": "p3",
+          "id": "p1",
+          "name": "Dan"
+        }
+      ]
+    },
+    {
+      "id": "t5",
+      "name": "Team 05",
+      "tag": "05",
+      "players": [
+        {
+          "id": "p11",
+          "name": "ECKS"
+        }
+      ]
+    },
+    {
+      "id": "t6",
+      "name": "Team 06",
+      "tag": "06",
+      "players": [
+        {
+          "id": "p4",
+          "name": "Millow"
+        }
+      ]
+    },
+    {
+      "id": "t7",
+      "name": "Team 07",
+      "tag": "07",
+      "players": [
+        {
+          "id": "p10",
+          "name": "zZz"
+        }
+      ]
+    },
+    {
+      "id": "t8",
+      "name": "Team 08",
+      "tag": "08",
+      "players": [
+        {
+          "id": "p8",
+          "name": "hans"
+        }
+      ]
+    },
+    {
+      "id": "t9",
+      "name": "Team 09",
+      "tag": "09",
+      "players": [
+        {
+          "id": "p9",
           "name": "finesse"
+        }
+      ]
+    },
+    {
+      "id": "t10",
+      "name": "Team 10",
+      "tag": "10",
+      "players": [
+        {
+          "id": "p6",
+          "name": "///Magic///"
+        }
+      ]
+    },
+    {
+      "id": "t11",
+      "name": "Team 11",
+      "tag": "11",
+      "players": [
+        {
+          "id": "p3",
+          "name": "sAM"
         }
       ]
     }
@@ -69,40 +146,13 @@
       "label": "Winners · Round 1",
       "sources": [
         {
-          "team": "t1"
+          "team": "t8"
         },
         {
-          "team": "t4"
+          "team": "t9"
         }
       ],
-      "result": {
-        "teams": [
-          "t1",
-          "t4"
-        ],
-        "scores": [
-          19,
-          17
-        ],
-        "players": {
-          "p1": {
-            "kills": 19,
-            "deaths": 17,
-            "assists": 0
-          },
-          "p3": {
-            "kills": 17,
-            "deaths": 19,
-            "assists": 0
-          }
-        },
-        "importSource": {
-          "provider": "faceit",
-          "id": "1-66fdd254-4ef3-4347-8d78-00a02cd97605:0",
-          "matchId": "1-66fdd254-4ef3-4347-8d78-00a02cd97605",
-          "map": "aim_redline_faceit"
-        }
-      }
+      "result": null
     },
     {
       "id": "de2",
@@ -111,82 +161,28 @@
       "label": "Winners · Round 1",
       "sources": [
         {
-          "team": "t2"
+          "team": "t7"
         },
         {
-          "team": "t3"
+          "team": "t10"
         }
       ],
-      "result": {
-        "teams": [
-          "t2",
-          "t3"
-        ],
-        "scores": [
-          4,
-          13
-        ],
-        "players": {
-          "p2": {
-            "kills": 4,
-            "deaths": 13,
-            "assists": 0
-          },
-          "p4": {
-            "kills": 13,
-            "deaths": 4,
-            "assists": 0
-          }
-        },
-        "importSource": {
-          "provider": "faceit",
-          "id": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c:0",
-          "matchId": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c",
-          "map": "fistmap"
-        }
-      }
+      "result": null
     },
     {
       "id": "de3",
-      "round": 1,
-      "bracket": "lower",
-      "label": "Losers · Round 1",
+      "round": 0,
+      "bracket": "upper",
+      "label": "Winners · Round 1",
       "sources": [
         {
-          "loser": "de1"
+          "team": "t6"
         },
         {
-          "loser": "de2"
+          "team": "t11"
         }
       ],
-      "result": {
-        "teams": [
-          "t4",
-          "t2"
-        ],
-        "scores": [
-          13,
-          9
-        ],
-        "players": {
-          "p2": {
-            "kills": 9,
-            "deaths": 13,
-            "assists": 0
-          },
-          "p3": {
-            "kills": 13,
-            "deaths": 9,
-            "assists": 0
-          }
-        },
-        "importSource": {
-          "provider": "faceit",
-          "id": "1-ab392379-0151-49c0-8c4f-a14e01cf5818:0",
-          "matchId": "1-ab392379-0151-49c0-8c4f-a14e01cf5818",
-          "map": "aim_map_faceit"
-        }
-      }
+      "result": null
     },
     {
       "id": "de4",
@@ -195,163 +191,292 @@
       "label": "Winners · Round 2",
       "sources": [
         {
+          "team": "t1"
+        },
+        {
           "winner": "de1"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de5",
+      "round": 2,
+      "bracket": "upper",
+      "label": "Winners · Round 2",
+      "sources": [
+        {
+          "team": "t4"
+        },
+        {
+          "team": "t5"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de6",
+      "round": 2,
+      "bracket": "upper",
+      "label": "Winners · Round 2",
+      "sources": [
+        {
+          "team": "t2"
         },
         {
           "winner": "de2"
         }
       ],
-      "result": {
-        "teams": [
-          "t1",
-          "t3"
-        ],
-        "scores": [
-          11,
-          13
-        ],
-        "players": {
-          "p1": {
-            "kills": 11,
-            "deaths": 13,
-            "assists": 0
-          },
-          "p4": {
-            "kills": 13,
-            "deaths": 11,
-            "assists": 0
-          }
-        },
-        "importSource": {
-          "provider": "faceit",
-          "id": "1-6b3f27c2-a733-426a-a152-28078eca0cc0:0",
-          "matchId": "1-6b3f27c2-a733-426a-a152-28078eca0cc0",
-          "map": "fistmap"
-        }
-      }
+      "result": null
     },
     {
-      "id": "de5",
+      "id": "de7",
+      "round": 2,
+      "bracket": "upper",
+      "label": "Winners · Round 2",
+      "sources": [
+        {
+          "team": "t3"
+        },
+        {
+          "winner": "de3"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de8",
       "round": 3,
       "bracket": "lower",
       "label": "Losers · Round 2",
       "sources": [
         {
-          "winner": "de3"
+          "loser": "de1"
+        },
+        {
+          "loser": "de7"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de9",
+      "round": 3,
+      "bracket": "lower",
+      "label": "Losers · Round 2",
+      "sources": [
+        {
+          "loser": "de2"
+        },
+        {
+          "loser": "de5"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de10",
+      "round": 3,
+      "bracket": "lower",
+      "label": "Losers · Round 2",
+      "sources": [
+        {
+          "loser": "de3"
         },
         {
           "loser": "de4"
         }
       ],
-      "result": {
-        "teams": [
-          "t4",
-          "t1"
-        ],
-        "scores": [
-          11,
-          13
-        ],
-        "players": {
-          "p1": {
-            "kills": 13,
-            "deaths": 11,
-            "assists": 0
-          },
-          "p3": {
-            "kills": 11,
-            "deaths": 13,
-            "assists": 0
-          }
+      "result": null
+    },
+    {
+      "id": "de11",
+      "round": 4,
+      "bracket": "lower",
+      "label": "Losers · Round 3",
+      "sources": [
+        {
+          "winner": "de8"
         },
-        "importSource": {
-          "provider": "faceit",
-          "id": "1-7b15d955-832d-4489-a227-191e997407e9:0",
-          "matchId": "1-7b15d955-832d-4489-a227-191e997407e9",
-          "map": "aim_redline_faceit"
+        {
+          "loser": "de6"
         }
-      }
+      ],
+      "result": null
+    },
+    {
+      "id": "de12",
+      "round": 4,
+      "bracket": "lower",
+      "label": "Losers · Round 3",
+      "sources": [
+        {
+          "winner": "de9"
+        },
+        {
+          "winner": "de10"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de13",
+      "round": 5,
+      "bracket": "upper",
+      "label": "Winners · Round 3",
+      "sources": [
+        {
+          "winner": "de4"
+        },
+        {
+          "winner": "de5"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de14",
+      "round": 5,
+      "bracket": "upper",
+      "label": "Winners · Round 3",
+      "sources": [
+        {
+          "winner": "de6"
+        },
+        {
+          "winner": "de7"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de15",
+      "round": 6,
+      "bracket": "lower",
+      "label": "Losers · Round 4",
+      "sources": [
+        {
+          "winner": "de11"
+        },
+        {
+          "loser": "de14"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de16",
+      "round": 6,
+      "bracket": "lower",
+      "label": "Losers · Round 4",
+      "sources": [
+        {
+          "winner": "de12"
+        },
+        {
+          "loser": "de13"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de17",
+      "round": 7,
+      "bracket": "lower",
+      "label": "Losers · Round 5",
+      "sources": [
+        {
+          "winner": "de15"
+        },
+        {
+          "winner": "de16"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de18",
+      "round": 8,
+      "bracket": "upper",
+      "label": "Winners · Round 4",
+      "sources": [
+        {
+          "winner": "de13"
+        },
+        {
+          "winner": "de14"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de19",
+      "round": 9,
+      "bracket": "lower",
+      "label": "Losers · Round 6",
+      "sources": [
+        {
+          "winner": "de17"
+        },
+        {
+          "loser": "de18"
+        }
+      ],
+      "result": null
     },
     {
       "id": "f1",
-      "round": 4,
+      "round": 10,
       "bracket": "final",
+      "seriesGame": 1,
       "label": "Grand final · Game 1",
       "sources": [
         {
-          "winner": "de4"
+          "winner": "de18"
         },
         {
-          "winner": "de5"
+          "winner": "de19"
         }
       ],
-      "result": {
-        "teams": [
-          "t3",
-          "t1"
-        ],
-        "scores": [
-          13,
-          8
-        ],
-        "players": {
-          "p1": {
-            "kills": 8,
-            "deaths": 13,
-            "assists": 0
-          },
-          "p4": {
-            "kills": 13,
-            "deaths": 8,
-            "assists": 0
-          }
-        },
-        "importSource": {
-          "provider": "faceit",
-          "id": "1-ffc77fb6-22ab-48d7-ac8a-edd7dc38472f:0",
-          "matchId": "1-ffc77fb6-22ab-48d7-ac8a-edd7dc38472f",
-          "map": "aim_map_faceit"
-        }
-      },
-      "seriesGame": 1
+      "result": null
     },
     {
       "id": "f2",
-      "round": 5,
+      "round": 11,
       "bracket": "final",
+      "seriesGame": 2,
       "label": "Grand final · Game 2",
       "sources": [
         {
-          "winner": "de4"
+          "winner": "de18"
         },
         {
-          "winner": "de5"
+          "winner": "de19"
         }
       ],
-      "result": null,
-      "seriesGame": 2
+      "result": null
     },
     {
       "id": "f3",
-      "round": 6,
+      "round": 12,
       "bracket": "final",
+      "seriesGame": 3,
       "label": "Grand final · Game 3 · if needed",
       "sources": [
         {
-          "winner": "de4"
+          "winner": "de18"
         },
         {
-          "winner": "de5"
+          "winner": "de19"
         }
       ],
-      "result": null,
-      "seriesGame": 3
+      "result": null
     }
   ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
-    "banner": "1 v 1 Tournament",
+    "banner": "1 v 1 Pullup gang tournament",
     "registrationTitle": "Register to play",
     "registrationDescription": "Enter your player name to register for the next 1v1 tournament.\n\nDate: Thursday 29th October \nTime: 7pm GMT"
   },
@@ -382,180 +507,5 @@
       "justcarrypls": "finesse"
     }
   },
-  "discordEventId": "89ff359f-24a6-4c92-8b22-00df4297b2f7",
-  "resultRevisions": [
-    {
-      "fixtureId": "f1",
-      "at": "2026-10-29T17:56:06.101Z",
-      "matches": [
-        {
-          "id": "de1",
-          "result": {
-            "teams": [
-              "t1",
-              "t4"
-            ],
-            "scores": [
-              19,
-              17
-            ],
-            "players": {
-              "p1": {
-                "kills": 19,
-                "deaths": 17,
-                "assists": 0
-              },
-              "p3": {
-                "kills": 17,
-                "deaths": 19,
-                "assists": 0
-              }
-            },
-            "importSource": {
-              "provider": "faceit",
-              "id": "1-66fdd254-4ef3-4347-8d78-00a02cd97605:0",
-              "matchId": "1-66fdd254-4ef3-4347-8d78-00a02cd97605",
-              "map": "aim_redline_faceit"
-            }
-          }
-        },
-        {
-          "id": "de2",
-          "result": {
-            "teams": [
-              "t2",
-              "t3"
-            ],
-            "scores": [
-              4,
-              13
-            ],
-            "players": {
-              "p2": {
-                "kills": 4,
-                "deaths": 13,
-                "assists": 0
-              },
-              "p4": {
-                "kills": 13,
-                "deaths": 4,
-                "assists": 0
-              }
-            },
-            "importSource": {
-              "provider": "faceit",
-              "id": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c:0",
-              "matchId": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c",
-              "map": "fistmap"
-            }
-          }
-        },
-        {
-          "id": "de3",
-          "result": {
-            "teams": [
-              "t4",
-              "t2"
-            ],
-            "scores": [
-              13,
-              9
-            ],
-            "players": {
-              "p2": {
-                "kills": 9,
-                "deaths": 13,
-                "assists": 0
-              },
-              "p3": {
-                "kills": 13,
-                "deaths": 9,
-                "assists": 0
-              }
-            },
-            "importSource": {
-              "provider": "faceit",
-              "id": "1-ab392379-0151-49c0-8c4f-a14e01cf5818:0",
-              "matchId": "1-ab392379-0151-49c0-8c4f-a14e01cf5818",
-              "map": "aim_map_faceit"
-            }
-          }
-        },
-        {
-          "id": "de4",
-          "result": {
-            "teams": [
-              "t1",
-              "t3"
-            ],
-            "scores": [
-              11,
-              13
-            ],
-            "players": {
-              "p1": {
-                "kills": 11,
-                "deaths": 13,
-                "assists": 0
-              },
-              "p4": {
-                "kills": 13,
-                "deaths": 11,
-                "assists": 0
-              }
-            },
-            "importSource": {
-              "provider": "faceit",
-              "id": "1-6b3f27c2-a733-426a-a152-28078eca0cc0:0",
-              "matchId": "1-6b3f27c2-a733-426a-a152-28078eca0cc0",
-              "map": "fistmap"
-            }
-          }
-        },
-        {
-          "id": "de5",
-          "result": {
-            "teams": [
-              "t4",
-              "t1"
-            ],
-            "scores": [
-              11,
-              13
-            ],
-            "players": {
-              "p1": {
-                "kills": 13,
-                "deaths": 11,
-                "assists": 0
-              },
-              "p3": {
-                "kills": 11,
-                "deaths": 13,
-                "assists": 0
-              }
-            },
-            "importSource": {
-              "provider": "faceit",
-              "id": "1-7b15d955-832d-4489-a227-191e997407e9:0",
-              "matchId": "1-7b15d955-832d-4489-a227-191e997407e9",
-              "map": "aim_redline_faceit"
-            }
-          }
-        },
-        {
-          "id": "f1",
-          "result": null
-        },
-        {
-          "id": "f2",
-          "result": null
-        },
-        {
-          "id": "f3",
-          "result": null
-        }
-      ]
-    }
-  ]
+  "discordEventId": "2e7b4582-50e1-4cf2-9cdd-490b0e0f7625"
 }
