@@ -22,7 +22,7 @@
       "players": [
         {
           "id": "p1",
-          "name": "Grayzee"
+          "name": "little german boy"
         }
       ]
     },
@@ -33,7 +33,7 @@
       "players": [
         {
           "id": "p2",
-          "name": "goro"
+          "name": "Grayzee"
         }
       ]
     },
@@ -43,8 +43,19 @@
       "tag": "03",
       "players": [
         {
+          "id": "p4",
+          "name": "sAM"
+        }
+      ]
+    },
+    {
+      "id": "t4",
+      "name": "Team 04",
+      "tag": "04",
+      "players": [
+        {
           "id": "p3",
-          "name": "cantlon"
+          "name": "finesse"
         }
       ]
     }
@@ -58,88 +69,34 @@
       "label": "Winners · Round 1",
       "sources": [
         {
+          "team": "t1"
+        },
+        {
+          "team": "t4"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de2",
+      "round": 0,
+      "bracket": "upper",
+      "label": "Winners · Round 1",
+      "sources": [
+        {
           "team": "t2"
         },
         {
           "team": "t3"
         }
       ],
-      "result": {
-        "teams": [
-          "t2",
-          "t3"
-        ],
-        "scores": [
-          13,
-          4
-        ],
-        "players": {
-          "p2": {
-            "kills": 13,
-            "deaths": 4,
-            "assists": 0
-          },
-          "p3": {
-            "kills": 4,
-            "deaths": 13,
-            "assists": 0
-          }
-        },
-        "importSource": {
-          "provider": "faceit",
-          "id": "1-c24f60e7-46c2-4380-97f0-a8a34116bc5a:0",
-          "matchId": "1-c24f60e7-46c2-4380-97f0-a8a34116bc5a",
-          "map": "aim_map_faceit"
-        }
-      }
-    },
-    {
-      "id": "de2",
-      "round": 2,
-      "bracket": "upper",
-      "label": "Winners · Round 2",
-      "sources": [
-        {
-          "team": "t1"
-        },
-        {
-          "winner": "de1"
-        }
-      ],
-      "result": {
-        "teams": [
-          "t1",
-          "t2"
-        ],
-        "scores": [
-          11,
-          13
-        ],
-        "players": {
-          "p1": {
-            "kills": 11,
-            "deaths": 13,
-            "assists": 0
-          },
-          "p2": {
-            "kills": 13,
-            "deaths": 11,
-            "assists": 0
-          }
-        },
-        "importSource": {
-          "provider": "faceit",
-          "id": "1-9226c452-a0d5-46e1-9c69-c226de0a3373:0",
-          "matchId": "1-9226c452-a0d5-46e1-9c69-c226de0a3373",
-          "map": "aim_redline_faceit"
-        }
-      }
+      "result": null
     },
     {
       "id": "de3",
-      "round": 3,
+      "round": 1,
       "bracket": "lower",
-      "label": "Losers · Round 2",
+      "label": "Losers · Round 1",
       "sources": [
         {
           "loser": "de1"
@@ -151,16 +108,46 @@
       "result": null
     },
     {
+      "id": "de4",
+      "round": 2,
+      "bracket": "upper",
+      "label": "Winners · Round 2",
+      "sources": [
+        {
+          "winner": "de1"
+        },
+        {
+          "winner": "de2"
+        }
+      ],
+      "result": null
+    },
+    {
+      "id": "de5",
+      "round": 3,
+      "bracket": "lower",
+      "label": "Losers · Round 2",
+      "sources": [
+        {
+          "winner": "de3"
+        },
+        {
+          "loser": "de4"
+        }
+      ],
+      "result": null
+    },
+    {
       "id": "f1",
       "round": 4,
       "bracket": "final",
       "label": "Grand final",
       "sources": [
         {
-          "winner": "de2"
+          "winner": "de4"
         },
         {
-          "winner": "de3"
+          "winner": "de5"
         }
       ],
       "result": null
@@ -173,10 +160,10 @@
       "resetOf": "f1",
       "sources": [
         {
-          "winner": "de2"
+          "winner": "de4"
         },
         {
-          "winner": "de3"
+          "winner": "de5"
         }
       ],
       "result": null
@@ -213,86 +200,5 @@
       "gr4yzee": "Grayzee"
     }
   },
-  "discordEventId": "93155e8b-e257-457d-9925-6cb3dcb29c19",
-  "resultRevisions": [
-    {
-      "fixtureId": "de1",
-      "at": "2026-10-28T17:58:40.775Z",
-      "matches": [
-        {
-          "id": "de1",
-          "result": null
-        },
-        {
-          "id": "de2",
-          "result": null
-        },
-        {
-          "id": "de3",
-          "result": null
-        },
-        {
-          "id": "f1",
-          "result": null
-        },
-        {
-          "id": "f2",
-          "result": null
-        }
-      ]
-    },
-    {
-      "fixtureId": "de2",
-      "at": "2026-10-28T18:10:53.403Z",
-      "matches": [
-        {
-          "id": "de1",
-          "result": {
-            "teams": [
-              "t2",
-              "t3"
-            ],
-            "scores": [
-              13,
-              4
-            ],
-            "players": {
-              "p2": {
-                "kills": 13,
-                "deaths": 4,
-                "assists": 0
-              },
-              "p3": {
-                "kills": 4,
-                "deaths": 13,
-                "assists": 0
-              }
-            },
-            "importSource": {
-              "provider": "faceit",
-              "id": "1-c24f60e7-46c2-4380-97f0-a8a34116bc5a:0",
-              "matchId": "1-c24f60e7-46c2-4380-97f0-a8a34116bc5a",
-              "map": "aim_map_faceit"
-            }
-          }
-        },
-        {
-          "id": "de2",
-          "result": null
-        },
-        {
-          "id": "de3",
-          "result": null
-        },
-        {
-          "id": "f1",
-          "result": null
-        },
-        {
-          "id": "f2",
-          "result": null
-        }
-      ]
-    }
-  ]
+  "discordEventId": "89ff359f-24a6-4c92-8b22-00df4297b2f7"
 }
