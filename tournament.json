@@ -278,7 +278,34 @@
           "winner": "de1"
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t1",
+          "t9"
+        ],
+        "scores": [
+          9,
+          13
+        ],
+        "players": {
+          "p7": {
+            "kills": 9,
+            "deaths": 13,
+            "assists": 0
+          },
+          "p9": {
+            "kills": 13,
+            "deaths": 9,
+            "assists": 0
+          }
+        },
+        "importSource": {
+          "provider": "faceit",
+          "id": "1-03e500e7-a842-42ec-8bf5-888101997922:0",
+          "matchId": "1-03e500e7-a842-42ec-8bf5-888101997922",
+          "map": "aim_redline_faceit"
+        }
+      }
     },
     {
       "id": "de5",
@@ -847,6 +874,181 @@
         {
           "id": "de2",
           "result": null
+        },
+        {
+          "id": "de3",
+          "result": {
+            "teams": [
+              "t6",
+              "t11"
+            ],
+            "scores": [
+              4,
+              13
+            ],
+            "players": {
+              "p4": {
+                "kills": 4,
+                "deaths": 13,
+                "assists": 0
+              },
+              "p3": {
+                "kills": 13,
+                "deaths": 4,
+                "assists": 0
+              }
+            },
+            "importSource": {
+              "provider": "faceit",
+              "id": "1-be6ccfb4-57ec-4432-8501-bb5a08eccd56:0",
+              "matchId": "1-be6ccfb4-57ec-4432-8501-bb5a08eccd56",
+              "map": "fistmap"
+            }
+          }
+        },
+        {
+          "id": "de4",
+          "result": null
+        },
+        {
+          "id": "de5",
+          "result": null
+        },
+        {
+          "id": "de6",
+          "result": null
+        },
+        {
+          "id": "de7",
+          "result": null
+        },
+        {
+          "id": "de8",
+          "result": null
+        },
+        {
+          "id": "de9",
+          "result": null
+        },
+        {
+          "id": "de10",
+          "result": null
+        },
+        {
+          "id": "de11",
+          "result": null
+        },
+        {
+          "id": "de12",
+          "result": null
+        },
+        {
+          "id": "de13",
+          "result": null
+        },
+        {
+          "id": "de14",
+          "result": null
+        },
+        {
+          "id": "de15",
+          "result": null
+        },
+        {
+          "id": "de16",
+          "result": null
+        },
+        {
+          "id": "de17",
+          "result": null
+        },
+        {
+          "id": "de18",
+          "result": null
+        },
+        {
+          "id": "de19",
+          "result": null
+        },
+        {
+          "id": "f1",
+          "result": null
+        },
+        {
+          "id": "f2",
+          "result": null
+        },
+        {
+          "id": "f3",
+          "result": null
+        }
+      ]
+    },
+    {
+      "fixtureId": "de4",
+      "at": "2026-10-29T19:38:36.955Z",
+      "matches": [
+        {
+          "id": "de1",
+          "result": {
+            "teams": [
+              "t8",
+              "t9"
+            ],
+            "scores": [
+              3,
+              13
+            ],
+            "players": {
+              "p8": {
+                "kills": 3,
+                "deaths": 13,
+                "assists": 0
+              },
+              "p9": {
+                "kills": 13,
+                "deaths": 3,
+                "assists": 0
+              }
+            },
+            "importSource": {
+              "provider": "faceit",
+              "id": "1-04b9cb2f-3e48-4e93-abf7-892ba103368e:0",
+              "matchId": "1-04b9cb2f-3e48-4e93-abf7-892ba103368e",
+              "map": "aim_map_faceit"
+            }
+          }
+        },
+        {
+          "id": "de2",
+          "result": {
+            "teams": [
+              "t7",
+              "t10"
+            ],
+            "scores": [
+              13,
+              11
+            ],
+            "players": {
+              "p10": {
+                "kills": 13,
+                "deaths": 11,
+                "assists": 0
+              },
+              "p6": {
+                "kills": 11,
+                "deaths": 13,
+                "assists": 0
+              }
+            },
+            "importSource": {
+              "provider": "faceit",
+              "id": "1-cb0a7745-9c71-41bf-81d8-cc4e4f237539:0",
+              "matchId": "1-cb0a7745-9c71-41bf-81d8-cc4e4f237539",
+              "map": "fistmap"
+            }
+          }
         },
         {
           "id": "de3",
