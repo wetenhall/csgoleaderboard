@@ -33,7 +33,7 @@ function mergePlayerNames(text, added) {
 }
 function cupFinal(data, resolve) {
   const state=resolve(data), first=state.matches.find(m=>m.id==='f1');
-  return data.format==='double' && first?.winner && first.winner===first.ids[1] ? state.matches.find(m=>m.id==='f2') : first;
+  return state.final;
 }
 function completedCup(data, resolve) {
   return !!cupFinal(data,resolve)?.winner && resolve(data).matches.every(m=>m.skipped || m.result);

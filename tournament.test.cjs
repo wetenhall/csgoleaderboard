@@ -1,3 +1,4 @@
+function legacyDoubleFinal(data){const first=data.matches.find(m=>m.id==='f1');data.matches=data.matches.filter(m=>!m.seriesGame || m.id==='f1');delete first.seriesGame;first.label='Grand final';data.matches.push({...structuredClone(first),id:'f2',round:first.round+1,label:'Grand final reset · if needed',resetOf:'f1',result:null});return data;}
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -447,7 +448,7 @@ test('Top 1 ignores ties below first place but blocks tied winners',()=>{
 test('double elimination supports uneven fields, both final outcomes and two-loss elimination',()=>{
  for(const count of [2,3,4,5,7,8,9,10,16,17])for(const reset of [false,true]){
   const players=Array.from({length:count},(_,i)=>({id:'p'+i,name:'P'+i}));
-  let data=makeTournament(players,1,fixture(),undefined,0,[],2,'double');
+  let data=legacyDoubleFinal(makeTournament(players,1,fixture(),undefined,0,[],2,'double'));
   assert.equal(data.groups.length,0);
   validateData(data,resolveTournament);
   const losses=new Map();
@@ -506,7 +507,7 @@ test('connected double bracket positions cards without overlap and links every w
 
 test('podium confirms double elimination third and waits for a required reset final',()=>{
  const {tournamentPodium}=require('./app.js');
- let data=makeTournament(Array.from({length:5},(_,i)=>({id:'p'+i,name:'P'+i})),1,fixture(),undefined,0,[],2,'double');
+ let data=legacyDoubleFinal(makeTournament(Array.from({length:5},(_,i)=>({id:'p'+i,name:'P'+i})),1,fixture(),undefined,0,[],2,'double'));
  assert.ok(tournamentPodium(data).every(p=>!p.ids.length));
  for(const game of orderedMatches(data.matches).filter(m=>m.bracket!=='final')){
   const m=resolveTournament(data).matches.find(m=>m.id===game.id);
@@ -608,7 +609,7 @@ test('match queue skips unfinished qualification and rejects stale active matche
 
 test('double elimination archive waits for reset final when the lower finalist wins',()=>{
   const {makeTournament,applyResult,emptyTournament,orderedMatches}=require('./manager.js');
-  let data=makeTournament([{id:'p1',name:'A'},{id:'p2',name:'B'}],1,{name:'Cup'},['t1','t2'],0,[],2,'double');
+  let data=legacyDoubleFinal(makeTournament([{id:'p1',name:'A'},{id:'p2',name:'B'}],1,{name:'Cup'},['t1','t2'],0,[],2,'double'));
   while(!resolveTournament(data).matches.find(m=>m.id==='f1').result){
     const m=orderedMatches(resolveTournament(data).matches).find(m=>!m.result && m.ids.every(Boolean));
     data=applyResult(data,m.id,{teams:m.ids,scores:m.id==='f1'?[2,5]:[5,2]},resolveTournament).next;
@@ -756,4 +757,36 @@ test('server connections accept pasted commands and preserve required passwords'
   assert.deepEqual(parseServerConnection(''),{serverAddress:'',serverPassword:''});
   assert.equal(parseServerConnection('host:27015; password "two words"').serverPassword,'two words');
   for(const value of ['connect host; quit','connect host; password x; quit','connect host; password "x\ny"'])assert.throws(()=>parseServerConnection(value));
+});
+
+
+test('best-of-three grand final crowns either finalist only after two game wins',()=>{
+ const {tournamentPodium}=require('./app.js');
+ for(const outcomes of [[0,0],[1,1],[0,1,0],[1,0,1]]){
+  let data=makeTournament(['A','B','C','D'].map((name,i)=>({id:'p'+i,name})),1,{name:'Cup'},undefined,0,[],2,'double');
+  for(const game of data.matches.filter(m=>m.bracket!=='final')){const m=resolveTournament(data).matches.find(m=>m.id===game.id);data=applyResult(data,m.id,{teams:m.ids,scores:[13,8]},resolveTournament).next;}
+  const finalists=resolveTournament(data).matches.find(m=>m.id==='f1').ids;
+  assert.deepEqual(resolveTournament(data).matches.find(m=>m.id==='f2').ids,[null,null]);
+  for(let i=0;i<outcomes.length;i++){
+   const m=resolveTournament(data).matches.find(m=>m.id==='f'+(i+1));
+   data=applyResult(data,m.id,{teams:m.ids,scores:outcomes[i]?[8,13]:[13,8]},resolveTournament).next;
+   assert.equal(completedCup(data,resolveTournament),i===outcomes.length-1);
+   if(i<outcomes.length-1)assert.equal(tournamentPodium(data)[0].ids.length,0);
+  }
+  const state=resolveTournament(data),winner=finalists[outcomes.at(-1)];
+  assert.equal(state.final.winner,winner);assert.deepEqual(tournamentPodium(data)[0].ids,[winner]);
+  assert.equal(!!state.matches.find(m=>m.id==='f3').skipped,outcomes.length===2);
+  assert.equal(cupFinal(data,resolveTournament).result.scores.reduce((a,b)=>a+b),outcomes.length);
+  assert.doesNotThrow(()=>archiveCup(data,resolveTournament,require('./manager.js').emptyTournament,'BO3 cup'));
+  const undone=require('./manager.js').undoResultChange(data,resolveTournament);assert.equal(completedCup(undone,resolveTournament),false);
+  if(outcomes.length===3){const m=state.matches.find(m=>m.id==='f1'),corrected=applyResult(data,'f1',{teams:m.ids,scores:outcomes[1]?[8,13]:[13,8]},resolveTournament);assert.ok(corrected.cleared.includes('f3'));assert.equal(corrected.next.matches.find(m=>m.id==='f3').result,null);}
+ }
+});
+
+
+test('upgrade to best-of-three preserves bracket results and refuses an already started final',()=>{
+ const {bestOfThreeFinal}=require('./manager.js');let data=legacyDoubleFinal(makeTournament(['A','B','C','D'].map((name,i)=>({id:'p'+i,name})),1,{name:'Cup'},undefined,0,[],2,'double'));
+ for(const game of data.matches.filter(m=>m.bracket!=='final')){const m=resolveTournament(data).matches.find(m=>m.id===game.id);data=applyResult(data,m.id,{teams:m.ids,scores:[13,8]},resolveTournament).next;}
+ const upgraded=bestOfThreeFinal(data);assert.deepEqual(upgraded.matches.filter(m=>!m.seriesGame),data.matches.filter(m=>m.bracket!=='final'));assert.equal(upgraded.matches.filter(m=>m.seriesGame).length,3);validateData(upgraded,resolveTournament);
+ const m=resolveTournament(data).matches.find(m=>m.id==='f1');data=applyResult(data,m.id,{teams:m.ids,scores:[13,8]},resolveTournament).next;assert.throws(()=>bestOfThreeFinal(data),/already started/);
 });

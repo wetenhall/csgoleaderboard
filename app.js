@@ -43,6 +43,13 @@ function resolveTournament(data) {
     const sources = match.sources || (match.seeds ? match.seeds.map(seed => ({seed})) : (match.from || []).map(winner => ({winner})));
     if (sources.length !== 2) throw Error('Invalid knockout participants.');
     if(match.resetOf){const first=resolved.get(match.resetOf);if(!first)throw Error('Invalid reset final.');if(first.winner!==first.ids[1] || !first.winner){if(match.result)throw Error('Reset final is not active.');resolved.set(match.id,{...match,ids:[null,null],winner:null,skipped:!!first.winner});continue;}}
+    if(match.seriesGame){
+      if(data.format!=='double' || match.bracket!=='final' || ![1,2,3].includes(match.seriesGame) || match.id!=='f'+match.seriesGame)throw Error('Invalid grand final series.');
+      const previous=[...resolved.values()].filter(m=>m.seriesGame),wins=new Map();
+      for(const game of previous)if(game.winner)wins.set(game.winner,(wins.get(game.winner)||0)+1);
+      const finished=[...wins.values()].some(count=>count===2),waiting=previous.length!==match.seriesGame-1 || previous.some(m=>!m.result);
+      if(finished || waiting){if(match.result)throw Error('Grand final game is not active.');resolved.set(match.id,{...match,ids:[null,null],winner:null,skipped:finished});continue;}
+    }
     const ids = sources.map(source => {
       if (source.team) { if (!teams.has(source.team)) throw Error('Unknown knockout team.'); return source.team; }
       if (source.seed) {
@@ -56,7 +63,14 @@ function resolveTournament(data) {
     });
     resolve(match, ids);
   }
-  return { teams, groups, matches: [...resolved.values()] };
+  const matches=[...resolved.values()],first=resolved.get('f1');
+  let final=data.format==='double' && first?.winner && first.winner===first.ids[1]?resolved.get('f2'):first;
+  if(first?.seriesGame){
+    if(matches.filter(m=>m.seriesGame).length!==3)throw Error('Grand final needs three series fixtures.');
+    const scores=first.ids.map(id=>id?matches.filter(m=>m.seriesGame && m.winner===id).length:0),winner=scores.some(score=>score===2)?first.ids[scores.indexOf(2)]:null;
+    final={...first,id:'grand-final',winner,seriesScores:scores,result:winner?{teams:first.ids,scores}:null};
+  }
+  return { teams, groups, matches, final };
 }
 function matchPlaceholder(match, index) {
   const source = match.sources?.[index] || (match.seeds ? {seed:match.seeds[index]} : {winner:match.from?.[index]});
@@ -99,8 +113,9 @@ function tournamentPodium(data, state = resolveTournament(data)) {
   const places=[{rank:1,ids:[],note:'Awaiting the final'},{rank:2,ids:[],note:'Awaiting the final'},{rank:3,ids:[],note:'Awaiting results'}];
   const first=state.matches.find(m=>m.id==='f1');
   if(!first)return places;
-  const final=data.format==='double' && first.winner && first.winner===first.ids[1] ? state.matches.find(m=>m.id==='f2') : first;
+  const final=state.final;
   if(final?.winner){places[0].ids=[final.winner];places[0].note='Champion';places[1].ids=final.ids.filter(id=>id!==final.winner);places[1].note='Runner-up';}
+  else if(first.seriesGame){places[0].note=places[1].note='Grand final · Best of three · '+final.seriesScores.join('–');}
   else if(data.format==='double' && first.winner){places[0].note=places[1].note='Awaiting the reset final';}
   const loser=match=>match?.winner?match.ids.filter(id=>id!==match.winner):[];
   if(data.teams.length<3){places[2].note='Not applicable · two entrants';return places;}
@@ -177,7 +192,7 @@ function bracketLayout(matches) {
   }
   const links=[];
   for(const node of nodes){
-    const refs=node.match.resetOf?[{winner:node.match.resetOf}]:(node.match.sources||[]);
+    const refs=node.match.seriesGame>1?[{winner:'f'+(node.match.seriesGame-1)}]:node.match.resetOf?[{winner:node.match.resetOf}]:(node.match.sources||[]);
     refs.forEach((source,i)=>{const parent=byId.get(source.winner);if(!parent)return;
       const x1=parent.x+width,y1=parent.y+height/2,x2=node.x,y2=node.y+(node.match.resetOf?height/2:i===0?32:64),mid=x2-gap/2;
       links.push({from:parent.match.id,to:node.match.id,path:'M '+x1+' '+y1+' H '+mid+' V '+y2+' H '+x2});
@@ -197,6 +212,7 @@ function renderConnectedBracket(root,matches,teams) {
     const card=element('article','bracket-game'+(match.result?' is-played':''));card.style.left=x+'px';card.style.top=y+'px';card.setAttribute('aria-label',match.label+' · '+match.id.toUpperCase());
     card.append(element('div','bracket-game-label',match.id.toUpperCase()+' · '+match.label));
     match.ids.forEach((id,i)=>{const team=teams.get(id),name=team?teamDisplayName({...team,...(match.result?.lineups?.[id]?{players:match.result.lineups[id]}:{})}):matchPlaceholder(match,i),row=element('div','bracket-player'+(id && id===match.winner?' winner':'')+(!team?' pending':''));row.title=name;row.append(element('span','bracket-seed',team?.tag||'—'),element('span','bracket-player-name',name),element('strong','bracket-score',match.result?String(match.result.scores[i]):'—'));card.append(row);});
+    if(match.seriesGame)card.title=match.skipped?'Not needed — the grand final is already won.':'Grand final · Best of three · First to two wins.';
     if(match.resetOf)card.title='Only played if the losers bracket champion wins the first grand final.';
     canvas.append(card);
   }
@@ -248,7 +264,7 @@ function renderTournament(data) {
   document.getElementById('groups-heading').closest('section').hidden = !groups.length;
   document.getElementById('roster-count').textContent = `${data.teams.length} TEAMS / 1 TROPHY`;
   document.getElementById('group-rules').textContent = 'Ranked by wins, then round difference (RD). Remaining ties need a tiebreak decision. Playoff places are confirmed when each team has played every other team in its group.';
-  document.getElementById('schedule-rules').textContent = (data.format==='single' ? 'One custom '+data.teamSize+'v'+data.teamSize+' game between your two drawn teams.' : data.format==='double' ? 'Lose once to enter the losers bracket; a second loss eliminates you. If the losers bracket winner wins the grand final, play the reset final.' : groups.length ? `Play group games in numbered order. Top ${qualifiers} from each group advance to the knockout stages.` : 'Straight knockout: winners advance. Teams with a first-round bye enter in the following round.') + ' Connect in Settings to enter or correct results in Fixtures.';
+  document.getElementById('schedule-rules').textContent = (data.format==='single' ? 'One custom '+data.teamSize+'v'+data.teamSize+' game between your two drawn teams.' : data.format==='double' ? data.matches.some(m=>m.seriesGame)?'Lose once to enter the losers bracket; a second bracket loss eliminates you. Grand final: best of three games, first to two wins. Game three is skipped after 2–0.':'Lose once to enter the losers bracket; a second loss eliminates you. If the losers bracket winner wins the grand final, play the reset final.' : groups.length ? `Play group games in numbered order. Top ${qualifiers} from each group advance to the knockout stages.` : 'Straight knockout: winners advance. Teams with a first-round bye enter in the following round.') + ' Connect in Settings to enter or correct results in Fixtures.';
   document.getElementById('status').textContent = completed === matches.length ? 'Tournament complete' : completed ? 'Tournament underway' : 'Awaiting first match';
   if (!data.teams.length) {
     document.getElementById('format-name').textContent='Not configured';
@@ -342,13 +358,13 @@ function renderTournament(data) {
     column.append(list);bracketRoot.append(column);
   });
   const firstFinal=matches.find(match=>match.id==='f1');
-  const final = data.format==='double' && firstFinal.winner===firstFinal.ids[1] && firstFinal.winner ? matches.find(match=>match.id==='f2') : firstFinal;
+  const final = resolveTournament(data).final;
   if (final?.winner) {
     document.getElementById('champion').textContent = teamDisplayLabel(teams.get(final.winner));
-    document.getElementById('champion-note').textContent = headers.brand+' champions';
+    document.getElementById('champion-note').textContent = headers.brand+' champions'+(final.seriesScores?' · Grand final '+final.seriesScores.join('–'):'');
   }
   const eliminated = new Set(matches.filter(match => !match.group && match.winner).flatMap(match => match.ids.filter(id => id !== match.winner)));
-  if(data.format==='double'){for(const id of eliminated){if(matches.filter(m=>m.winner && m.ids.includes(id) && m.winner!==id).length<2)eliminated.delete(id);}}
+  if(data.format==='double'){for(const id of eliminated){if(matches.filter(m=>!m.seriesGame && m.winner && m.ids.includes(id) && m.winner!==id).length<2 && !(final?.winner && final.winner!==id && final.ids.includes(id)))eliminated.delete(id);}}
   groups.filter(group => group.qualified).forEach(group => group.rows.slice(qualifiers).forEach(row => eliminated.add(row.id)));
   data.teams.forEach(team => {
     const card = element('article', 'contender'); const details = element('div');

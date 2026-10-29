@@ -276,7 +276,7 @@
       "id": "f1",
       "round": 4,
       "bracket": "final",
-      "label": "Grand final",
+      "label": "Grand final · Game 1",
       "sources": [
         {
           "winner": "de4"
@@ -285,14 +285,14 @@
           "winner": "de5"
         }
       ],
-      "result": null
+      "result": null,
+      "seriesGame": 1
     },
     {
       "id": "f2",
       "round": 5,
       "bracket": "final",
-      "label": "Grand final reset · if needed",
-      "resetOf": "f1",
+      "label": "Grand final · Game 2",
       "sources": [
         {
           "winner": "de4"
@@ -301,7 +301,24 @@
           "winner": "de5"
         }
       ],
-      "result": null
+      "result": null,
+      "seriesGame": 2
+    },
+    {
+      "id": "f3",
+      "round": 6,
+      "bracket": "final",
+      "label": "Grand final · Game 3 · if needed",
+      "sources": [
+        {
+          "winner": "de4"
+        },
+        {
+          "winner": "de5"
+        }
+      ],
+      "result": null,
+      "seriesGame": 3
     }
   ],
   "history": [],
@@ -338,448 +355,5 @@
       "justcarrypls": "finesse"
     }
   },
-  "discordEventId": "89ff359f-24a6-4c92-8b22-00df4297b2f7",
-  "resultRevisions": [
-    {
-      "fixtureId": "de2",
-      "at": "2026-10-29T17:19:15.996Z",
-      "matches": [
-        {
-          "id": "de1",
-          "result": null
-        },
-        {
-          "id": "de2",
-          "result": null
-        },
-        {
-          "id": "de3",
-          "result": null
-        },
-        {
-          "id": "de4",
-          "result": null
-        },
-        {
-          "id": "de5",
-          "result": null
-        },
-        {
-          "id": "f1",
-          "result": null
-        },
-        {
-          "id": "f2",
-          "result": null
-        }
-      ]
-    },
-    {
-      "fixtureId": "de1",
-      "at": "2026-10-29T17:24:26.048Z",
-      "matches": [
-        {
-          "id": "de1",
-          "result": null
-        },
-        {
-          "id": "de2",
-          "result": {
-            "teams": [
-              "t2",
-              "t3"
-            ],
-            "scores": [
-              4,
-              13
-            ],
-            "players": {
-              "p2": {
-                "kills": 4,
-                "deaths": 13,
-                "assists": 0
-              },
-              "p4": {
-                "kills": 13,
-                "deaths": 4,
-                "assists": 0
-              }
-            },
-            "importSource": {
-              "provider": "faceit",
-              "id": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c:0",
-              "matchId": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c",
-              "map": "fistmap"
-            }
-          }
-        },
-        {
-          "id": "de3",
-          "result": null
-        },
-        {
-          "id": "de4",
-          "result": null
-        },
-        {
-          "id": "de5",
-          "result": null
-        },
-        {
-          "id": "f1",
-          "result": null
-        },
-        {
-          "id": "f2",
-          "result": null
-        }
-      ]
-    },
-    {
-      "fixtureId": "de3",
-      "at": "2026-10-29T17:32:13.539Z",
-      "matches": [
-        {
-          "id": "de1",
-          "result": {
-            "teams": [
-              "t1",
-              "t4"
-            ],
-            "scores": [
-              19,
-              17
-            ],
-            "players": {
-              "p1": {
-                "kills": 19,
-                "deaths": 17,
-                "assists": 0
-              },
-              "p3": {
-                "kills": 17,
-                "deaths": 19,
-                "assists": 0
-              }
-            },
-            "importSource": {
-              "provider": "faceit",
-              "id": "1-66fdd254-4ef3-4347-8d78-00a02cd97605:0",
-              "matchId": "1-66fdd254-4ef3-4347-8d78-00a02cd97605",
-              "map": "aim_redline_faceit"
-            }
-          }
-        },
-        {
-          "id": "de2",
-          "result": {
-            "teams": [
-              "t2",
-              "t3"
-            ],
-            "scores": [
-              4,
-              13
-            ],
-            "players": {
-              "p2": {
-                "kills": 4,
-                "deaths": 13,
-                "assists": 0
-              },
-              "p4": {
-                "kills": 13,
-                "deaths": 4,
-                "assists": 0
-              }
-            },
-            "importSource": {
-              "provider": "faceit",
-              "id": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c:0",
-              "matchId": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c",
-              "map": "fistmap"
-            }
-          }
-        },
-        {
-          "id": "de3",
-          "result": null
-        },
-        {
-          "id": "de4",
-          "result": null
-        },
-        {
-          "id": "de5",
-          "result": null
-        },
-        {
-          "id": "f1",
-          "result": null
-        },
-        {
-          "id": "f2",
-          "result": null
-        }
-      ]
-    },
-    {
-      "fixtureId": "de4",
-      "at": "2026-10-29T17:32:26.006Z",
-      "matches": [
-        {
-          "id": "de1",
-          "result": {
-            "teams": [
-              "t1",
-              "t4"
-            ],
-            "scores": [
-              19,
-              17
-            ],
-            "players": {
-              "p1": {
-                "kills": 19,
-                "deaths": 17,
-                "assists": 0
-              },
-              "p3": {
-                "kills": 17,
-                "deaths": 19,
-                "assists": 0
-              }
-            },
-            "importSource": {
-              "provider": "faceit",
-              "id": "1-66fdd254-4ef3-4347-8d78-00a02cd97605:0",
-              "matchId": "1-66fdd254-4ef3-4347-8d78-00a02cd97605",
-              "map": "aim_redline_faceit"
-            }
-          }
-        },
-        {
-          "id": "de2",
-          "result": {
-            "teams": [
-              "t2",
-              "t3"
-            ],
-            "scores": [
-              4,
-              13
-            ],
-            "players": {
-              "p2": {
-                "kills": 4,
-                "deaths": 13,
-                "assists": 0
-              },
-              "p4": {
-                "kills": 13,
-                "deaths": 4,
-                "assists": 0
-              }
-            },
-            "importSource": {
-              "provider": "faceit",
-              "id": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c:0",
-              "matchId": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c",
-              "map": "fistmap"
-            }
-          }
-        },
-        {
-          "id": "de3",
-          "result": {
-            "teams": [
-              "t4",
-              "t2"
-            ],
-            "scores": [
-              13,
-              9
-            ],
-            "players": {
-              "p2": {
-                "kills": 9,
-                "deaths": 13,
-                "assists": 0
-              },
-              "p3": {
-                "kills": 13,
-                "deaths": 9,
-                "assists": 0
-              }
-            },
-            "importSource": {
-              "provider": "faceit",
-              "id": "1-ab392379-0151-49c0-8c4f-a14e01cf5818:0",
-              "matchId": "1-ab392379-0151-49c0-8c4f-a14e01cf5818",
-              "map": "aim_map_faceit"
-            }
-          }
-        },
-        {
-          "id": "de4",
-          "result": null
-        },
-        {
-          "id": "de5",
-          "result": null
-        },
-        {
-          "id": "f1",
-          "result": null
-        },
-        {
-          "id": "f2",
-          "result": null
-        }
-      ]
-    },
-    {
-      "fixtureId": "de5",
-      "at": "2026-10-29T17:45:52.531Z",
-      "matches": [
-        {
-          "id": "de1",
-          "result": {
-            "teams": [
-              "t1",
-              "t4"
-            ],
-            "scores": [
-              19,
-              17
-            ],
-            "players": {
-              "p1": {
-                "kills": 19,
-                "deaths": 17,
-                "assists": 0
-              },
-              "p3": {
-                "kills": 17,
-                "deaths": 19,
-                "assists": 0
-              }
-            },
-            "importSource": {
-              "provider": "faceit",
-              "id": "1-66fdd254-4ef3-4347-8d78-00a02cd97605:0",
-              "matchId": "1-66fdd254-4ef3-4347-8d78-00a02cd97605",
-              "map": "aim_redline_faceit"
-            }
-          }
-        },
-        {
-          "id": "de2",
-          "result": {
-            "teams": [
-              "t2",
-              "t3"
-            ],
-            "scores": [
-              4,
-              13
-            ],
-            "players": {
-              "p2": {
-                "kills": 4,
-                "deaths": 13,
-                "assists": 0
-              },
-              "p4": {
-                "kills": 13,
-                "deaths": 4,
-                "assists": 0
-              }
-            },
-            "importSource": {
-              "provider": "faceit",
-              "id": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c:0",
-              "matchId": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c",
-              "map": "fistmap"
-            }
-          }
-        },
-        {
-          "id": "de3",
-          "result": {
-            "teams": [
-              "t4",
-              "t2"
-            ],
-            "scores": [
-              13,
-              9
-            ],
-            "players": {
-              "p2": {
-                "kills": 9,
-                "deaths": 13,
-                "assists": 0
-              },
-              "p3": {
-                "kills": 13,
-                "deaths": 9,
-                "assists": 0
-              }
-            },
-            "importSource": {
-              "provider": "faceit",
-              "id": "1-ab392379-0151-49c0-8c4f-a14e01cf5818:0",
-              "matchId": "1-ab392379-0151-49c0-8c4f-a14e01cf5818",
-              "map": "aim_map_faceit"
-            }
-          }
-        },
-        {
-          "id": "de4",
-          "result": {
-            "teams": [
-              "t1",
-              "t3"
-            ],
-            "scores": [
-              11,
-              13
-            ],
-            "players": {
-              "p1": {
-                "kills": 11,
-                "deaths": 13,
-                "assists": 0
-              },
-              "p4": {
-                "kills": 13,
-                "deaths": 11,
-                "assists": 0
-              }
-            },
-            "importSource": {
-              "provider": "faceit",
-              "id": "1-6b3f27c2-a733-426a-a152-28078eca0cc0:0",
-              "matchId": "1-6b3f27c2-a733-426a-a152-28078eca0cc0",
-              "map": "fistmap"
-            }
-          }
-        },
-        {
-          "id": "de5",
-          "result": null
-        },
-        {
-          "id": "f1",
-          "result": null
-        },
-        {
-          "id": "f2",
-          "result": null
-        }
-      ],
-      "activeMatchId": "de5"
-    }
-  ]
+  "discordEventId": "89ff359f-24a6-4c92-8b22-00df4297b2f7"
 }

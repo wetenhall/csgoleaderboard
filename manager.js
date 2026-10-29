@@ -71,9 +71,19 @@ function doubleElimination(ids) {
     }
     stage++;
   }
-  matches.push({id:'f1',round:sequence++,bracket:'final',label:'Grand final',sources:[upper[0],lower[0]],result:null});
-  matches.push({id:'f2',round:sequence,bracket:'final',label:'Grand final reset · if needed',resetOf:'f1',sources:[upper[0],lower[0]],result:null});
+  for(let game=1;game<=3;game++)matches.push({id:'f'+game,round:sequence++,bracket:'final',seriesGame:game,label:'Grand final · Game '+game+(game===3?' · if needed':''),sources:[upper[0],lower[0]],result:null});
   return matches;
+}
+function bestOfThreeFinal(data){
+  const next=structuredClone(data);
+  if(next.format!=='double' || next.matches.some(m=>m.seriesGame))return next;
+  const first=next.matches.find(m=>m.id==='f1'),finals=next.matches.filter(m=>m.bracket==='final' || m.resetOf);
+  if(!first || finals.some(m=>m.result))throw Error('The grand final has already started. Keep its existing format.');
+  next.matches=next.matches.filter(m=>!finals.includes(m));
+  for(let game=1;game<=3;game++){const match={...structuredClone(first),id:'f'+game,round:first.round+game-1,seriesGame:game,label:'Grand final · Game '+game+(game===3?' · if needed':''),result:null};delete match.resetOf;next.matches.push(match);}
+  delete next.resultRevisions;
+  if(['f2','f3'].includes(next.activeMatchId))delete next.activeMatchId;
+  return next;
 }
 function drawTeamMembers(players,size,total=players.length) {
   const count=total/size;
@@ -222,7 +232,7 @@ function validateData(data, resolve) {
       if(!entry || typeof entry.id!=='string' || !entry.id || typeof entry.title!=='string' || !entry.title.trim() || entry.title.length>120 || typeof entry.archivedAt!=='string' || !Number.isFinite(Date.parse(entry.archivedAt)) || !entry.tournament || entry.tournament.history!==undefined || entry.tournament.activeMatchId!==undefined)throw Error('Invalid archived cup.');
       validateData(entry.tournament,resolve);
       const state=resolve(entry.tournament),first=state.matches.find(m=>m.id==='f1');
-      const final=entry.tournament.format==='double' && first?.winner===first?.ids[1] && first?.winner ? state.matches.find(m=>m.id==='f2') : first;
+      const final=state.final;
       if(!final?.winner || state.matches.some(m=>!m.skipped && !m.result))throw Error('Archived cups must be complete.');
     }
   }
@@ -294,7 +304,7 @@ function drawPublishReason(draw,state) {
   if(draw.format==='single' && !state.drawnMap)return 'Choose a map selection method, confirm it, then select the match map before publishing.';
   return '';
 }
-if (typeof module !== 'undefined') module.exports = { undoResultChange, drawPublishReason, makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament, tournamentAwards, updateHeaders, repositorySettings, soloDrawGroups, drawTeamMembers };
+if (typeof module !== 'undefined') module.exports = { bestOfThreeFinal, undoResultChange, drawPublishReason, makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament, tournamentAwards, updateHeaders, repositorySettings, soloDrawGroups, drawTeamMembers };
 if (typeof document !== 'undefined') (() => {
   const $ = id => document.getElementById(id);
   const repository=repositorySettings(document.querySelector('meta[name=dashboard-repository]')?.content,document.querySelector('meta[name=dashboard-branch]')?.content,location.hostname,location.pathname);
@@ -579,6 +589,7 @@ if (typeof document !== 'undefined') (() => {
         identity.append(element('span','fixture-team',names[i]));versus.append(identity);
       });
       summary.append(meta,versus);
+      if(match.seriesGame)summary.append(element('span','fixture-edit-hint','Grand final · Game '+match.seriesGame+' · Best of three · First to two wins')); 
       summary.append(element('span','fixture-edit-hint',!ready?'Waiting for qualification':token?(current.teamSize===1?(match.result?'Edit score · stats calculated automatically':'Enter score · stats calculated automatically'):(match.result?'Edit score & player stats':'Enter score & player stats')):'View match details'));
       if(match.result?.tiebreakWinner)summary.append(element('span','fixture-decision','Tiebreak winner: '+teamDisplayLabel(state.teams.get(match.result.tiebreakWinner))));
       else if(match.result && match.result.scores[0]===match.result.scores[1])summary.append(element('span','fixture-decision','DRAW'));
@@ -1022,7 +1033,7 @@ if (typeof document !== 'undefined') (() => {
       const next = makeTournament(selected,draw.teamSize,current,order,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value),$('tournament-format').value);
       next.teams=structuredClone(draw.teams);if(draw.mapMethod)next.mapMethod=draw.mapMethod;if(draw.mapVeto)next.mapVeto=structuredClone(draw.mapVeto); draw=next;
       if(draw.format==='single'){if(drawnMap)draw.matches[0].map=drawnMap;else delete draw.matches[0].map;paintWheel(selectedMaps().map(name=>({name})));$('reveal-label').textContent=drawnMap?'SELECTED MAP':'MAP DRAW';$('reveal-name').textContent=drawnMap || 'Spin to choose your map';$('reveal-avatar').textContent='MAP';}
-      $('format-preview').textContent = draw.groups.length ? draw.groups.map(g=>'Group '+g.id+': '+g.teams.length+' teams').join(' · ') + ' · Top '+draw.qualifiersPerGroup+' advance from each group.' + (draw.groups.length === 3 ? ' Byes fill the knockout bracket automatically.' : '') : (draw.format==='single'?'Single Game · Two squads of five · ':draw.format==='double'?'Double elimination (includes a reset final if needed) · ':'Straight knockout · ')+draw.matches.length+' game'+(draw.matches.length === 1 ? '' : 's')+(draw.format==='single'?' · Ready for your custom game.':' · Byes advance automatically.');
+      $('format-preview').textContent = draw.groups.length ? draw.groups.map(g=>'Group '+g.id+': '+g.teams.length+' teams').join(' · ') + ' · Top '+draw.qualifiersPerGroup+' advance from each group.' + (draw.groups.length === 3 ? ' Byes fill the knockout bracket automatically.' : '') : (draw.format==='single'?'Single Game · Two squads of five · ':draw.format==='double'?'Double elimination · Best-of-three grand final · ':'Straight knockout · ')+draw.matches.length+' game'+(draw.matches.length === 1 ? '' : 's')+(draw.format==='single'?' · Ready for your custom game.':' · Byes advance automatically.');
       showDrawTeams();
       $('draw-fixtures').replaceChildren(element('h3','fixture-heading',draw.teamSize===1?'Fixtures · choose maps in server':'Fixture map preview'));
       const list=element('ol','map-preview');
