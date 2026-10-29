@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T20:11:34.367Z",
+  "updatedAt": "2026-10-29T20:19:36.350Z",
   "games": [
+    {
+      "id": "1-f333a2ff-cb12-4eb1-9dc5-ccf2c4503709:0",
+      "matchId": "1-f333a2ff-cb12-4eb1-9dc5-ccf2c4503709",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793305078,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "sisoh",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-8e57a5c0-3660-4aae-b09c-cc85adb59d20:0",
       "matchId": "1-8e57a5c0-3660-4aae-b09c-cc85adb59d20",
