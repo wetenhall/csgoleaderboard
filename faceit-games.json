@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T19:20:37.105Z",
+  "updatedAt": "2026-10-29T19:25:07.154Z",
   "games": [
+    {
+      "id": "1-be6ccfb4-57ec-4432-8501-bb5a08eccd56:0",
+      "matchId": "1-be6ccfb4-57ec-4432-8501-bb5a08eccd56",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1793301856,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 4,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 4,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 4,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-04b9cb2f-3e48-4e93-abf7-892ba103368e:0",
       "matchId": "1-04b9cb2f-3e48-4e93-abf7-892ba103368e",
