@@ -1,8 +1,74 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T20:04:06.160Z",
+  "updatedAt": "2026-10-29T20:11:34.367Z",
   "games": [
+    {
+      "id": "1-8e57a5c0-3660-4aae-b09c-cc85adb59d20:0",
+      "matchId": "1-8e57a5c0-3660-4aae-b09c-cc85adb59d20",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793304660,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 6,
+          "players": [
+            {
+              "name": "sisoh",
+              "kills": 6,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 6,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-4620f512-a69f-4078-adf9-9a3b1252841b:0",
+      "matchId": "1-4620f512-a69f-4078-adf9-9a3b1252841b",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1793304662,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "justcarrypls",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "ECK5",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-6d7a0da6-ea60-4fde-960e-b79ef9876a92:0",
       "matchId": "1-6d7a0da6-ea60-4fde-960e-b79ef9876a92",
