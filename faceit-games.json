@@ -1,7 +1,7 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T17:10:59.726Z",
+  "updatedAt": "2026-10-29T17:15:59.646Z",
   "games": [
     {
       "id": "1-e4653beb-3c10-4e86-8a2b-9e67eea1b115:0",
@@ -29,6 +29,39 @@
             {
               "name": "SRC",
               "kills": 3,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-5a3a057a-665f-4eea-834a-b1d89ca0f1f4:0",
+      "matchId": "1-5a3a057a-665f-4eea-834a-b1d89ca0f1f4",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1793293914,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "GR4YZEE",
+              "kills": 13,
+              "deaths": 11,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 11,
+          "players": [
+            {
+              "name": "justcarrypls",
+              "kills": 11,
               "deaths": 13,
               "assists": 0
             }
