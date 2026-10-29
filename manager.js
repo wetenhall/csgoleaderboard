@@ -172,16 +172,30 @@ function playerTotals(data) {
   return [...totals.values()].sort((a,b) => b.kills-a.kills || a.deaths-b.deaths || a.name.localeCompare(b.name));
 }
 function tournamentAwards(data) {
-  const totals=new Map(data.teams.map(team=>[team.id,{...team,games:0,wins:0,difference:0,streak:0}]));
+  const totals=new Map(data.teams.map(team=>[team.id,{...team,games:0,wins:0,difference:0,streak:0,conceded:0,biggestWin:0,closeWins:0,giantWins:0}]));
   // Streaks follow fixture order, so correcting an older result recomputes them.
   for(const match of orderedMatches(data.matches)) {
     if(!match.result)continue;
     match.result.teams.forEach((id,i)=>{const row=totals.get(id);if(!row)return;
       const won=match.result.scores[i]>match.result.scores[1-i] || (match.result.scores[i]===match.result.scores[1-i] && match.result.tiebreakWinner===id);
+      const margin=match.result.scores[i]-match.result.scores[1-i];
+      row.conceded+=match.result.scores[1-i];
+      if(won){row.biggestWin=Math.max(row.biggestWin,margin);if(margin<=2)row.closeWins++;}
       row.games++;row.wins+=Number(won);row.difference+=match.result.scores[i]-match.result.scores[1-i];row.streak=won?row.streak+1:0;
     });
   }
   const teams=[...totals.values()].filter(row=>row.games>=2),players=playerTotals(data).filter(row=>row.games>=2);
+  // Recompute upset wins against current standings after every result correction.
+  for(const match of data.matches) {
+    if(!match.result)continue;
+    match.result.teams.forEach((id,i)=>{
+      const row=totals.get(id),opponent=totals.get(match.result.teams[1-i]);
+      if(!row || !opponent || !row.games || !opponent.games)return;
+      const won=match.result.scores[i]>match.result.scores[1-i] || (match.result.scores[i]===match.result.scores[1-i] && match.result.tiebreakWinner===id);
+      const above=opponent.wins/opponent.games>row.wins/row.games || (opponent.wins/opponent.games===row.wins/row.games && opponent.difference>row.difference);
+      if(won && above)row.giantWins++;
+    });
+  }
   function award(title,icon,rule,rows,rank,metric,empty='Awaiting more matches') {
     function compare(a,b){const x=rank(a),y=rank(b);for(let i=0;i<x.length;i++){if(x[i]!==y[i])return x[i]>y[i]?-1:1;}return 0;}
     const sorted=[...rows].sort(compare),winners=sorted.length?sorted.filter(row=>compare(row,sorted[0])===0):[];
@@ -195,7 +209,11 @@ function tournamentAwards(data) {
       award('Top Dogs','🏆','Highest win rate, then round difference.',teams,r=>[r.wins/r.games,r.difference],winRate),
       award('On a Roll','🔥','Longest current winning streak in fixture order.',teams.filter(r=>r.streak>0),r=>[r.streak],r=>r.streak+' consecutive win'+(r.streak===1?'':'s'),teams.length?'No active winning streak':'Awaiting more matches'),
       award('Round Bullies','💥','Best rounds won minus rounds lost.',teams,r=>[r.difference],difference),
-      award('Wooden Spoon','🥔','Lowest win rate, then worst round difference.',teams,r=>[-r.wins/r.games,-r.difference],winRate)
+      award('Wooden Spoon','🥔','Lowest win rate, then worst round difference.',teams,r=>[-r.wins/r.games,-r.difference],winRate),
+      award('Steamrollers','»','Biggest round margin in a single victory.',teams.filter(r=>r.biggestWin>0),r=>[r.biggestWin],r=>'Won by '+r.biggestWin+' rounds',teams.length?'No qualifying victories':'Awaiting more matches'),
+      award('Nail-Biters','≈','Most wins decided by two rounds or fewer, including tiebreaks.',teams.filter(r=>r.closeWins>0),r=>[r.closeWins],r=>r.closeWins+' close win'+(r.closeWins===1?'':'s'),teams.length?'No close wins yet':'Awaiting more matches'),
+      award('Brick Wall','▥','Fewest rounds conceded per completed game.',teams,r=>[-r.conceded/r.games],r=>(r.conceded/r.games).toFixed(1)+' rounds conceded/game'),
+      award('Giant Slayers','⚔','Most wins against teams currently above them by win rate, then round difference.',teams.filter(r=>r.giantWins>0),r=>[r.giantWins],r=>r.giantWins+' win'+(r.giantWins===1?'':'s')+' against higher-ranked teams',teams.length?'No giant slayers yet':'Awaiting more matches')
     ],
     players:[
       award('MVP','👑','Highest kills per recorded game, then K/D.',players,r=>[r.kills/r.games,kd(r)],r=>(r.kills/r.games).toFixed(1)+' kills/game · '+(kd(r)===Infinity?'∞':kd(r).toFixed(2))+' K/D'),
@@ -673,7 +691,7 @@ if (typeof document !== 'undefined') (() => {
       const container=$(type==='teams'?'team-awards':'player-awards');container.replaceChildren();
       for(const award of awards[type]) {
         const card=element('article','award-card'+(!award.winners.length?' award-pending':''));
-        const heading=element('h3','award-title');const icon=element('span','award-icon',({'Top Dogs':'01','On a Roll':'↑','Round Bullies':'+','Wooden Spoon':'↓','MVP':'★','Top Fragger':'⌖','Wingman':'Ⅱ','Respawn Regular':'↺'})[award.title]);icon.setAttribute('aria-hidden','true');heading.append(icon,document.createTextNode(award.title));card.append(heading);
+        const heading=element('h3','award-title');const icon=element('span','award-icon',({'Top Dogs':'01','On a Roll':'↑','Round Bullies':'+','Wooden Spoon':'↓','Steamrollers':'»','Nail-Biters':'≈','Brick Wall':'▥','Giant Slayers':'⚔','MVP':'★','Top Fragger':'⌖','Wingman':'Ⅱ','Respawn Regular':'↺'})[award.title]);icon.setAttribute('aria-hidden','true');heading.append(icon,document.createTextNode(award.title));card.append(heading);
         card.append(element('p','award-winner',award.winners.length?award.winners.map(row=>type==='teams'?teamDisplayLabel(row):row.name+' ('+row.team+')').join(' / '):'Still up for grabs'));
         card.append(element('p','award-metric',(award.winners.length>1?'Joint award · ':'')+award.metric),element('p','award-rule',award.rule));container.append(card);
       }

@@ -291,7 +291,7 @@ test('awards use two-game eligibility, averages, streaks and recorded stats',()=
  assert.ok(tournamentAwards(data).players.every(a=>!a.winners.length));
  data.matches.push(game('a2',['a','c'],{p1:stats(10,0,1),p3:stats(5,20,10)}),game('a3',['b','c'],{p2:stats(10,10,2),p3:stats(5,20,10)}));
  let awards=tournamentAwards(data);
- assert.deepEqual(awards.teams.map(a=>a.winners.map(w=>w.id)),[['a'],['a'],['a'],['c']]);
+ assert.deepEqual(awards.teams.slice(0,4).map(a=>a.winners.map(w=>w.id)),[['a'],['a'],['a'],['c']]);
  assert.deepEqual(awards.players.map(a=>a.winners.map(w=>w.id)),[['p2'],['p2'],['p3'],['p3']]);
  data.matches[0].result.scores=[7,13];awards=tournamentAwards(data);
  assert.equal(awards.teams[0].winners[0].id,'b');assert.equal(awards.teams[1].winners[0].streak,2);
@@ -790,3 +790,18 @@ test('upgrade to best-of-three preserves bracket results and refuses an already 
  const upgraded=bestOfThreeFinal(data);assert.deepEqual(upgraded.matches.filter(m=>!m.seriesGame),data.matches.filter(m=>m.bracket!=='final'));assert.equal(upgraded.matches.filter(m=>m.seriesGame).length,3);validateData(upgraded,resolveTournament);
  const m=resolveTournament(data).matches.find(m=>m.id==='f1');data=applyResult(data,m.id,{teams:m.ids,scores:[13,8]},resolveTournament).next;assert.throws(()=>bestOfThreeFinal(data),/already started/);
 });
+
+ test('new team awards measure margins, close wins, defence and higher-ranked opponents',()=>{
+ const {tournamentAwards}=require('./manager.js');
+ const game=(id,a,b,x,y)=>({id,result:{teams:[a,b],scores:[x,y]}});
+ const data={teams:['a','b','c'].map(id=>({id,name:id,players:[]})),matches:[game('m1','a','b',13,11),game('m2','b','c',13,2),game('m3','b','c',13,3),game('m4','c','a',13,0)]};
+ const awards=()=>Object.fromEntries(tournamentAwards(data).teams.map(a=>[a.title,a]));
+ let rows=awards();
+ assert.deepEqual(rows.Steamrollers.winners.map(r=>r.id),['c']);
+ assert.deepEqual(rows['Nail-Biters'].winners.map(r=>r.id),['a']);
+ assert.deepEqual(rows['Brick Wall'].winners.map(r=>r.id),['b']);
+ assert.deepEqual(rows['Giant Slayers'].winners.map(r=>r.id),['a','c']);
+ assert.equal(rows['Brick Wall'].metric,'6.0 rounds conceded/game');
+ data.matches[0].result.scores=[13,5];rows=awards();assert.equal(rows['Nail-Biters'].winners.length,0);
+ data.matches[0].result.scores=[5,13];rows=awards();assert.equal(rows['Giant Slayers'].winners.length,0);
+ });
