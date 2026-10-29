@@ -1,1 +1,23 @@
-{"version":1,"events":[]}
+{
+  "version": 1,
+  "events": [
+    {
+      "id": "2e7b4582-50e1-4cf2-9cdd-490b0e0f7625",
+      "title": "1 v 1 Pullup gang tournament",
+      "players": [
+        "Dan",
+        "cantlon",
+        "sAM",
+        "Millow",
+        "Froppo",
+        "///Magic///",
+        "Grayzee",
+        "hans",
+        "finesse",
+        "zZz",
+        "ECKS"
+      ],
+      "publishedAt": "2026-10-29T19:05:05.791Z"
+    }
+  ]
+}
