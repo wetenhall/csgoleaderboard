@@ -152,7 +152,34 @@
           "team": "t9"
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t8",
+          "t9"
+        ],
+        "scores": [
+          3,
+          13
+        ],
+        "players": {
+          "p8": {
+            "kills": 3,
+            "deaths": 13,
+            "assists": 0
+          },
+          "p9": {
+            "kills": 13,
+            "deaths": 3,
+            "assists": 0
+          }
+        },
+        "importSource": {
+          "provider": "faceit",
+          "id": "1-04b9cb2f-3e48-4e93-abf7-892ba103368e:0",
+          "matchId": "1-04b9cb2f-3e48-4e93-abf7-892ba103368e",
+          "map": "aim_map_faceit"
+        }
+      }
     },
     {
       "id": "de2",
@@ -504,8 +531,105 @@
       "gr4yzee": "Grayzee",
       "src": "sAM",
       "froppo": "little german boy",
-      "justcarrypls": "finesse"
+      "justcarrypls": "finesse",
+      "hqns71": "hans"
     }
   },
-  "discordEventId": "2e7b4582-50e1-4cf2-9cdd-490b0e0f7625"
+  "discordEventId": "2e7b4582-50e1-4cf2-9cdd-490b0e0f7625",
+  "resultRevisions": [
+    {
+      "fixtureId": "de1",
+      "at": "2026-10-29T19:20:55.438Z",
+      "matches": [
+        {
+          "id": "de1",
+          "result": null
+        },
+        {
+          "id": "de2",
+          "result": null
+        },
+        {
+          "id": "de3",
+          "result": null
+        },
+        {
+          "id": "de4",
+          "result": null
+        },
+        {
+          "id": "de5",
+          "result": null
+        },
+        {
+          "id": "de6",
+          "result": null
+        },
+        {
+          "id": "de7",
+          "result": null
+        },
+        {
+          "id": "de8",
+          "result": null
+        },
+        {
+          "id": "de9",
+          "result": null
+        },
+        {
+          "id": "de10",
+          "result": null
+        },
+        {
+          "id": "de11",
+          "result": null
+        },
+        {
+          "id": "de12",
+          "result": null
+        },
+        {
+          "id": "de13",
+          "result": null
+        },
+        {
+          "id": "de14",
+          "result": null
+        },
+        {
+          "id": "de15",
+          "result": null
+        },
+        {
+          "id": "de16",
+          "result": null
+        },
+        {
+          "id": "de17",
+          "result": null
+        },
+        {
+          "id": "de18",
+          "result": null
+        },
+        {
+          "id": "de19",
+          "result": null
+        },
+        {
+          "id": "f1",
+          "result": null
+        },
+        {
+          "id": "f2",
+          "result": null
+        },
+        {
+          "id": "f3",
+          "result": null
+        }
+      ]
+    }
+  ]
 }
