@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T19:52:05.960Z",
+  "updatedAt": "2026-10-29T20:01:34.186Z",
   "games": [
+    {
+      "id": "1-6d7a0da6-ea60-4fde-960e-b79ef9876a92:0",
+      "matchId": "1-6d7a0da6-ea60-4fde-960e-b79ef9876a92",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793304040,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 10,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 10,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Pink-e",
+              "kills": 13,
+              "deaths": 10,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-617b39b0-681c-4e8f-a663-a9baceda332c:0",
       "matchId": "1-617b39b0-681c-4e8f-a663-a9baceda332c",
