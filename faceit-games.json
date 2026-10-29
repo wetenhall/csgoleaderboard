@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T18:26:35.655Z",
+  "updatedAt": "2026-10-29T19:20:37.105Z",
   "games": [
+    {
+      "id": "1-04b9cb2f-3e48-4e93-abf7-892ba103368e:0",
+      "matchId": "1-04b9cb2f-3e48-4e93-abf7-892ba103368e",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793301396,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 3,
+          "players": [
+            {
+              "name": "hqns71",
+              "kills": 3,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "justcarrypls",
+              "kills": 13,
+              "deaths": 3,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-116faee2-6e4d-4167-9002-f3e8449599da:0",
       "matchId": "1-116faee2-6e4d-4167-9002-f3e8449599da",
