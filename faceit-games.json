@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T19:51:34.601Z",
+  "updatedAt": "2026-10-29T19:52:05.960Z",
   "games": [
+    {
+      "id": "1-617b39b0-681c-4e8f-a663-a9baceda332c:0",
+      "matchId": "1-617b39b0-681c-4e8f-a663-a9baceda332c",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793303499,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 13,
+              "deaths": 10,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 10,
+          "players": [
+            {
+              "name": "GR4YZEE",
+              "kills": 10,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-ca685418-0ea9-43c7-8286-53ea39590b21:0",
       "matchId": "1-ca685418-0ea9-43c7-8286-53ea39590b21",
