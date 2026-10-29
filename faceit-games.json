@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T17:32:05.598Z",
+  "updatedAt": "2026-10-29T17:43:05.829Z",
   "games": [
+    {
+      "id": "1-7b15d955-832d-4489-a227-191e997407e9:0",
+      "matchId": "1-7b15d955-832d-4489-a227-191e997407e9",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793295733,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 13,
+              "deaths": 11,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 11,
+          "players": [
+            {
+              "name": "justcarrypls",
+              "kills": 11,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-ab392379-0151-49c0-8c4f-a14e01cf5818:0",
       "matchId": "1-ab392379-0151-49c0-8c4f-a14e01cf5818",
