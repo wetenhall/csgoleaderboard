@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T17:30:59.725Z",
+  "updatedAt": "2026-10-29T17:32:05.598Z",
   "games": [
+    {
+      "id": "1-ab392379-0151-49c0-8c4f-a14e01cf5818:0",
+      "matchId": "1-ab392379-0151-49c0-8c4f-a14e01cf5818",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793295098,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "GR4YZEE",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "justcarrypls",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-6b3f27c2-a733-426a-a152-28078eca0cc0:0",
       "matchId": "1-6b3f27c2-a733-426a-a152-28078eca0cc0",
