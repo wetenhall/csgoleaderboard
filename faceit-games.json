@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T18:21:35.705Z",
+  "updatedAt": "2026-10-29T18:26:35.655Z",
   "games": [
+    {
+      "id": "1-116faee2-6e4d-4167-9002-f3e8449599da:0",
+      "matchId": "1-116faee2-6e4d-4167-9002-f3e8449599da",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793298274,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 7,
+          "players": [
+            {
+              "name": "cantlon_",
+              "kills": 7,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 7,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-e904da8d-8180-4962-a8ac-a10b42020fcc:0",
       "matchId": "1-e904da8d-8180-4962-a8ac-a10b42020fcc",
