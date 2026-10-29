@@ -1,8 +1,74 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T19:26:35.798Z",
+  "updatedAt": "2026-10-29T19:36:34.502Z",
   "games": [
+    {
+      "id": "1-62e352af-c126-468a-9900-bc237023c0b9:0",
+      "matchId": "1-62e352af-c126-468a-9900-bc237023c0b9",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793302518,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 4,
+          "players": [
+            {
+              "name": "cantlon_",
+              "kills": 4,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 4,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-03e500e7-a842-42ec-8bf5-888101997922:0",
+      "matchId": "1-03e500e7-a842-42ec-8bf5-888101997922",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793302570,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "GR4YZEE",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "justcarrypls",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-be6ccfb4-57ec-4432-8501-bb5a08eccd56:0",
       "matchId": "1-be6ccfb4-57ec-4432-8501-bb5a08eccd56",
