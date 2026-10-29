@@ -1,8 +1,74 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T20:19:36.350Z",
+  "updatedAt": "2026-10-29T20:26:34.392Z",
   "games": [
+    {
+      "id": "1-bb9fa274-6a7b-41e5-9aa1-376f162b4ca2:0",
+      "matchId": "1-bb9fa274-6a7b-41e5-9aa1-376f162b4ca2",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793305526,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 4,
+          "players": [
+            {
+              "name": "justcarrypls",
+              "kills": 4,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Pink-e",
+              "kills": 13,
+              "deaths": 4,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-e6bdec56-5b42-4a27-bbd7-0cd81883e73c:0",
+      "matchId": "1-e6bdec56-5b42-4a27-bbd7-0cd81883e73c",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793305573,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "sisoh",
+              "kills": 13,
+              "deaths": 7,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 7,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 7,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-f333a2ff-cb12-4eb1-9dc5-ccf2c4503709:0",
       "matchId": "1-f333a2ff-cb12-4eb1-9dc5-ccf2c4503709",
