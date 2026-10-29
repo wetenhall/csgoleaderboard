@@ -90,7 +90,34 @@
           "team": "t3"
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t2",
+          "t3"
+        ],
+        "scores": [
+          4,
+          13
+        ],
+        "players": {
+          "p2": {
+            "kills": 4,
+            "deaths": 13,
+            "assists": 0
+          },
+          "p4": {
+            "kills": 13,
+            "deaths": 4,
+            "assists": 0
+          }
+        },
+        "importSource": {
+          "provider": "faceit",
+          "id": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c:0",
+          "matchId": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c",
+          "map": "fistmap"
+        }
+      }
     },
     {
       "id": "de3",
@@ -197,8 +224,45 @@
       "aatori": "Aatori",
       "hulions123": "goro",
       "cantlon_": "cantlon",
-      "gr4yzee": "Grayzee"
+      "gr4yzee": "Grayzee",
+      "src": "sAM"
     }
   },
-  "discordEventId": "89ff359f-24a6-4c92-8b22-00df4297b2f7"
+  "discordEventId": "89ff359f-24a6-4c92-8b22-00df4297b2f7",
+  "resultRevisions": [
+    {
+      "fixtureId": "de2",
+      "at": "2026-10-29T17:19:15.996Z",
+      "matches": [
+        {
+          "id": "de1",
+          "result": null
+        },
+        {
+          "id": "de2",
+          "result": null
+        },
+        {
+          "id": "de3",
+          "result": null
+        },
+        {
+          "id": "de4",
+          "result": null
+        },
+        {
+          "id": "de5",
+          "result": null
+        },
+        {
+          "id": "f1",
+          "result": null
+        },
+        {
+          "id": "f2",
+          "result": null
+        }
+      ]
+    }
+  ]
 }
