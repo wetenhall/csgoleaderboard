@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T20:35:36.606Z",
+  "updatedAt": "2026-10-29T20:43:36.792Z",
   "games": [
+    {
+      "id": "1-38cdc861-e0fb-4e3c-aa41-9a0819a859ed:0",
+      "matchId": "1-38cdc861-e0fb-4e3c-aa41-9a0819a859ed",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1793306522,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 10,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 10,
+          "players": [
+            {
+              "name": "Pink-e",
+              "kills": 10,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-b0f9c618-08ed-4c37-8837-91f09e64fc07:0",
       "matchId": "1-b0f9c618-08ed-4c37-8837-91f09e64fc07",
