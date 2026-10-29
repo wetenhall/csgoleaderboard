@@ -243,7 +243,34 @@
           "loser": "de4"
         }
       ],
-      "result": null
+      "result": {
+        "teams": [
+          "t4",
+          "t1"
+        ],
+        "scores": [
+          11,
+          13
+        ],
+        "players": {
+          "p1": {
+            "kills": 13,
+            "deaths": 11,
+            "assists": 0
+          },
+          "p3": {
+            "kills": 11,
+            "deaths": 13,
+            "assists": 0
+          }
+        },
+        "importSource": {
+          "provider": "faceit",
+          "id": "1-7b15d955-832d-4489-a227-191e997407e9:0",
+          "matchId": "1-7b15d955-832d-4489-a227-191e997407e9",
+          "map": "aim_redline_faceit"
+        }
+      }
     },
     {
       "id": "f1",
@@ -610,7 +637,149 @@
           "result": null
         }
       ]
+    },
+    {
+      "fixtureId": "de5",
+      "at": "2026-10-29T17:45:52.531Z",
+      "matches": [
+        {
+          "id": "de1",
+          "result": {
+            "teams": [
+              "t1",
+              "t4"
+            ],
+            "scores": [
+              19,
+              17
+            ],
+            "players": {
+              "p1": {
+                "kills": 19,
+                "deaths": 17,
+                "assists": 0
+              },
+              "p3": {
+                "kills": 17,
+                "deaths": 19,
+                "assists": 0
+              }
+            },
+            "importSource": {
+              "provider": "faceit",
+              "id": "1-66fdd254-4ef3-4347-8d78-00a02cd97605:0",
+              "matchId": "1-66fdd254-4ef3-4347-8d78-00a02cd97605",
+              "map": "aim_redline_faceit"
+            }
+          }
+        },
+        {
+          "id": "de2",
+          "result": {
+            "teams": [
+              "t2",
+              "t3"
+            ],
+            "scores": [
+              4,
+              13
+            ],
+            "players": {
+              "p2": {
+                "kills": 4,
+                "deaths": 13,
+                "assists": 0
+              },
+              "p4": {
+                "kills": 13,
+                "deaths": 4,
+                "assists": 0
+              }
+            },
+            "importSource": {
+              "provider": "faceit",
+              "id": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c:0",
+              "matchId": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c",
+              "map": "fistmap"
+            }
+          }
+        },
+        {
+          "id": "de3",
+          "result": {
+            "teams": [
+              "t4",
+              "t2"
+            ],
+            "scores": [
+              13,
+              9
+            ],
+            "players": {
+              "p2": {
+                "kills": 9,
+                "deaths": 13,
+                "assists": 0
+              },
+              "p3": {
+                "kills": 13,
+                "deaths": 9,
+                "assists": 0
+              }
+            },
+            "importSource": {
+              "provider": "faceit",
+              "id": "1-ab392379-0151-49c0-8c4f-a14e01cf5818:0",
+              "matchId": "1-ab392379-0151-49c0-8c4f-a14e01cf5818",
+              "map": "aim_map_faceit"
+            }
+          }
+        },
+        {
+          "id": "de4",
+          "result": {
+            "teams": [
+              "t1",
+              "t3"
+            ],
+            "scores": [
+              11,
+              13
+            ],
+            "players": {
+              "p1": {
+                "kills": 11,
+                "deaths": 13,
+                "assists": 0
+              },
+              "p4": {
+                "kills": 13,
+                "deaths": 11,
+                "assists": 0
+              }
+            },
+            "importSource": {
+              "provider": "faceit",
+              "id": "1-6b3f27c2-a733-426a-a152-28078eca0cc0:0",
+              "matchId": "1-6b3f27c2-a733-426a-a152-28078eca0cc0",
+              "map": "fistmap"
+            }
+          }
+        },
+        {
+          "id": "de5",
+          "result": null
+        },
+        {
+          "id": "f1",
+          "result": null
+        },
+        {
+          "id": "f2",
+          "result": null
+        }
+      ],
+      "activeMatchId": "de5"
     }
-  ],
-  "activeMatchId": "de5"
+  ]
 }
