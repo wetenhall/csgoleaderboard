@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-29T20:28:06.517Z",
+  "updatedAt": "2026-10-29T20:35:36.606Z",
   "games": [
+    {
+      "id": "1-b0f9c618-08ed-4c37-8837-91f09e64fc07:0",
+      "matchId": "1-b0f9c618-08ed-4c37-8837-91f09e64fc07",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793306098,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 6,
+          "players": [
+            {
+              "name": "sisoh",
+              "kills": 6,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Pink-e",
+              "kills": 13,
+              "deaths": 6,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-94c65b84-dd4a-447f-b2e1-57cfceb3b3ab:0",
       "matchId": "1-94c65b84-dd4a-447f-b2e1-57cfceb3b3ab",
