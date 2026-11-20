@@ -1,8 +1,107 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-11-19T19:45:08.503Z",
+  "updatedAt": "2026-11-20T16:08:38.577Z",
   "games": [
+    {
+      "id": "1-d2425dc0-40c8-41fe-bf8b-8401461be0de:0",
+      "matchId": "1-d2425dc0-40c8-41fe-bf8b-8401461be0de",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1795185484,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-5744cf02-53a9-44c8-a5ee-500cb3037810:0",
+      "matchId": "1-5744cf02-53a9-44c8-a5ee-500cb3037810",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1795185068,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 4,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 4,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 13,
+              "deaths": 4,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-be1d6512-fba6-4dc4-bef5-165d623def0e:0",
+      "matchId": "1-be1d6512-fba6-4dc4-bef5-165d623def0e",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1795184805,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 5,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 5,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 13,
+              "deaths": 5,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-ab8abd1e-09a1-444e-a23b-aed5469f7a62:0",
       "matchId": "1-ab8abd1e-09a1-444e-a23b-aed5469f7a62",
