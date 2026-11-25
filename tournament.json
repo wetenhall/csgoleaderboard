@@ -21,24 +21,24 @@
       "tag": "01",
       "players": [
         {
-          "id": "p5",
-          "name": "Dan"
+          "id": "p9",
+          "name": "Aatori"
         },
         {
-          "id": "p6",
-          "name": "jodi"
+          "id": "p3",
+          "name": "cantlon"
+        },
+        {
+          "id": "p2",
+          "name": "finesse"
         },
         {
           "id": "p8",
           "name": "Miles99"
         },
         {
-          "id": "p10",
-          "name": "Gomez"
-        },
-        {
-          "id": "p3",
-          "name": "cantlon"
+          "id": "p1",
+          "name": "Grayzee"
         }
       ]
     },
@@ -48,24 +48,24 @@
       "tag": "02",
       "players": [
         {
+          "id": "p6",
+          "name": "jodi"
+        },
+        {
           "id": "p4",
           "name": "submissive little german boy"
         },
         {
+          "id": "p5",
+          "name": "Dan"
+        },
+        {
+          "id": "p10",
+          "name": "Gomez"
+        },
+        {
           "id": "p7",
           "name": "goro"
-        },
-        {
-          "id": "p2",
-          "name": "finesse"
-        },
-        {
-          "id": "p1",
-          "name": "Grayzee"
-        },
-        {
-          "id": "p9",
-          "name": "Aatori"
         }
       ]
     }
@@ -85,7 +85,7 @@
       ],
       "result": null,
       "label": "Single Game · 5v5",
-      "map": "Ancient"
+      "map": "Inferno"
     }
   ],
   "history": [],
@@ -137,7 +137,32 @@
     "Anubis",
     "Cache"
   ],
-  "mapMethod": "wheel",
-  "mapVeto": [],
+  "mapMethod": "veto",
+  "mapVeto": [
+    {
+      "teamId": "t1",
+      "map": "Dust2"
+    },
+    {
+      "teamId": "t2",
+      "map": "Ancient"
+    },
+    {
+      "teamId": "t1",
+      "map": "Mirage"
+    },
+    {
+      "teamId": "t2",
+      "map": "Anubis"
+    },
+    {
+      "teamId": "t1",
+      "map": "Nuke"
+    },
+    {
+      "teamId": "t2",
+      "map": "Cache"
+    }
+  ],
   "discordEventId": "c6299ade-408b-49e9-81cd-0b7e4dd769f1"
 }
