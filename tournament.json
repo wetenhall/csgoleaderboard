@@ -13,7 +13,7 @@
     "Part",
     "Sam"
   ],
-  "name": "custom 5 v 5",
+  "name": "5v5 1337",
   "teams": [
     {
       "id": "t1",
@@ -22,23 +22,23 @@
       "players": [
         {
           "id": "p9",
-          "name": "Aatori"
+          "name": "hans"
+        },
+        {
+          "id": "p1",
+          "name": "Grayzee"
         },
         {
           "id": "p3",
           "name": "cantlon"
         },
         {
-          "id": "p2",
-          "name": "finesse"
+          "id": "p5",
+          "name": "pengu"
         },
         {
           "id": "p8",
-          "name": "Miles99"
-        },
-        {
-          "id": "p1",
-          "name": "Grayzee"
+          "name": "Dan"
         }
       ]
     },
@@ -48,24 +48,24 @@
       "tag": "02",
       "players": [
         {
-          "id": "p6",
-          "name": "jodi"
+          "id": "p7",
+          "name": "jayDoa"
+        },
+        {
+          "id": "p2",
+          "name": "jodi-neko"
         },
         {
           "id": "p4",
-          "name": "submissive little german boy"
+          "name": "little german boy"
         },
         {
-          "id": "p5",
-          "name": "Dan"
+          "id": "p6",
+          "name": "finesse"
         },
         {
           "id": "p10",
-          "name": "Gomez"
-        },
-        {
-          "id": "p7",
-          "name": "goro"
+          "name": "Aatori"
         }
       ]
     }
@@ -85,13 +85,13 @@
       ],
       "result": null,
       "label": "Single Game · 5v5",
-      "map": "Inferno"
+      "map": "Ancient"
     }
   ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
-    "banner": "custom 5 v 5",
+    "banner": "5v5 1337",
     "registrationTitle": "Register to play",
     "registrationDescription": "Enter your player name to register for the next 1v1 tournament.\n\nDate: Thursday 29th October \nTime: 7pm GMT"
   },
@@ -137,32 +137,7 @@
     "Anubis",
     "Cache"
   ],
-  "mapMethod": "veto",
-  "mapVeto": [
-    {
-      "teamId": "t1",
-      "map": "Dust2"
-    },
-    {
-      "teamId": "t2",
-      "map": "Ancient"
-    },
-    {
-      "teamId": "t1",
-      "map": "Mirage"
-    },
-    {
-      "teamId": "t2",
-      "map": "Anubis"
-    },
-    {
-      "teamId": "t1",
-      "map": "Nuke"
-    },
-    {
-      "teamId": "t2",
-      "map": "Cache"
-    }
-  ],
-  "discordEventId": "c6299ade-408b-49e9-81cd-0b7e4dd769f1"
+  "mapMethod": "case",
+  "mapVeto": [],
+  "discordEventId": "aada9046-481a-4753-9a42-991f2219087b"
 }
