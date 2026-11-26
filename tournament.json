@@ -13,7 +13,7 @@
     "Part",
     "Sam"
   ],
-  "name": "5v5 1337",
+  "name": "custom 5v5",
   "teams": [
     {
       "id": "t1",
@@ -21,24 +21,24 @@
       "tag": "01",
       "players": [
         {
-          "id": "p3",
-          "name": "cantlon"
+          "id": "p4",
+          "name": "Ramsten"
         },
         {
-          "id": "p4",
+          "id": "p3",
+          "name": "Spongoat"
+        },
+        {
+          "id": "p8",
           "name": "little german boy"
         },
         {
+          "id": "p7",
+          "name": "finesse"
+        },
+        {
           "id": "p5",
-          "name": "pengu"
-        },
-        {
-          "id": "p9",
-          "name": "hans"
-        },
-        {
-          "id": "p1",
-          "name": "Grayzee"
+          "name": "coach"
         }
       ]
     },
@@ -48,24 +48,24 @@
       "tag": "02",
       "players": [
         {
+          "id": "p1",
+          "name": "cantlon"
+        },
+        {
+          "id": "p9",
+          "name": "szns"
+        },
+        {
           "id": "p10",
-          "name": "Aatori"
+          "name": "jpohan"
         },
         {
           "id": "p2",
-          "name": "jodi-neko"
+          "name": "Mootmanden"
         },
         {
           "id": "p6",
-          "name": "finesse"
-        },
-        {
-          "id": "p8",
-          "name": "Dan"
-        },
-        {
-          "id": "p7",
-          "name": "jayDoa"
+          "name": "sAM"
         }
       ]
     }
@@ -85,13 +85,13 @@
       ],
       "result": null,
       "label": "Single Game · 5v5",
-      "map": "Nuke"
+      "map": "Vertigo"
     }
   ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
-    "banner": "5v5 1337",
+    "banner": "custom 5v5",
     "registrationTitle": "Register to play",
     "registrationDescription": "Enter your player name to register for the next 1v1 tournament.\n\nDate: Thursday 29th October \nTime: 7pm GMT"
   },
@@ -131,11 +131,14 @@
   "mapPool": [
     "Mirage",
     "Dust2",
+    "Inferno",
     "Nuke",
+    "Ancient",
     "Anubis",
+    "Vertigo",
     "Cache"
   ],
   "mapMethod": "wheel",
   "mapVeto": [],
-  "discordEventId": "aada9046-481a-4753-9a42-991f2219087b"
+  "discordEventId": "e3c5ba92-b515-4371-85e4-3a095f63c52c"
 }
