@@ -21,24 +21,24 @@
       "tag": "01",
       "players": [
         {
-          "id": "p4",
-          "name": "Ramsten"
-        },
-        {
-          "id": "p3",
-          "name": "Spongoat"
+          "id": "p1",
+          "name": "Mootmanden"
         },
         {
           "id": "p8",
-          "name": "little german boy"
-        },
-        {
-          "id": "p7",
           "name": "finesse"
         },
         {
-          "id": "p5",
-          "name": "coach"
+          "id": "p9",
+          "name": "little german boy"
+        },
+        {
+          "id": "p4",
+          "name": "Dan"
+        },
+        {
+          "id": "p3",
+          "name": "cantlon"
         }
       ]
     },
@@ -48,24 +48,24 @@
       "tag": "02",
       "players": [
         {
-          "id": "p1",
-          "name": "cantlon"
-        },
-        {
-          "id": "p9",
-          "name": "szns"
+          "id": "p6",
+          "name": "FAROESE BEAST"
         },
         {
           "id": "p10",
-          "name": "jpohan"
+          "name": "Aatori"
+        },
+        {
+          "id": "p7",
+          "name": "Ramsten"
+        },
+        {
+          "id": "p5",
+          "name": "sAM]"
         },
         {
           "id": "p2",
-          "name": "Mootmanden"
-        },
-        {
-          "id": "p6",
-          "name": "sAM"
+          "name": "jpohan"
         }
       ]
     }
@@ -85,7 +85,7 @@
       ],
       "result": null,
       "label": "Single Game · 5v5",
-      "map": "Vertigo"
+      "map": "Dust2"
     }
   ],
   "history": [],
@@ -135,10 +135,9 @@
     "Nuke",
     "Ancient",
     "Anubis",
-    "Vertigo",
     "Cache"
   ],
   "mapMethod": "wheel",
   "mapVeto": [],
-  "discordEventId": "e3c5ba92-b515-4371-85e4-3a095f63c52c"
+  "discordEventId": "7dcc8ee3-dbda-4aed-ba9d-a980e551cb5e"
 }
