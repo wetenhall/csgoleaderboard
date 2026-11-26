@@ -604,7 +604,9 @@ if (typeof document !== 'undefined') (() => {
       const names = match.ids.map((id,i) => state.teams.has(id) ? teamDisplayLabel({...state.teams.get(id),...(match.result?.lineups?.[id]?{players:match.result.lineups[id]}:{})}) : matchPlaceholder(match,i));
       const summary=element('summary','fixture-summary');
       const meta=element('span','fixture-topline');
-      meta.append(element('span','fixture-number','MATCH '+String(index+1).padStart(2,'0')),element('span','fixture-map',match.map || (current.teamSize===1?'Choose map in server':'Map not assigned')),element('span','fixture-status',match.result?'PLAYED':match.id===current.activeMatchId?'PLAYING NOW':next?'UP NEXT':ready?'SCHEDULED':'AWAITING TEAMS'));
+      const mapBadge=element('span','fixture-map',match.map || (current.teamSize===1?'Choose map in server':'Map not assigned'));
+      setMapBackdrop(mapBadge,match.map);
+      meta.append(element('span','fixture-number','MATCH '+String(index+1).padStart(2,'0')),mapBadge,element('span','fixture-status',match.result?'PLAYED':match.id===current.activeMatchId?'PLAYING NOW':next?'UP NEXT':ready?'SCHEDULED':'AWAITING TEAMS'));
       const versus=element('span','fixture-versus');
       match.ids.forEach((id,i)=>{
         if(i===1)versus.append(element('span','fixture-score',match.result?match.result.scores.join(' : '):'VS'));
@@ -879,7 +881,7 @@ if (typeof document !== 'undefined') (() => {
   $('draw-animation').onchange=()=>{
     const reel=$('draw-animation').value==='case';if(!['manual','captains','random'].includes($('team-creation').value))$('team-creation').value=reel?'case':'wheel';$('case-reel-wrap').hidden=!reel;document.querySelector('.wheel-wrap').hidden=reel;$('draw-stage').classList.toggle('case-style',reel);paintWheel(...wheelFrame);controls();
   };
-  function resetReveal(){ $('reveal-avatar').textContent='?';$('reveal-label').textContent='NEXT RECRUIT';$('reveal-name').textContent='Who’s joining your team?';$('player-reveal').classList.remove('revealed');$('draw-progress').value=0;$('draw-progress-label').textContent='Load players to start'; }
+  function resetReveal(){ $('reveal-avatar').textContent='?';$('reveal-label').textContent='NEXT RECRUIT';$('reveal-name').textContent='Who’s joining your team?';$('player-reveal').classList.remove('revealed');setMapBackdrop($('player-reveal'));$('draw-progress').value=0;$('draw-progress-label').textContent='Load players to start'; }
   function showDrawTeams(latestId=null) {
     $('draw-teams').replaceChildren();const size=Number($('team-size').value),total=selected.length+remaining.length;
     const review=$('draft-swap-help');
@@ -1125,6 +1127,7 @@ if (typeof document !== 'undefined') (() => {
       const order = drawOrder;
       const next = makeTournament(selected,draw.teamSize,current,order,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value),$('tournament-format').value);
       next.teams=structuredClone(draw.teams);if(draw.mapMethod)next.mapMethod=draw.mapMethod;if(draw.mapVeto)next.mapVeto=structuredClone(draw.mapVeto); draw=next;
+      setMapBackdrop($('player-reveal'),draw.format==='single' ? drawnMap : undefined);
       if(draw.format==='single'){if(drawnMap)draw.matches[0].map=drawnMap;else delete draw.matches[0].map;paintWheel(selectedMaps().map(name=>({name})));$('reveal-label').textContent=drawnMap?'SELECTED MAP':'MAP DRAW';$('reveal-name').textContent=drawnMap || 'Spin to choose your map';$('reveal-avatar').textContent='MAP';}
       $('format-preview').textContent = draw.groups.length ? draw.groups.map(g=>'Group '+g.id+': '+g.teams.length+' teams').join(' · ') + ' · Top '+draw.qualifiersPerGroup+' advance from each group.' + (draw.groups.length === 3 ? ' Byes fill the knockout bracket automatically.' : '') : (draw.format==='single'?'Single Game · Two squads of five · ':draw.format==='double'?'Double elimination · Best-of-three grand final · ':'Straight knockout · ')+draw.matches.length+' game'+(draw.matches.length === 1 ? '' : 's')+(draw.format==='single'?' · Ready for your custom game.':' · Byes advance automatically.');
       showDrawTeams();

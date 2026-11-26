@@ -114,6 +114,7 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
         const bans=draft.mapVeto || [],left=maps.filter(map=>!bans.some(b=>b.map===map)),team=draft.teams[bans.length%2];
         if(left.length===1){
           const hero=element('div','single-match-map');
+          setMapBackdrop(hero,left[0]);
           hero.setAttribute('role','status');
           hero.append(element('span','eyebrow','SELECTED MAP / CUSTOM '+draft.teamSize+'V'+draft.teamSize),element('h3','',left[0]));section.append(hero);
         }else if(left.length>1){

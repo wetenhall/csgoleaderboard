@@ -218,6 +218,28 @@ function renderConnectedBracket(root,matches,teams) {
   }
   viewport.append(canvas);root.append(viewport);
 }
+function mapImageUrl(map) {
+  const thumbnails = {
+    ancient: 'de_ancient_1', anubis: 'de_anubis_1', cache: 'de_cache_1',
+    debris: 'de_debris_1', dust2: 'de_dust2_1', eldorado: 'de_eldorado_1',
+    inferno: 'de_inferno_1', italy: 'cs_italy_1', mirage: 'de_mirage_1',
+    nuke: 'de_nuke_1', office: 'cs_office_1', overpass: 'de_overpass_1',
+    poseidon: 'de_poseidon_1', train: 'de_train_1', vertigo: 'de_vertigo_1'
+  };
+  const name = map?.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const key = name === 'dustii' ? 'dust2' : name;
+  return Object.hasOwn(thumbnails, key)
+    ? 'https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/main/images/thumbs/'+thumbnails[key]+'_png.png'
+    : '';
+}
+
+function setMapBackdrop(node, map) {
+  const url = mapImageUrl(map);
+  if (url) node.style.setProperty('--map-image', 'url("'+url+'")');
+  else node.style.removeProperty('--map-image');
+  node.classList.toggle('has-map-image', Boolean(url));
+}
+
 async function downloadMatchImage(data) {
   await document.fonts.ready;
   const state=resolveTournament(data),match=state.matches[0],canvas=document.createElement('canvas');
@@ -225,6 +247,19 @@ async function downloadMatchImage(data) {
   const text=(value,x,y,size,color='#f4f4f4',width=670,align='left')=>{ctx.fillStyle=color;ctx.textAlign=align;ctx.font='700 '+size+'px Rajdhani, sans-serif';while(ctx.measureText(value).width>width && size>12){size--;ctx.font='700 '+size+'px Rajdhani, sans-serif';}ctx.fillText(value,x,y);};
   ctx.fillStyle='#101316';ctx.fillRect(0,0,1600,900);
   const gradient=ctx.createLinearGradient(30,0,1570,250);gradient.addColorStop(0,'#352b1d');gradient.addColorStop(1,'#23272f');ctx.fillStyle=gradient;ctx.fillRect(30,30,1540,230);ctx.fillStyle='#ff9b01';ctx.fillRect(30,30,1540,5);
+  const mapUrl=mapImageUrl(match.map);
+  if(mapUrl){
+    const image=new Image();
+    image.crossOrigin='anonymous';
+    image.src=mapUrl;
+    await image.decode().catch(()=>{});
+    if(image.naturalWidth && image.naturalHeight){
+      const scale=Math.max(1540/image.naturalWidth,225/image.naturalHeight);
+      const width=1540/scale,height=225/scale;
+      ctx.drawImage(image,(image.naturalWidth-width)/2,(image.naturalHeight-height)/2,width,height,30,35,1540,225);
+      ctx.fillStyle='#1d160bcc';ctx.fillRect(30,35,1540,225);
+    }
+  }
   text('SELECTED MAP / CUSTOM '+data.teamSize+'V'+data.teamSize,800,90,22,'#ff9b01',1400,'center');text((match.map || 'Map pending').toUpperCase(),800,205,100,'#ff9b01',1400,'center');
   match.ids.forEach((id,i)=>{const team=state.teams.get(id),x=30+i*785,color=i===0?'#70b4cd':'#ff9b01';ctx.fillStyle='#23272f';ctx.fillRect(x,290,755,570);ctx.strokeStyle='#424b55';ctx.strokeRect(x,290,755,570);ctx.fillStyle=color;ctx.fillRect(x,290,755,4);
     text(team.name,x+30,365,42,'#f4f4f4',570);text(match.result?String(match.result.scores[i]):'—',x+715,365,42,'#ff9b01',100,'right');text(match.winner===id?'WINNERS':team.players.length+' PLAYER'+(team.players.length===1?'':'S'),x+30,410,20,'#ff9b01');
@@ -333,7 +368,8 @@ function renderTournament(data) {
   bracketRoot.classList.toggle('double-bracket',data.format==='double');
   if(singleSquads){
     const match=matches[0],hero=element('div','single-match-map');
-    hero.append(element('span','eyebrow','SELECTED MAP / CUSTOM 5V5'),element('h3','',match.map || 'Map pending'));
+    setMapBackdrop(hero,match.map);
+    hero.append(element('span','eyebrow','SELECTED MAP / CUSTOM '+data.teamSize+'V'+data.teamSize),element('h3','',match.map || 'Map pending'));
     bracketRoot.append(hero);
     const squads=element('div','single-match-squads');
     match.ids.forEach((id,i)=>{

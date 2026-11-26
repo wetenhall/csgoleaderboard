@@ -306,3 +306,9 @@ body.waiting-screen-open{overflow:hidden}
 .draw-roster .draft-swap-player:active{cursor:grabbing}
 .draw-roster .draft-swap-player[aria-pressed=true],.draw-roster .draft-swap-player.swap-drop-target{border-color:var(--accent);background:#ff9b011a}
 .draft-swap-status:empty{margin:0}
+
+.has-map-image{
+  background-image:linear-gradient(105deg,#1d160bdf,#24190baa,#1d160bdf),var(--map-image);
+  background-position:center;
+  background-size:cover;
+}
