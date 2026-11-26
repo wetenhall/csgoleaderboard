@@ -301,3 +301,8 @@ body.waiting-screen-open{overflow:hidden}
 #open-waiting-screen{font-size:12px;white-space:nowrap}
 @media(max-width:600px){.waiting-kicker{letter-spacing:.1em}.waiting-close{opacity:.65}.waiting-caption{margin-top:24px}.waiting-tournament-name{margin:20px 0}.header-actions{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){.waiting-close{transition:none}}
+
+.draw-roster .draft-swap-player{width:100%;text-align:left;font:inherit;letter-spacing:normal;text-transform:none;cursor:grab}
+.draw-roster .draft-swap-player:active{cursor:grabbing}
+.draw-roster .draft-swap-player[aria-pressed=true],.draw-roster .draft-swap-player.swap-drop-target{border-color:var(--accent);background:#ff9b011a}
+.draft-swap-status:empty{margin:0}

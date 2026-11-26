@@ -385,7 +385,13 @@ if (typeof document !== 'undefined') (() => {
     $('draw-panel').classList.toggle('live-draw',locked && !$('draw-stage').hidden);
     $('reset-edit-draw').disabled=busy || spinning || skippingAnimation;
     $('draw-stage').classList.toggle('manual-map',manual);
-    document.querySelector('.draw-roster').hidden=manual;
+    document.querySelector('.draw-roster').hidden=manual && !selectingMap;
+    $('draft-swap-help').hidden=!selectingMap;
+    const canSwap=selectingMap && !!token && !busy && !spinning && !skippingAnimation;
+    $('draw-teams').querySelectorAll('.draft-swap-player').forEach(button=>{
+      button.disabled=!canSwap;
+      button.draggable=canSwap;
+    });
     $('draw-animation').disabled=busy || spinning;
     $('case-reel').setAttribute('aria-label',draw?.format==='single' && !remaining.length?'Map selection case reel':'Player selection case reel');
     $('open-options').hidden = false;
@@ -876,6 +882,9 @@ if (typeof document !== 'undefined') (() => {
   function resetReveal(){ $('reveal-avatar').textContent='?';$('reveal-label').textContent='NEXT RECRUIT';$('reveal-name').textContent='Who’s joining your team?';$('player-reveal').classList.remove('revealed');$('draw-progress').value=0;$('draw-progress-label').textContent='Load players to start'; }
   function showDrawTeams(latestId=null) {
     $('draw-teams').replaceChildren();const size=Number($('team-size').value),total=selected.length+remaining.length;
+    const review=$('draft-swap-help');
+    review.hidden=draw?.format!=='single' || remaining.length>0;
+    $('draft-swap-status').textContent='';
     $('draw-progress').max=Math.max(1,total);$('draw-progress').value=selected.length;
     if(size===1 && total && $('tournament-format').value==='groups' && Number($('group-count').value)>0){
       const count=Number($('group-count').value),groups=soloDrawGroups(total,count);
@@ -894,11 +903,77 @@ if (typeof document !== 'undefined') (() => {
     }
     $('draw-progress-label').textContent=total?selected.length+' of '+total+' players selected · '+(remaining.length?'Next: Team '+String(captainDraft?captainDraft.turn%2+1:size===5?selected.length%(total/size)+1:Math.floor(selected.length/size)+1).padStart(2,'0'):'All teams complete'):'Load players to start';
     const drawnTeams=draw?draw.teams.map(t=>t.players):captainDraft?captainDraft.teams.map(t=>t.players):drawTeamMembers(selected,size,total);
+    let swapSelection, dragPlayer;
+    function swapPlayers(source,target){
+      if(source.disabled || target.disabled || source.dataset.team===target.dataset.team)return;
+      const first=source.dataset.player,second=target.dataset.player;
+      draw.teams=swapDraftPlayers(draw.teams,first,second);
+      if($('team-creation').value==='manual'){
+        manualAssignments=draw.teams.flatMap(team=>team.players.map(player=>player.id));
+        updateManualSlots();
+      }
+      showDrawTeams();
+      controls();
+      $('draw-teams').querySelectorAll('.draft-swap-player').forEach(button=>{
+        if(button.dataset.player===first)button.focus({preventScroll:true});
+      });
+      $('draft-swap-status').textContent=source.dataset.name+' swapped with '+target.dataset.name+'.';
+    }
     for(let i=0;i<total/size;i++){
       const members=drawnTeams[i],complete=members.length===size,latest=members.some(p=>p.id===latestId);
       const card=element('div','draw-team'+(complete?' team-complete':'')+(latest&&complete?' team-flash':''));card.style.setProperty('--team-colour',teamColours[i%teamColours.length]);
       const label=element('label','', 'Team '+String(i+1).padStart(2,'0')),name=element('input');name.value=draw?.teams[i].name || 'Team '+String(i+1).padStart(2,'0');name.maxLength=60;name.disabled=!draw;name.oninput=()=>{draw.teams[i].name=name.value.trim();};label.append(name);card.append(label);
-      for(let j=0;j<size;j++) {const player=members[j],slot=element('div','draft-slot'+(player?' filled':'')+(player?.id===latestId?' player-arrives':''));slot.append(element('span','slot-avatar',player?initials(player.name):String(j+1)),element('span','',player?player.name+((draw?.teams[i].captainId || captainDraft?.teams[i].captainId)===player.id?' · Captain':''):'Awaiting player'));card.append(slot);}
+      if(!review.hidden && $('team-creation').value==='manual')name.readOnly=true;
+      for(let j=0;j<size;j++){
+        const player=members[j],editable=player && !review.hidden;
+        const slot=element(editable?'button':'div','draft-slot'+(player?' filled':'')+(player?.id===latestId?' player-arrives':'')+(editable?' draft-swap-player':''));
+        const captainId=(draw?.teams[i] || captainDraft?.teams[i])?.captainId;
+        const avatar=element('span','slot-avatar',player?initials(player.name):String(j+1));
+        if(editable)avatar.setAttribute('aria-hidden','true');
+        slot.append(avatar,element('span','',player?player.name+(captainId===player.id?' · Captain':''):'Awaiting player'));
+        if(editable){
+          slot.type='button';
+          slot.dataset.player=player.id;
+          slot.dataset.name=player.name;
+          slot.dataset.team=draw.teams[i].id;
+          slot.setAttribute('aria-pressed','false');
+          slot.onclick=()=>{
+            if(swapSelection && swapSelection.dataset.team!==slot.dataset.team){
+              swapPlayers(swapSelection,slot);
+              return;
+            }
+            swapSelection?.setAttribute('aria-pressed','false');
+            swapSelection=swapSelection===slot?null:slot;
+            swapSelection?.setAttribute('aria-pressed','true');
+            $('draft-swap-status').textContent=swapSelection?'Select a player on the other team to swap with '+player.name+'.':'';
+          };
+          slot.ondragstart=event=>{
+            if(!slot.draggable){event.preventDefault();return;}
+            dragPlayer=slot;
+            event.dataTransfer.effectAllowed='move';
+            event.dataTransfer.setData('text/plain',player.name);
+          };
+          slot.ondragend=()=>{
+            dragPlayer=null;
+            $('draw-teams').querySelectorAll('.swap-drop-target').forEach(button=>button.classList.remove('swap-drop-target'));
+          };
+          slot.ondragover=event=>{
+            if(!dragPlayer || slot.disabled || dragPlayer.dataset.team===slot.dataset.team)return;
+            event.preventDefault();
+            event.dataTransfer.dropEffect='move';
+            slot.classList.add('swap-drop-target');
+          };
+          slot.ondragleave=()=>slot.classList.remove('swap-drop-target');
+          slot.ondrop=event=>{
+            if(!dragPlayer)return;
+            event.preventDefault();
+            slot.classList.remove('swap-drop-target');
+            swapPlayers(dragPlayer,slot);
+            dragPlayer=null;
+          };
+        }
+        card.append(slot);
+      }
       card.append(element('p','team-state',complete?'TEAM COMPLETE':members.length+' / '+size+' PLAYERS'));
       if(draw)card.append(element('p','accent',draw.groups.length?'Group '+draw.groups.find(g=>g.teams.includes(draw.teams[i].id)).id:draw.format==='single'?'Single Game':'Knockout'));
       $('draw-teams').append(card);
