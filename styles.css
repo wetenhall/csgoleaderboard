@@ -312,3 +312,31 @@ body.waiting-screen-open{overflow:hidden}
   background-position:center;
   background-size:cover;
 }
+
+.single-squad-heading .team-emblem{
+  display:inline-grid;
+  color:#111820;
+}
+.squad-emblem-icon{
+  display:grid;
+  justify-items:center;
+  align-content:center;
+  width:24px;
+}
+.squad-emblem-icon::before{
+  content:'';
+  width:24px;
+  height:20px;
+  background:currentColor;
+}
+.squad-emblem-t::before{
+  width:20px;
+  clip-path:polygon(50% 0,62% 34%,100% 37%,70% 60%,80% 97%,50% 76%,20% 97%,30% 60%,0 37%,38% 34%);
+}
+.squad-emblem-ct::before{
+  clip-path:polygon(0 7%,33% 28%,50% 9%,67% 28%,100% 7%,90% 39%,73% 47%,88% 47%,76% 68%,66% 68%,62% 84%,50% 100%,38% 84%,34% 68%,24% 68%,12% 47%,27% 47%,10% 39%);
+}
+@media(max-width:600px){
+  .single-squad-heading .team-emblem{width:28px;height:32px}
+  .squad-emblem-icon{transform:scale(.75)}
+}

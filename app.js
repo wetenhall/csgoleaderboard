@@ -96,8 +96,10 @@ function teamDisplayLabel(team) {
   const display = teamDisplayName(team);
   return display === team.name ? display : `${display} (${team.name})`;
 }
-function teamEmblem(team) {
-  const badge=element('span','team-emblem',team.tag || team.id.replace(/[^0-9]/g,'').padStart(2,'0'));
+function teamEmblem(team, symbol) {
+  const numberLabel=team.tag || team.id.replace(/[^0-9]/g,'').padStart(2,'0');
+  const badge=element('span','team-emblem',symbol ? '' : numberLabel);
+  if(symbol)badge.append(element('span','squad-emblem-icon squad-emblem-'+symbol));
   const colours=['#ff9b01','#67afd3','#b6a0ee','#73d1a9','#f18e97','#e1cf80'];
   const number=Number(team.id.replace(/[^0-9]/g,'')) || 1;badge.style.setProperty('--emblem-colour',colours[(number-1)%colours.length]);
   badge.setAttribute('aria-hidden','true');return badge;
@@ -375,7 +377,7 @@ function renderTournament(data) {
     match.ids.forEach((id,i)=>{
       const team=teams.get(id),card=element('article','single-squad'+(match.winner===id?' is-winner':''));
       const heading=element('div','single-squad-heading');
-      heading.append(teamEmblem(team),element('h3','',team.name),element('strong','single-squad-score',match.result?String(match.result.scores[i]):'—'));
+      heading.append(teamEmblem(team,i===0?'t':'ct'),element('h3','',team.name),element('strong','single-squad-score',match.result?String(match.result.scores[i]):'—'));
       card.append(heading,element('p','eyebrow',match.winner===id?'WINNERS':team.players.length+' PLAYER'+(team.players.length===1?'':'S')));
       const roster=element('ol','single-squad-players');
       team.players.forEach(player=>roster.append(element('li','',player.name+(team.captainId===player.id?' · Captain':''))));
