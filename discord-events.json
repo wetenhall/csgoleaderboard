@@ -1,1 +1,22 @@
-{"version":1,"events":[]}
+{
+  "version": 1,
+  "events": [
+    {
+      "id": "e3c5ba92-b515-4371-85e4-3a095f63c52c",
+      "title": "custom 5v5",
+      "players": [
+        "cantlon",
+        "Mootmanden",
+        "Spongoat",
+        "Ramsten",
+        "coach",
+        "sAM",
+        "finesse",
+        "little german boy",
+        "szns",
+        "jpohan"
+      ],
+      "publishedAt": "2026-11-26T18:41:50.354Z"
+    }
+  ]
+}
