@@ -750,3 +750,9 @@ body:has(:is(#tab-stats,#tab-history,#tab-team-setup,#tab-fixture-import,#tab-ma
   .match-broadcast-score{min-width:44px;padding:0 6px}
   .single-match-squads{grid-template-columns:1fr}
 }
+.topbar ~ main{width:100%;margin-block:0;flex:1 0 auto}
+body:has(>.topbar~footer){
+  display:flex;
+  flex-direction:column;
+  min-height:100dvh;
+}
