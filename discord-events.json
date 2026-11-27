@@ -33,7 +33,26 @@
         "little german boy",
         "Aatori"
       ],
-      "publishedAt": "2026-11-26T19:23:26.058Z"
+      "publishedAt": "2026-11-26T19:23:26.058Z",
+      "mapVoteRequest": {
+        "id": "a1f9112b-fc08-49b9-8553-c29053f34c76",
+        "mode": "player-vote",
+        "maps": [
+          "Mirage",
+          "Dust2",
+          "Inferno",
+          "Nuke",
+          "Ancient",
+          "Anubis",
+          "Vertigo",
+          "Cache",
+          "Train",
+          "Overpass",
+          "Office",
+          "Italy",
+          "Cobblestone"
+        ]
+      }
     },
     {
       "id": "28c32de8-c79e-4fb2-90fe-6f8e843978d8",
