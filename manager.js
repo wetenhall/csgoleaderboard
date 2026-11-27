@@ -581,32 +581,50 @@ if (typeof document !== 'undefined') (() => {
     document.getElementById('fixture-platform')?.remove();document.getElementById('import-centre')?.remove();$('player-links').replaceChildren();
     if(token){const centre=createImportCentre({dedicated:true,playerContainer:$('player-links'),data:structuredClone(current),resolve:resolveTournament,isBusy:()=>busy,isOrganiser:()=>!!token,saveImport:saveImportedFixture,saveProfiles:async profiles=>{const next=structuredClone(current);next.leetifyProfiles=profiles;await publish(next,'Update Leetify player profile links');},saveAliases:async aliases=>{const next=structuredClone(current);next.importAliases={...current.importAliases,faceit:aliases};await publish(next,'Update FACEIT player name links');},undo:async()=>{await publish(undoResultChange(current,resolveTournament),'Undo last result change');}});centre.id='import-centre';$('fixture-import-centre').replaceChildren(centre);}
 
-    if(token){const label=element('label','fixture-platform','Game platform'),select=element('select');label.id='fixture-platform';for(const [value,text] of [['manual','Other · Manual results'],['faceit','FACEIT · Pull up gang queue']]){const o=element('option','',text);o.value=value;select.append(o);}select.value=current.gameProvider || 'manual';select.disabled=busy;select.onchange=async()=>{try{const next=structuredClone(current);next.gameProvider=select.value;await publish(next,'Update fixture game platform');}catch(error){say(error.message);select.value=current.gameProvider || 'manual';}};label.append(select);$('schedule').before(label);}
+    if(token){const label=element('label','fixture-platform','Game platform'),select=element('select');label.id='fixture-platform';for(const [value,text] of [['manual','Other · Manual results'],['faceit','FACEIT · Pull up gang queue']]){const o=element('option','',text);o.value=value;select.append(o);}select.value=current.gameProvider || 'manual';select.disabled=busy;select.onchange=async()=>{try{const next=structuredClone(current);next.gameProvider=select.value;await publish(next,'Update fixture game platform');}catch(error){say(error.message);select.value=current.gameProvider || 'manual';}};label.append(select);$('schedule').after(label);}
 
-    $('schedule').replaceChildren(); const state = resolveTournament(current);
+    const schedule=$('schedule');
+    schedule.replaceChildren();
+    const {state,active,next:[nextMatch]}=matchNight(current,resolveTournament,orderedMatches);
     if (!state.matches.length) { $('schedule').append(element('p','rules','No fixtures yet. Create and publish a tournament in Team setup.')); return; }
-    const matches = orderedMatches(state.matches); let markedNext = false;
+    const matches = orderedMatches(state.matches);
+    const featured = nextMatch || active;
+    const remaining = matches.filter(match=>match.id!==featured?.id);
+    const featuredSection=featured?element('section','fixture-section fixture-feature'):null;
+    if(featured){
+      const heading=element('h3','fixture-heading',nextMatch?'Next match':'Match in progress');
+      heading.id='fixtures-featured';
+      featuredSection.setAttribute('aria-labelledby',heading.id);
+      featuredSection.append(heading);
+      schedule.append(featuredSection);
+    }
     const sections = {};
     for (const [key, title] of [['upcoming','Upcoming games'],['played','Played games']]) {
-      const section = element('section','fixture-section');
-      const heading = element('h3','fixture-heading'); heading.id = 'fixtures-' + key;
-      section.setAttribute('aria-labelledby',heading.id);
-      const count = matches.filter(match => Boolean(match.result) === (key === 'played')).length;
-      heading.textContent = title + ' · ' + count; section.append(heading);
-      if (!count) section.append(element('p','rules',key === 'played' ? 'No games played yet. Completed results will appear here.' : 'All games complete.'));
-      sections[key] = section; $('schedule').append(section);
+      const played=key==='played';
+      const count=remaining.filter(match=>Boolean(match.result)===played).length;
+      if(!count && (featured || played))continue;
+      const section=element(played?'details':'section','fixture-section'+(played?' fixture-results':''));
+      const heading=element(played?'summary':'h3','fixture-heading',title+' · '+count);
+      heading.id='fixtures-'+key;
+      if(!played)section.setAttribute('aria-labelledby',heading.id);
+      section.append(heading);
+      if(!count)section.append(element('p','rules','All games complete.'));
+      sections[key]=element('div','fixture-list');
+      section.append(sections[key]);
+      schedule.append(section);
     }
     matches.forEach((match,index) => {
-      const container = sections[match.result ? 'played' : 'upcoming'];
-      const details = element('details','scheduled-match');
-      const ready = match.ids.every(Boolean); const next = !markedNext && !match.result && ready;
-      if (next) { markedNext = true; details.classList.add('next-match'); }
+      const isFeatured=match.id===featured?.id;
+      const container=isFeatured?featuredSection:sections[match.result?'played':'upcoming'];
+      const details=element('details','scheduled-match'+(isFeatured?' next-match':''));
+      const ready=match.ids.every(Boolean),playing=match.id===active?.id;
       const names = match.ids.map((id,i) => state.teams.has(id) ? teamDisplayLabel({...state.teams.get(id),...(match.result?.lineups?.[id]?{players:match.result.lineups[id]}:{})}) : matchPlaceholder(match,i));
       const summary=element('summary','fixture-summary');
+      if(isFeatured)setMapBackdrop(summary,match.map);
       const meta=element('span','fixture-topline');
       const mapBadge=element('span','fixture-map',match.map || (current.teamSize===1?'Choose map in server':'Map not assigned'));
       setMapBackdrop(mapBadge,match.map);
-      meta.append(element('span','fixture-number','MATCH '+String(index+1).padStart(2,'0')),mapBadge,element('span','fixture-status',match.result?'PLAYED':match.id===current.activeMatchId?'PLAYING NOW':next?'UP NEXT':ready?'SCHEDULED':'AWAITING TEAMS'));
+      meta.append(element('span','fixture-number','MATCH '+String(index+1).padStart(2,'0')),mapBadge,element('span','fixture-status',match.result?'PLAYED':playing?'PLAYING NOW':isFeatured?'UP NEXT':ready?'SCHEDULED':'AWAITING TEAMS'));
       const versus=element('span','fixture-versus');
       match.ids.forEach((id,i)=>{
         if(i===1)versus.append(element('span','fixture-score',match.result?match.result.scores.join(' : '):'VS'));
@@ -615,7 +633,7 @@ if (typeof document !== 'undefined') (() => {
         identity.append(element('span','fixture-team',names[i]));versus.append(identity);
       });
       summary.append(meta,versus);
-      if(match.seriesGame)summary.append(element('span','fixture-edit-hint','Grand final · Game '+match.seriesGame+' · Best of three · First to two wins')); 
+      if(match.seriesGame)summary.append(element('span','fixture-edit-hint','Grand final · Game '+match.seriesGame+' · Best of three · First to two wins'));
       summary.append(element('span','fixture-edit-hint',!ready?'Waiting for qualification':token?(current.teamSize===1?(match.result?'Edit score · stats calculated automatically':'Enter score · stats calculated automatically'):(match.result?'Edit score & player stats':'Enter score & player stats')):'View match details'));
       if(match.result?.tiebreakWinner)summary.append(element('span','fixture-decision','Tiebreak winner: '+teamDisplayLabel(state.teams.get(match.result.tiebreakWinner))));
       else if(match.result && match.result.scores[0]===match.result.scores[1])summary.append(element('span','fixture-decision','DRAW'));
@@ -667,7 +685,7 @@ if (typeof document !== 'undefined') (() => {
       if(inputs.length)form.append(stats);
       const note = element('p','form-note'); note.setAttribute('role','status');
       const update = element('button','', match.result?'Save corrected result':'Save match result'); update.type='submit';
-      const actions=element('div','result-actions');actions.append(update,element('p','entry-help',token?'Saves the score and any entered stats, then updates standings and knockout places.':'Connect through the settings cog to enter and save results.'));form.append(actions,note);
+      const actions=element('div','result-actions');actions.append(update,element('p','entry-help',token?'Saves the score and any entered stats, then updates standings and knockout places.':'Open Organiser settings to enter and save results.'));form.append(actions,note);
       form.onsubmit = async event => {
         event.preventDefault(); if (!token || busy) return;
         try {

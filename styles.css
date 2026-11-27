@@ -470,6 +470,56 @@ body.waiting-screen-open{overflow:hidden}
   padding:11px 20px;
   font-size:17px;
 }
+
+/* Featured fixture and the compact schedule. */
+body:has(#tab-fixtures[aria-selected=true]) :is(.intro,.overview){display:none}
+.schedule-section>#schedule-rules{margin:22px 0 0}
+.schedule-section .fixture-section+.fixture-section{margin-top:24px}
+.fixture-feature>.fixture-heading{color:var(--accent)}
+.fixture-feature .scheduled-match{border-left:1px solid var(--border);border-top:3px solid var(--accent)}
+.fixture-feature .fixture-summary{
+  background:linear-gradient(180deg,#30271c,#161920);
+}
+.fixture-feature .fixture-summary.has-map-image{
+  background:linear-gradient(180deg,#15171bdf,#251b0790 45%,#13171dec),var(--map-image) center 54%/cover;
+}
+.fixture-feature .fixture-topline{
+  background:#14171dc7;
+  padding:12px clamp(10px,3vw,24px);
+}
+.fixture-feature .fixture-map{
+  background:#1b1816;
+  color:#ffd28a;
+  font-size:12px;
+}
+.fixture-feature .fixture-versus{
+  margin:clamp(10px,3vw,20px) clamp(10px,3vw,24px) 12px;
+  padding:clamp(10px,2vw,18px);
+  border:1px solid #56606b;
+  background:#11151ce8;
+}
+.fixture-feature .fixture-team{font:700 clamp(16px,3vw,29px)/1.05 var(--ui)}
+.fixture-feature .fixture-score{font-size:clamp(18px,4vw,32px)}
+.fixture-feature .fixture-edit-hint{color:#ffe0a4;font:700 13px var(--mono)}
+.fixture-results{
+  border:1px solid var(--border);
+  background:#191d25;
+}
+.fixture-results>.fixture-heading{
+  margin:0;
+  padding:12px 16px;
+  cursor:pointer;
+}
+.fixture-results>.fixture-list{padding:0 12px}
+@media(max-width:600px){
+  .fixture-feature .fixture-side,.fixture-feature .fixture-side:last-child{
+    flex-direction:column;
+    gap:5px;
+    text-align:center;
+  }
+  .fixture-feature .fixture-score{min-width:42px}
+  .fixture-feature .fixture-topline{gap:6px}
+}
 .single-match-squads .single-squad{border-top-color:var(--accent)}
 .single-match-squads .single-squad:nth-child(2){border-top-color:var(--blue)}
 .single-squad-heading h3{font-size:clamp(22px,3vw,28px)}
