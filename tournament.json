@@ -85,7 +85,7 @@
       ],
       "result": null,
       "label": "Single Game · 5v5",
-      "map": "Vertigo"
+      "map": "Nuke"
     }
   ],
   "history": [],
@@ -147,7 +147,7 @@
     "Italy",
     "Cobblestone"
   ],
-  "mapMethod": "case",
+  "mapMethod": "wheel",
   "mapVeto": [],
   "discordEventId": "7dcc8ee3-dbda-4aed-ba9d-a980e551cb5e"
 }
