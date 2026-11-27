@@ -1,8 +1,1724 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-10-15T12:15:31.262Z",
+  "updatedAt": "2026-11-20T16:08:38.577Z",
   "games": [
+    {
+      "id": "1-d2425dc0-40c8-41fe-bf8b-8401461be0de:0",
+      "matchId": "1-d2425dc0-40c8-41fe-bf8b-8401461be0de",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1795185484,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-5744cf02-53a9-44c8-a5ee-500cb3037810:0",
+      "matchId": "1-5744cf02-53a9-44c8-a5ee-500cb3037810",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1795185068,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 4,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 4,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 13,
+              "deaths": 4,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-be1d6512-fba6-4dc4-bef5-165d623def0e:0",
+      "matchId": "1-be1d6512-fba6-4dc4-bef5-165d623def0e",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1795184805,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 5,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 5,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 13,
+              "deaths": 5,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-ab8abd1e-09a1-444e-a23b-aed5469f7a62:0",
+      "matchId": "1-ab8abd1e-09a1-444e-a23b-aed5469f7a62",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1795104380,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 16,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 16,
+              "deaths": 14,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 14,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 14,
+              "deaths": 16,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-e91ff868-62a0-4638-b62c-a2a30ede7bbf:0",
+      "matchId": "1-e91ff868-62a0-4638-b62c-a2a30ede7bbf",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1795103835,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 5,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 5,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 13,
+              "deaths": 5,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-639ea67c-c78f-4910-a26f-16814a71d87f:0",
+      "matchId": "1-639ea67c-c78f-4910-a26f-16814a71d87f",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1794255906,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 16,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 16,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 13,
+              "deaths": 16,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-ecaa1b7d-8ae5-4eea-9fca-a031437646f4:0",
+      "matchId": "1-ecaa1b7d-8ae5-4eea-9fca-a031437646f4",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1794251251,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-cf9335ee-1bbd-4a7f-806d-baf88fad9d40:0",
+      "matchId": "1-cf9335ee-1bbd-4a7f-806d-baf88fad9d40",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1794250918,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-30aac123-e95a-4d93-8bf4-37f17d742123:0",
+      "matchId": "1-30aac123-e95a-4d93-8bf4-37f17d742123",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1794248471,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 8,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 5,
+              "deaths": 8,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 7,
+              "deaths": 5,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-e6d135c9-c399-4dc6-aa7a-b249416a0051:0",
+      "matchId": "1-e6d135c9-c399-4dc6-aa7a-b249416a0051",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1794248087,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 4,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 4,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 13,
+              "deaths": 4,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-673e3948-9bcf-4940-bb56-2fa9a173a839:0",
+      "matchId": "1-673e3948-9bcf-4940-bb56-2fa9a173a839",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793308434,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "sisoh",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-9e575955-9883-44c2-a01b-157da66765e5:0",
+      "matchId": "1-9e575955-9883-44c2-a01b-157da66765e5",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793307990,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 16,
+          "players": [
+            {
+              "name": "sisoh",
+              "kills": 16,
+              "deaths": 14,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 14,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 14,
+              "deaths": 16,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-14e00876-2bb4-45e5-aa63-e90aed889be6:0",
+      "matchId": "1-14e00876-2bb4-45e5-aa63-e90aed889be6",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793307330,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 5,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 5,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "ECK5",
+              "kills": 13,
+              "deaths": 5,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-f544372e-c119-404c-9763-f8f7e0590dc4:0",
+      "matchId": "1-f544372e-c119-404c-9763-f8f7e0590dc4",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793306951,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "ECK5",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-38cdc861-e0fb-4e3c-aa41-9a0819a859ed:0",
+      "matchId": "1-38cdc861-e0fb-4e3c-aa41-9a0819a859ed",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1793306522,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 10,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 10,
+          "players": [
+            {
+              "name": "Pink-e",
+              "kills": 10,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-b0f9c618-08ed-4c37-8837-91f09e64fc07:0",
+      "matchId": "1-b0f9c618-08ed-4c37-8837-91f09e64fc07",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793306098,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 6,
+          "players": [
+            {
+              "name": "sisoh",
+              "kills": 6,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Pink-e",
+              "kills": 13,
+              "deaths": 6,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-94c65b84-dd4a-447f-b2e1-57cfceb3b3ab:0",
+      "matchId": "1-94c65b84-dd4a-447f-b2e1-57cfceb3b3ab",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793305680,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 8,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 8,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "ECK5",
+              "kills": 13,
+              "deaths": 8,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-bb9fa274-6a7b-41e5-9aa1-376f162b4ca2:0",
+      "matchId": "1-bb9fa274-6a7b-41e5-9aa1-376f162b4ca2",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793305526,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 4,
+          "players": [
+            {
+              "name": "justcarrypls",
+              "kills": 4,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Pink-e",
+              "kills": 13,
+              "deaths": 4,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-e6bdec56-5b42-4a27-bbd7-0cd81883e73c:0",
+      "matchId": "1-e6bdec56-5b42-4a27-bbd7-0cd81883e73c",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793305573,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "sisoh",
+              "kills": 13,
+              "deaths": 7,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 7,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 7,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-f333a2ff-cb12-4eb1-9dc5-ccf2c4503709:0",
+      "matchId": "1-f333a2ff-cb12-4eb1-9dc5-ccf2c4503709",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793305078,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "sisoh",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-8e57a5c0-3660-4aae-b09c-cc85adb59d20:0",
+      "matchId": "1-8e57a5c0-3660-4aae-b09c-cc85adb59d20",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793304660,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 6,
+          "players": [
+            {
+              "name": "sisoh",
+              "kills": 6,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 6,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-4620f512-a69f-4078-adf9-9a3b1252841b:0",
+      "matchId": "1-4620f512-a69f-4078-adf9-9a3b1252841b",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1793304662,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "justcarrypls",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "ECK5",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-6d7a0da6-ea60-4fde-960e-b79ef9876a92:0",
+      "matchId": "1-6d7a0da6-ea60-4fde-960e-b79ef9876a92",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793304040,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 10,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 10,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Pink-e",
+              "kills": 13,
+              "deaths": 10,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-b5ab9234-4a55-4662-9b55-5605de440307:0",
+      "matchId": "1-b5ab9234-4a55-4662-9b55-5605de440307",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793304199,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 14,
+          "players": [
+            {
+              "name": "hqns71",
+              "kills": 14,
+              "deaths": 16,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 16,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 16,
+              "deaths": 14,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-617b39b0-681c-4e8f-a663-a9baceda332c:0",
+      "matchId": "1-617b39b0-681c-4e8f-a663-a9baceda332c",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793303499,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 13,
+              "deaths": 10,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 10,
+          "players": [
+            {
+              "name": "GR4YZEE",
+              "kills": 10,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-ca685418-0ea9-43c7-8286-53ea39590b21:0",
+      "matchId": "1-ca685418-0ea9-43c7-8286-53ea39590b21",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793303394,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 14,
+          "players": [
+            {
+              "name": "MagicM0ri",
+              "kills": 14,
+              "deaths": 16,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 16,
+          "players": [
+            {
+              "name": "Pink-e",
+              "kills": 16,
+              "deaths": 14,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-169629d2-9d38-45d8-8364-75aeba13b3d9:0",
+      "matchId": "1-169629d2-9d38-45d8-8364-75aeba13b3d9",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793303358,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "hqns71",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "cantlon_",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-62e352af-c126-468a-9900-bc237023c0b9:0",
+      "matchId": "1-62e352af-c126-468a-9900-bc237023c0b9",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793302518,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 4,
+          "players": [
+            {
+              "name": "cantlon_",
+              "kills": 4,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 4,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-800cb14f-ee90-4e59-baa4-1f6ee610dece:0",
+      "matchId": "1-800cb14f-ee90-4e59-baa4-1f6ee610dece",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793302633,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "sisoh",
+              "kills": 13,
+              "deaths": 11,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 11,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 11,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-19a4a369-e1e1-4f20-a781-139440b684a0:0",
+      "matchId": "1-19a4a369-e1e1-4f20-a781-139440b684a0",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793302626,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 5,
+          "players": [
+            {
+              "name": "Pink-e",
+              "kills": 5,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "ECK5",
+              "kills": 13,
+              "deaths": 5,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-03e500e7-a842-42ec-8bf5-888101997922:0",
+      "matchId": "1-03e500e7-a842-42ec-8bf5-888101997922",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793302570,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "GR4YZEE",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "justcarrypls",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-be6ccfb4-57ec-4432-8501-bb5a08eccd56:0",
+      "matchId": "1-be6ccfb4-57ec-4432-8501-bb5a08eccd56",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1793301856,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 4,
+          "players": [
+            {
+              "name": "Millowv",
+              "kills": 4,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 4,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-cb0a7745-9c71-41bf-81d8-cc4e4f237539:0",
+      "matchId": "1-cb0a7745-9c71-41bf-81d8-cc4e4f237539",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1793301947,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "sisoh",
+              "kills": 13,
+              "deaths": 11,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 11,
+          "players": [
+            {
+              "name": "MagicM0ri",
+              "kills": 11,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-04b9cb2f-3e48-4e93-abf7-892ba103368e:0",
+      "matchId": "1-04b9cb2f-3e48-4e93-abf7-892ba103368e",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793301396,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 3,
+          "players": [
+            {
+              "name": "hqns71",
+              "kills": 3,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "justcarrypls",
+              "kills": 13,
+              "deaths": 3,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-116faee2-6e4d-4167-9002-f3e8449599da:0",
+      "matchId": "1-116faee2-6e4d-4167-9002-f3e8449599da",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793298274,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 7,
+          "players": [
+            {
+              "name": "cantlon_",
+              "kills": 7,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 7,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-e904da8d-8180-4962-a8ac-a10b42020fcc:0",
+      "matchId": "1-e904da8d-8180-4962-a8ac-a10b42020fcc",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1793297919,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 7,
+          "players": [
+            {
+              "name": "cantlon_",
+              "kills": 7,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 7,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-ffc77fb6-22ab-48d7-ac8a-edd7dc38472f:0",
+      "matchId": "1-ffc77fb6-22ab-48d7-ac8a-edd7dc38472f",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793296279,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 8,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 8,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 8,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-7b15d955-832d-4489-a227-191e997407e9:0",
+      "matchId": "1-7b15d955-832d-4489-a227-191e997407e9",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793295733,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 13,
+              "deaths": 11,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 11,
+          "players": [
+            {
+              "name": "justcarrypls",
+              "kills": 11,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-ab392379-0151-49c0-8c4f-a14e01cf5818:0",
+      "matchId": "1-ab392379-0151-49c0-8c4f-a14e01cf5818",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793295098,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 9,
+          "players": [
+            {
+              "name": "GR4YZEE",
+              "kills": 9,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "justcarrypls",
+              "kills": 13,
+              "deaths": 9,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-6b3f27c2-a733-426a-a152-28078eca0cc0:0",
+      "matchId": "1-6b3f27c2-a733-426a-a152-28078eca0cc0",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1793295037,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 11,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 11,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 11,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-66fdd254-4ef3-4347-8d78-00a02cd97605:0",
+      "matchId": "1-66fdd254-4ef3-4347-8d78-00a02cd97605",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793294598,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 19,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 19,
+              "deaths": 17,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 17,
+          "players": [
+            {
+              "name": "justcarrypls",
+              "kills": 17,
+              "deaths": 19,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c:0",
+      "matchId": "1-f5a0c872-1e56-4f63-8b02-965b73798d4c",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1793294197,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 4,
+          "players": [
+            {
+              "name": "GR4YZEE",
+              "kills": 4,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 13,
+              "deaths": 4,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-e4653beb-3c10-4e86-8a2b-9e67eea1b115:0",
+      "matchId": "1-e4653beb-3c10-4e86-8a2b-9e67eea1b115",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793293856,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 13,
+              "deaths": 3,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 3,
+          "players": [
+            {
+              "name": "SRC",
+              "kills": 3,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-5a3a057a-665f-4eea-834a-b1d89ca0f1f4:0",
+      "matchId": "1-5a3a057a-665f-4eea-834a-b1d89ca0f1f4",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1793293914,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "GR4YZEE",
+              "kills": 13,
+              "deaths": 11,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 11,
+          "players": [
+            {
+              "name": "justcarrypls",
+              "kills": 11,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-9226c452-a0d5-46e1-9c69-c226de0a3373:0",
+      "matchId": "1-9226c452-a0d5-46e1-9c69-c226de0a3373",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1793211002,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 11,
+          "players": [
+            {
+              "name": "GR4YZEE",
+              "kills": 11,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "hulions123",
+              "kills": 13,
+              "deaths": 11,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-c24f60e7-46c2-4380-97f0-a8a34116bc5a:0",
+      "matchId": "1-c24f60e7-46c2-4380-97f0-a8a34116bc5a",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1793210106,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "hulions123",
+              "kills": 13,
+              "deaths": 4,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 4,
+          "players": [
+            {
+              "name": "cantlon_",
+              "kills": 4,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-9004ee45-8176-469d-9b6c-b9d00233fccc:0",
+      "matchId": "1-9004ee45-8176-469d-9b6c-b9d00233fccc",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1792359411,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 4,
+          "players": [
+            {
+              "name": "GR4YZEE",
+              "kills": 4,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "OhNeil",
+              "kills": 13,
+              "deaths": 4,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-29b21d43-f2d0-4bd3-b8f3-237ba52c07ab:0",
+      "matchId": "1-29b21d43-f2d0-4bd3-b8f3-237ba52c07ab",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1792261768,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 7,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 7,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "Pink-e",
+              "kills": 13,
+              "deaths": 7,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-823f4e02-68ee-4c0d-887b-b838d4f80af5:0",
+      "matchId": "1-823f4e02-68ee-4c0d-887b-b838d4f80af5",
+      "provider": "faceit",
+      "map": "awp_orange",
+      "finishedAt": 1792188407,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 14,
+          "players": [
+            {
+              "name": "GR4YZEE",
+              "kills": 14,
+              "deaths": 16,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 16,
+          "players": [
+            {
+              "name": "KzyK1",
+              "kills": 16,
+              "deaths": 14,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-90d3a8e8-08cd-4153-bde2-2db3540f1d9f:0",
+      "matchId": "1-90d3a8e8-08cd-4153-bde2-2db3540f1d9f",
+      "provider": "faceit",
+      "map": "awp_orange",
+      "finishedAt": 1792188074,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 3,
+          "players": [
+            {
+              "name": "cantlon_",
+              "kills": 3,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "br4n_",
+              "kills": 13,
+              "deaths": 3,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-f9eb2211-84fd-4f87-8c5a-ab15656b156c:0",
+      "matchId": "1-f9eb2211-84fd-4f87-8c5a-ab15656b156c",
+      "provider": "faceit",
+      "map": "aim_redline_faceit",
+      "finishedAt": 1792187533,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 4,
+          "players": [
+            {
+              "name": "cantlon_",
+              "kills": 4,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "br4n_",
+              "kills": 13,
+              "deaths": 4,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1-07a72c2b-a663-42bd-97c7-e27edaf2779d:0",
+      "matchId": "1-07a72c2b-a663-42bd-97c7-e27edaf2779d",
+      "provider": "faceit",
+      "map": "fistmap",
+      "finishedAt": 1792187500,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 7,
+          "players": [
+            {
+              "name": "GR4YZEE",
+              "kills": 7,
+              "deaths": 13,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 13,
+          "players": [
+            {
+              "name": "KzyK1",
+              "kills": 13,
+              "deaths": 7,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-43c98adb-67fe-4793-813a-40a475078391:0",
       "matchId": "1-43c98adb-67fe-4793-813a-40a475078391",

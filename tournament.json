@@ -13,7 +13,7 @@
     "Part",
     "Sam"
   ],
-  "name": "playtest2",
+  "name": "custom 5v5",
   "teams": [
     {
       "id": "t1",
@@ -21,16 +21,24 @@
       "tag": "01",
       "players": [
         {
-          "id": "p6",
-          "name": "Coach Goro"
+          "id": "p4",
+          "name": "Dan"
         },
         {
-          "id": "p2",
-          "name": "Spongoat"
+          "id": "p8",
+          "name": "finesse"
         },
         {
           "id": "p3",
-          "name": "Grayzee"
+          "name": "cantlon"
+        },
+        {
+          "id": "p7",
+          "name": "Ramsten"
+        },
+        {
+          "id": "p2",
+          "name": "jpohan"
         }
       ]
     },
@@ -40,16 +48,24 @@
       "tag": "02",
       "players": [
         {
-          "id": "p4",
-          "name": "lukinss"
+          "id": "p9",
+          "name": "little german boy"
         },
         {
           "id": "p5",
-          "name": "Aatori"
+          "name": "sAM]"
         },
         {
           "id": "p1",
-          "name": "LilRibe"
+          "name": "Mootmanden"
+        },
+        {
+          "id": "p10",
+          "name": "Aatori"
+        },
+        {
+          "id": "p6",
+          "name": "FAROESE BEAST"
         }
       ]
     }
@@ -68,31 +84,53 @@
         }
       ],
       "result": null,
-      "label": "Single Game · 3v3",
-      "map": "Mirage"
+      "label": "Single Game · 5v5",
+      "map": "Cache"
     }
   ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
-    "banner": "playtest2",
+    "banner": "custom 5v5",
     "registrationTitle": "Register to play",
     "registrationDescription": "Enter your player name to register for the next 1v1 tournament.\n\nDate: Thursday 29th October \nTime: 7pm GMT"
   },
-  "registrationEnabled": true,
+  "registrationEnabled": false,
   "format": "single",
   "qualifiersPerGroup": 2,
-  "teamSize": 3,
-  "mode": "trios",
+  "teamSize": 5,
+  "mode": "squads",
   "serverAddress": "",
-  "gameProvider": "faceit",
+  "gameProvider": "manual",
   "leetifyProfiles": {
     "cantlon": "https://leetify.com/app/profile/76561198169191946",
     "grayzee": "https://leetify.com/app/profile/76561197962400947",
     "don": "https://leetify.com/app/profile/76561198103763246",
     "aatori": "https://leetify.com/app/profile/76561198320090889",
     "lilribe": "https://leetify.com/app/profile/76561198017635867",
-    "omnii": "https://leetify.com/app/profile/76561199090504360"
+    "omnii": "https://leetify.com/app/profile/76561199090504360",
+    "sam": "https://leetify.com/app/profile/76561198058119445",
+    "goro": "https://leetify.com/app/profile/76561198754188705",
+    "froppo": "https://leetify.com/app/profile/76561199060079957",
+    "finesse": "https://leetify.com/app/profile/76561198083447482"
+  },
+  "importAliases": {
+    "faceit": {
+      "lukinss": "Lukinss",
+      "aatori": "Aatori",
+      "hulions123": "goro",
+      "cantlon_": "cantlon",
+      "gr4yzee": "Grayzee",
+      "src": "sAM",
+      "froppo": "Froppo",
+      "justcarrypls": "finesse",
+      "hqns71": "hans",
+      "millowv": "Millow",
+      "sisoh": "zZz",
+      "magicm0ri": "///Magic///",
+      "pink-e": "Dan",
+      "eck5": "ECKS"
+    }
   },
   "mapPool": [
     "Mirage",
@@ -106,15 +144,59 @@
     "Train",
     "Overpass",
     "Office",
-    "Italy"
+    "Italy",
+    "Cobblestone"
   ],
-  "importAliases": {
-    "faceit": {
-      "lukinss": "Lukinss",
-      "aatori": "Aatori"
+  "mapMethod": "veto",
+  "mapVeto": [
+    {
+      "teamId": "t1",
+      "map": "Dust2"
+    },
+    {
+      "teamId": "t2",
+      "map": "Inferno"
+    },
+    {
+      "teamId": "t1",
+      "map": "Vertigo"
+    },
+    {
+      "teamId": "t2",
+      "map": "Italy"
+    },
+    {
+      "teamId": "t1",
+      "map": "Office"
+    },
+    {
+      "teamId": "t2",
+      "map": "Anubis"
+    },
+    {
+      "teamId": "t1",
+      "map": "Mirage"
+    },
+    {
+      "teamId": "t2",
+      "map": "Cobblestone"
+    },
+    {
+      "teamId": "t1",
+      "map": "Overpass"
+    },
+    {
+      "teamId": "t2",
+      "map": "Ancient"
+    },
+    {
+      "teamId": "t1",
+      "map": "Nuke"
+    },
+    {
+      "teamId": "t2",
+      "map": "Train"
     }
-  },
-  "mapMethod": "case",
-  "mapVeto": [],
-  "discordEventId": "339b874f-6a09-4592-8f47-f794132251e4"
+  ],
+  "discordEventId": "7dcc8ee3-dbda-4aed-ba9d-a980e551cb5e"
 }

@@ -2,52 +2,103 @@
   "version": 1,
   "events": [
     {
-      "id": "c0da7ca3-0b0f-417c-91ec-919f52ec1702",
-      "title": "2v2",
-      "players": [
-        "Grayzee",
-        "cantlon",
-        "Aatori",
-        "Spongoat"
-      ],
-      "publishedAt": "2026-10-14T18:49:16.331Z"
-    },
-    {
-      "id": "12c1f007-7fad-4dd5-a657-aebaf9102110",
-      "title": "custom game",
+      "id": "e3c5ba92-b515-4371-85e4-3a095f63c52c",
+      "title": "custom 5v5",
       "players": [
         "cantlon",
-        "lukinss",
-        "Grayzee",
-        "LilRibe",
-        "Aatori",
-        "Coach Goro"
+        "Mootmanden",
+        "Spongoat",
+        "Ramsten",
+        "coach",
+        "sAM",
+        "finesse",
+        "little german boy",
+        "szns",
+        "jpohan"
       ],
-      "publishedAt": "2026-10-14T20:46:03.989Z"
+      "publishedAt": "2026-11-26T18:41:50.354Z"
     },
     {
-      "id": "339b874f-6a09-4592-8f47-f794132251e4",
-      "title": "playtest2",
+      "id": "7dcc8ee3-dbda-4aed-ba9d-a980e551cb5e",
+      "title": "custom 5v5",
       "players": [
-        "LilRibe",
-        "Spongoat",
-        "Grayzee",
-        "lukinss",
-        "Aatori",
-        "Coach Goro"
+        "Mootmanden",
+        "jpohan",
+        "cantlon",
+        "Dan",
+        "sAM]",
+        "FAROESE BEAST",
+        "Ramsten",
+        "finesse",
+        "little german boy",
+        "Aatori"
       ],
-      "publishedAt": "2026-10-14T20:54:30.117Z"
+      "publishedAt": "2026-11-26T19:23:26.058Z",
+      "mapVoteRequest": {
+        "id": "a1f9112b-fc08-49b9-8553-c29053f34c76",
+        "mode": "player-vote",
+        "maps": [
+          "Mirage",
+          "Dust2",
+          "Inferno",
+          "Nuke",
+          "Ancient",
+          "Anubis",
+          "Vertigo",
+          "Cache",
+          "Train",
+          "Overpass",
+          "Office",
+          "Italy",
+          "Cobblestone"
+        ],
+        "closesAt": 1795779376178,
+        "submitted": [],
+        "result": {
+          "counts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "finalists": [],
+          "coinFlip": false
+        }
+      }
     },
     {
-      "id": "201e9b2c-92ee-4828-b066-2ef2c40236a2",
-      "title": "2v2",
+      "id": "28c32de8-c79e-4fb2-90fe-6f8e843978d8",
+      "title": "5v5 v3",
       "players": [
-        "Grayzee",
-        "OMNII-GODZ",
-        "Spongoat",
-        "gorogay"
+        "cantlon",
+        "Ramsten",
+        "Mootmanden",
+        "jpohan",
+        "dingy boater",
+        "finesse",
+        "sAM dropped froppo",
+        "Sam is a bitch",
+        "Dan",
+        "Aatori"
       ],
-      "publishedAt": "2026-10-15T10:13:41.678Z"
+      "publishedAt": "2026-11-26T20:02:53.394Z"
     }
-  ]
+  ],
+  "faceitRefreshRequest": {
+    "id": "3e4ab04b-2e70-4390-87e7-2c0d71a27ca8",
+    "requestedAt": "2026-11-27T10:00:01.692Z"
+  },
+  "faceitRefreshResult": {
+    "id": "3e4ab04b-2e70-4390-87e7-2c0d71a27ca8",
+    "completedAt": "2026-11-27T10:00:22.031Z"
+  }
 }
