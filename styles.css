@@ -552,12 +552,65 @@ body:has(#tab-fixtures[aria-selected=true]) :is(.intro,.overview){display:none}
 @media(max-width:600px){.map-options:has(.map-picker-card){grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 /* Player comparison and archive cards. */
-body:has(:is(#tab-stats,#tab-history)[aria-selected=true]) :is(.intro,.overview){display:none}
-.player-page-heading h2,#history-heading{
+body:has(:is(#tab-stats,#tab-history,#tab-team-setup,#tab-fixture-import,#tab-manage-players)[aria-selected=true]) :is(.intro,.overview){display:none}
+.player-page-heading h2,#history-heading,.admin-page-heading h2{
   margin:0 0 18px;
   font:700 clamp(25px,4vw,40px)/1 var(--ui);
   text-transform:uppercase;
 }
+
+/* Organiser workspace */
+#panel-team-setup>.organiser{
+  padding:0;
+  border:0;
+  background:none;
+}
+#panel-team-setup .organiser-body{padding:0}
+#draw-panel>.section-heading{margin-bottom:12px}
+#draw-panel>.setup-steps{
+  gap:4px;
+  padding:5px;
+  border:1px solid var(--border);
+  background:#171a21;
+}
+#draw-panel>.setup-steps button{
+  margin:0;
+  border:0;
+  border-bottom:2px solid transparent;
+  background:transparent;
+}
+#draw-panel>.setup-steps button[aria-current=step]{
+  border-bottom-color:var(--accent);
+  background:#ff9b0114;
+}
+#draw-panel>.setup-steps button span{border-radius:0;font-size:13px}
+#draw-panel>.setup-steps + p + p{color:var(--muted);margin:8px 0 0}
+#panel-team-setup .setup-stage .setup-card,
+#fixture-import-centre>.import-centre,
+#player-links>.name-link-manager{
+  margin-top:0;
+  padding:clamp(14px,2.5vw,24px);
+  background:#191d25;
+}
+#panel-team-setup .setup-stage:not(#setup-stage-4),
+#panel-team-setup .setup-maintenance{max-width:none}
+#panel-team-setup .setup-stage fieldset{background:#151820}
+#fixture-import-centre .fixture-import-tabs,
+#player-links .player-link-tabs{
+  margin:0 0 16px;
+  background:#151820;
+}
+#player-links .player-link-tabs{margin-top:16px}
+#fixture-import-centre :is(.faceit-import-panel,.leetify-import),
+#player-links :is(#player-links-panel-faceit,#player-links-panel-leetify){
+  min-width:0;
+  padding:clamp(12px,2vw,20px);
+  border:1px solid var(--border);
+  background:#151820;
+}
+#fixture-import-centre :is(.faceit-import-panel,.leetify-import)>h3,
+#player-links .leetify-profile-links>h4{margin-top:0;color:var(--accent)}
+#player-links>p:empty{display:none}
 #panel-stats :is(.stats-section,.career-section,.awards-section){
   margin:0 0 22px;
   padding:clamp(14px,2.5vw,24px);
