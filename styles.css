@@ -770,3 +770,40 @@ body:has(>.topbar~footer){
   flex-direction:column;
   min-height:100dvh;
 }
+
+.roster-rating-grid,.roster-reveal-board{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:14px;
+}
+.roster-rating{
+  min-width:0;
+  margin:0;
+  padding:10px;
+  border:1px solid var(--border);
+}
+.roster-rating legend{color:var(--text);font-weight:700;overflow-wrap:anywhere}
+.roster-rating-stars{display:grid;grid-template-columns:repeat(10,minmax(0,1fr))}
+.roster-rating-star{position:relative;text-align:center;cursor:pointer;color:#82909f}
+.roster-rating-star input[type=radio]{position:absolute;opacity:0;width:1px;height:1px;margin:0;padding:0}
+.roster-rating-star span{display:grid;place-items:center;min-height:36px;font-size:clamp(17px,3vw,25px)}
+.roster-rating-star:has(input:checked),
+.roster-rating-star:has(~ .roster-rating-star input:checked){color:var(--accent)}
+.roster-rating-star:has(input:focus-visible){outline:2px solid var(--blue);outline-offset:-2px}
+.roster-rating-value{color:var(--muted);font:700 13px var(--mono)}
+.rivalry-builder{display:grid;grid-template-columns:1fr 1fr auto;align-items:end;gap:10px}
+.rivalry-builder select,.rivalry-builder button{margin:4px 0 0}
+.rivalry-pairs{margin:12px 0;padding:0;list-style:none}
+.rivalry-pairs li{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 10px;border-bottom:1px solid var(--border);overflow-wrap:anywhere}
+.rivalry-pairs button{margin:0}
+.roster-reveal-team{padding:12px;border:1px solid var(--border);border-top:3px solid var(--accent);background:#11151c}
+.roster-reveal-team:last-child{border-top-color:var(--blue)}
+.roster-reveal-team h4{margin:0;font-size:19px}
+.roster-reveal-team ol{margin:8px 0 0;padding-inline-start:26px;overflow-wrap:anywhere}
+.roster-reveal-team li{padding-block:4px}
+#roster-reveal .setup-navigation{flex-wrap:wrap}
+.draw-balance-summary{padding:8px 12px;border-left:3px solid var(--accent);background:#ff9b0114;color:#ffe1a7;font-weight:700}
+@media(max-width:650px){
+  .roster-rating-grid,.rivalry-builder{grid-template-columns:1fr}
+}

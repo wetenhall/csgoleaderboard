@@ -5,6 +5,26 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const { resolveTournament } = require('./app.js');
 const { cupMode, cupFinal, completedCup, archiveCup, careerRecords, matchNight } = require('./extras.js');
+test('rivalry draw separates each pair and fills both rosters without duplicates',()=>{
+  const {rivalryRosters}=require('./game-night.js');
+  const players=Array.from({length:10},(_,i)=>({id:String(i)})),pairs=[['0','1'],['2','3']];
+  for(const coin of [0.25,0.75]){
+    const rosters=rivalryRosters(players,pairs,()=>coin);
+    assert.deepEqual(rosters.map(team=>team.length),[5,5]);
+    assert.equal(new Set(rosters.flat().map(player=>player.id)).size,10);
+    for(const pair of pairs)assert.ok(rosters.every(team=>team.filter(player=>pair.includes(player.id)).length===1));
+  }
+  assert.throws(()=>rivalryRosters(players,[['0','1'],['1','2']]),/one rivalry/);
+});
+test('balanced reveal finds the closest ten-star split and accepts five-star defaults',()=>{
+  const {balanceRosters}=require('./game-night.js');
+  const players=[10,10,10,1,1,1].map((rating,i)=>({id:String(i),rating}));
+  delete players[0].rating;
+  const teams=balanceRosters([{players:players.slice(0,3)},{players:players.slice(3)}],()=>.4,{defaultRating:5,maxRating:10});
+  const sums=teams.map(team=>team.players.reduce((total,player)=>total+(player.rating??5),0));
+  assert.equal(Math.abs(sums[0]-sums[1]),4);
+  assert.equal(new Set(teams.flatMap(team=>team.players.map(player=>player.id))).size,6);
+});
 test('new draws do not inherit another Discord event link and valid links survive validation',()=>{
   const {makeTournament,validateData,emptyTournament}=require('./manager.js');
   const players=Array.from({length:4},(_,i)=>({id:'p'+i,name:'Player '+i}));

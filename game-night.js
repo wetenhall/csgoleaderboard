@@ -20,22 +20,39 @@ function serverConnectionCommand(data,launch=false) {
   const password=connection.serverPassword;
   return launch?(password?'+password "'+password+'" ':'')+'+connect '+connection.serverAddress:'connect '+connection.serverAddress+(password?'; password "'+password+'"':'');
 }
-function balanceRosters(teams,random=Math.random) {
+function balanceRosters(teams,random=Math.random,{defaultRating=3,maxRating=5}={}) {
   const size=teams[0]?.players.length,players=teams.flatMap(t=>t.players);
   if(!size || teams.some(t=>t.players.length!==size))throw Error('Balance complete teams only.');
-  const rating=p=>p.rating ?? 3;
-  if(players.some(p=>!Number.isInteger(rating(p)) || rating(p)<1 || rating(p)>5))throw Error('Skill ratings must be whole numbers from 1 to 5.');
+  const rating=p=>p.rating ?? defaultRating;
+  if(players.some(p=>!Number.isInteger(rating(p)) || rating(p)<1 || rating(p)>maxRating))throw Error('Skill ratings must be whole numbers from 1 to '+maxRating+'.');
   const shuffled=players.map(p=>({p,key:random()})).sort((a,b)=>a.key-b.key).map(x=>x.p);
   let rosters;
   if(teams.length===2){
-    const total=players.reduce((sum,p)=>sum+rating(p),0);let best=Infinity,pick=[];
-    function choose(start,chosen,sum){if(chosen.length===size){const difference=Math.abs(total-2*sum);if(difference<best){best=difference;pick=[...chosen];}return;}for(let i=start;i<=shuffled.length-(size-chosen.length);i++)choose(i+1,[...chosen,i],sum+rating(shuffled[i]));}
+    const total=players.reduce((sum,p)=>sum+rating(p),0);let best=Infinity,pick=[],ties=0;
+    function choose(start,chosen,sum){if(chosen.length===size){const difference=Math.abs(total-2*sum);if(difference<best){best=difference;pick=[...chosen];ties=1;}else if(difference===best && random()<1/++ties)pick=[...chosen];return;}for(let i=start;i<=shuffled.length-(size-chosen.length);i++)choose(i+1,[...chosen,i],sum+rating(shuffled[i]));}
     choose(0,[],0);const indexes=new Set(pick);rosters=[shuffled.filter((p,i)=>indexes.has(i)),shuffled.filter((p,i)=>!indexes.has(i))];
   }else{
     rosters=teams.map(()=>[]);const totals=teams.map(()=>0);
     for(const player of shuffled.sort((a,b)=>rating(b)-rating(a))){const candidates=rosters.map((r,i)=>i).filter(i=>rosters[i].length<size).sort((a,b)=>totals[a]-totals[b] || rosters[a].length-rosters[b].length);const i=candidates[0];rosters[i].push(player);totals[i]+=rating(player);}
   }
   return teams.map((team,i)=>{const next={...team,players:rosters[i]};delete next.captainId;return next;});
+}
+function rivalryRosters(players,pairs,random=Math.random){
+  const size=players.length/2,byId=new Map(players.map(player=>[player.id,player]));
+  const rosters=[[],[]],paired=new Set();
+  if(!Number.isInteger(size) || size<2 || size>5 || byId.size!==players.length || !pairs.length)throw Error('Select two complete teams and at least one rivalry.');
+  for(const [first,second] of pairs){
+    if(first===second || !byId.has(first) || !byId.has(second) || paired.has(first) || paired.has(second))throw Error('Each player can be in one rivalry.');
+    paired.add(first);paired.add(second);
+    const side=random()<.5?0:1;
+    rosters[side].push(byId.get(first));rosters[1-side].push(byId.get(second));
+  }
+  const unpaired=players.filter(player=>!paired.has(player.id));
+  for(let i=unpaired.length-1;i>0;i--){
+    const j=Math.floor(random()*(i+1));[unpaired[i],unpaired[j]]=[unpaired[j],unpaired[i]];
+  }
+  rosters[0].push(...unpaired.slice(0,size-rosters[0].length));rosters[1].push(...unpaired.slice(size-rosters[1].length));
+  return rosters;
 }
 function swapDraftPlayers(teams,first,second){
   const next=structuredClone(teams),a=next.find(t=>t.players.some(p=>p.id===first)),b=next.find(t=>t.players.some(p=>p.id===second));
@@ -80,7 +97,110 @@ function openCaptainCase(state,index){
   next.cases[index].opened=true;next.cases[index].teamId=team.id;team.players.push(next.cases[index].player);next.turn++;
   return next;
 }
-if(typeof module!=='undefined')module.exports={validServerAddress,parseServerConnection,serverConnectionCommand,balanceRosters,swapDraftPlayers,discordMatchText,advanceMapVeto,manualRosters,createCaptainCases,openCaptainCase};
+if(typeof module!=='undefined')module.exports={validServerAddress,parseServerConnection,serverConnectionCommand,balanceRosters,rivalryRosters,swapDraftPlayers,discordMatchText,advanceMapVeto,manualRosters,createCaptainCases,openCaptainCase};
+
+function renderRosterReveal(root,mode,players,commit){
+  const balanced=mode==='balanced',title=balanced?'Balanced Reveal':'Rivalry Draw';
+  const ratings=new Map(players.map(player=>[player.id,5]));
+  const names=new Map(players.map(player=>[player.id,player.name]));
+  const pairs=[];
+  const button=(label,action,secondary=false)=>{
+    const control=element('button',secondary?'secondary':'',label);
+    control.type='button';control.onclick=action;
+    return control;
+  };
+  function setup(){
+    root.replaceChildren(element('h3','',title));
+    const status=element('p','rules');status.setAttribute('role','status');
+    const begin=button('Begin reveal',()=>{
+      try{
+        const size=players.length/2;
+        const rated=players.map(player=>({...player,rating:ratings.get(player.id)}));
+        const rosters=balanced
+          ? balanceRosters([{players:rated.slice(0,size)},{players:rated.slice(size)}],Math.random,{defaultRating:5,maxRating:10}).map(team=>team.players.map(player=>players.find(original=>original.id===player.id)))
+          : rivalryRosters(players,pairs);
+        reveal(rosters);
+      }catch(error){status.textContent=error.message;}
+    });
+    if(balanced){
+      root.append(element('p','rules','Rate each player from 1 to 10 stars. Everyone starts at 5.'));
+      const grid=element('div','roster-rating-grid');
+      players.forEach((player,index)=>{
+        const field=element('fieldset','roster-rating'),value=element('span','roster-rating-value',ratings.get(player.id)+' / 10');
+        const stars=element('div','roster-rating-stars');
+        field.append(element('legend','',player.name),stars,value);
+        for(let rating=1;rating<=10;rating++){
+          const label=element('label','roster-rating-star'),radio=element('input'),star=element('span','','★');
+          radio.type='radio';radio.name='roster-rating-'+index;radio.value=rating;radio.checked=ratings.get(player.id)===rating;
+          radio.setAttribute('aria-label',rating===1?'1 star':rating+' stars');star.ariaHidden='true';
+          radio.onchange=()=>{ratings.set(player.id,rating);value.textContent=rating+' / 10';};
+          label.append(radio,star);stars.append(label);
+        }
+        grid.append(field);
+      });
+      root.append(grid);
+    }else{
+      root.append(element('p','rules','Pair players you want on opposite teams. Unpaired players fill the remaining slots at random.'));
+      const builder=element('div','rivalry-builder'),list=element('ul','rivalry-pairs');
+      const picks=['First rival','Second rival'].map(label=>{
+        const field=element('label','',label),select=element('select');
+        field.append(select);builder.append(field);return select;
+      });
+      function refresh(){
+        const used=new Set(pairs.flat()),available=players.filter(player=>!used.has(player.id));
+        for(const pick of picks){
+          const blank=element('option','','Choose a player');blank.value='';
+          pick.replaceChildren(blank);
+          available.forEach(player=>{const option=element('option','',player.name);option.value=player.id;pick.append(option);});
+          pick.disabled=available.length<2;
+        }
+        add.disabled=true;begin.disabled=!pairs.length;
+        list.replaceChildren();
+        pairs.forEach(([first,second],index)=>{
+          const item=element('li'),remove=button('Remove',()=>{pairs.splice(index,1);refresh();picks[0].focus();},true);
+          remove.setAttribute('aria-label','Remove rivalry between '+names.get(first)+' and '+names.get(second));
+          item.append(element('strong','',names.get(first)+' vs '+names.get(second)),remove);list.append(item);
+        });
+      }
+      const add=button('Add rivalry',()=>{pairs.push(picks.map(pick=>pick.value));refresh();(picks[0].disabled?begin:picks[0]).focus();},true);
+      picks.forEach(pick=>{pick.onchange=()=>{add.disabled=picks.some(input=>!input.value) || picks[0].value===picks[1].value;};});
+      builder.append(add);root.append(builder,list);refresh();
+    }
+    root.append(status,begin);
+  }
+  function reveal(rosters){
+    root.replaceChildren(element('h3','',title));
+    const status=element('p','rules');status.setAttribute('role','status');
+    const board=element('div','roster-reveal-board');
+    const lists=rosters.map((_,index)=>{
+      const card=element('section','roster-reveal-team'),list=element('ol');
+      card.append(element('h4','',index===0?'Team 01':'Team 02'),list);
+      board.append(card);return list;
+    });
+    let count=0;
+    const total=rosters[0].length;
+    function show(to){
+      const first=count;
+      for(;count<to;count++)lists.forEach((list,index)=>list.append(element('li','player-arrives',rosters[index][count].name)));
+      const last=count-1;
+      status.textContent=first===last && !balanced && last<pairs.length
+        ? 'Rivalry revealed · '+rosters[0][last].name+' vs '+rosters[1][last].name
+        : count+' / '+total+' players revealed per team';
+      next.hidden=all.hidden=count===total;
+      finish.hidden=count!==total;
+    }
+    const actions=element('div','setup-navigation');
+    const next=button('Reveal next pair',()=>{show(count+1);if(next.hidden)finish.focus();});
+    const all=button('Reveal all',()=>{show(total);finish.focus();},true);
+    const finish=button('Continue to map selection',()=>{
+      try{commit(rosters,balanced?ratings:null,pairs);}
+      catch(error){status.textContent=error.message;}
+    });
+    actions.append(button(balanced?'Edit ratings':'Edit rivalries',()=>{setup();root.querySelector('input,select')?.focus();},true),all,next,finish);
+    root.append(status,board,actions);show(0);next.focus();
+  }
+  setup();
+}
 
 function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,setMap,getMaps,setMapMethod,beginRematch,notify}) {
   const $=id=>document.getElementById(id);
