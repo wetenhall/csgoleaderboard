@@ -1382,3 +1382,29 @@ button.secondary:not(.danger, .map-veto-options button):enabled:focus-visible {
 @keyframes broadcast-slide { from{opacity:0;transform:translateX(-35px)} to{opacity:1;transform:none} }
 @keyframes result-reveal { 0%,100%{opacity:0} 12%,88%{opacity:1} }
 .draw-stage .broadcast-lower-third { pointer-events:none; z-index:4; }
+
+.fullscreen-fallback .draw-team.on-the-clock{position:relative}
+.fullscreen-fallback .draw-team.on-the-clock::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  border:2px solid var(--team-colour);border-top-width:5px;
+}
+@media(prefers-reduced-motion:no-preference){
+  .fullscreen-fallback .on-the-clock::after{animation:draft-clock 1.6s ease-in-out infinite alternate}
+  .fullscreen-fallback:not(.map-selection-stage) .player-reveal.revealed,
+  .fullscreen-fallback .captain-case.pick-source{animation:pick-outline 360ms ease-out}
+  .fullscreen-fallback .draft-slot.player-arrives{
+    animation:roster-handoff 1.5s linear 200ms both;
+    background-image:linear-gradient(105deg,transparent 35%,color-mix(in srgb,var(--team-colour) 55%,transparent) 50%,transparent 65%);
+    background-size:240% 100%;background-repeat:no-repeat;
+  }
+}
+@keyframes draft-clock{
+  from{opacity:.48}
+  to{opacity:1;box-shadow:inset 0 0 14px color-mix(in srgb,var(--team-colour) 35%,transparent),0 0 10px color-mix(in srgb,var(--team-colour) 55%,transparent)}
+}
+@keyframes pick-outline{
+  from{box-shadow:inset 0 0 0 3px var(--pick-colour)} to{box-shadow:inset 0 0 0 1px transparent}
+}
+@keyframes roster-handoff{
+  from{background-position:100% center} to{background-position:0% center}
+}

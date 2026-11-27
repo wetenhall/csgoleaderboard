@@ -1056,6 +1056,8 @@ if (typeof document !== 'undefined') (() => {
       groups.forEach((slots,i)=>{
         const members=slots.map(index=>selected[index]),complete=members.every(Boolean);
         const card=element('div','draw-team'+(complete?' team-complete':'')+(members.some(p=>p?.id===latestId)?' team-flash':''));
+        card.classList.toggle('on-the-clock',remaining.length>0 && slots.includes(selected.length));
+        if(members.some(p=>p?.id===latestId))$('draw-stage').style.setProperty('--pick-colour',teamColours[i]);
         card.style.setProperty('--team-colour',teamColours[i]);card.append(element('h3','','Group '+String.fromCharCode(65+i)));
         members.forEach((player,j)=>{
           const slot=element('div','draft-slot'+(player?' filled':'')+(player?.id===latestId?' player-arrives':''));
@@ -1065,7 +1067,8 @@ if (typeof document !== 'undefined') (() => {
       });
       return;
     }
-    $('draw-progress-label').textContent=total?selected.length+' of '+total+' players selected · '+(remaining.length?'Next: Team '+String(captainDraft?captainDraft.turn%2+1:size===5?selected.length%(total/size)+1:Math.floor(selected.length/size)+1).padStart(2,'0'):'All teams complete'):'Load players to start';
+    const nextTeam=captainDraft?captainDraft.turn%2:size===5?selected.length%(total/size):Math.floor(selected.length/size);
+    $('draw-progress-label').textContent=total?selected.length+' of '+total+' players selected · '+(remaining.length?'Next: Team '+String(nextTeam+1).padStart(2,'0'):'All teams complete'):'Load players to start';
     const drawnTeams=draw?draw.teams.map(t=>t.players):captainDraft?captainDraft.teams.map(t=>t.players):drawTeamMembers(selected,size,total);
     let swapSelection, dragPlayer;
     function swapPlayers(source,target){
@@ -1091,6 +1094,8 @@ if (typeof document !== 'undefined') (() => {
     for(let i=0;i<total/size;i++){
       const members=drawnTeams[i],complete=members.length===size,latest=members.some(p=>p.id===latestId);
       const card=element('div','draw-team'+(complete?' team-complete':'')+(latest&&complete?' team-flash':''));card.style.setProperty('--team-colour',teamColours[i%teamColours.length]);
+      card.classList.toggle('on-the-clock',remaining.length>0 && i===nextTeam && ($('team-creation').value!=='captains' || !!captainDraft));
+      if(latest)$('draw-stage').style.setProperty('--pick-colour',teamColours[i%teamColours.length]);
       const label=element('label','', 'Team '+String(i+1).padStart(2,'0')),name=element('input');name.value=draw?.teams[i].name || 'Team '+String(i+1).padStart(2,'0');name.maxLength=60;name.disabled=!draw;name.oninput=()=>{draw.teams[i].name=name.value.trim();};label.append(name);card.append(label);
       if(!review.hidden && $('team-creation').value==='manual')name.readOnly=true;
       for(let j=0;j<size;j++){
@@ -1196,12 +1201,13 @@ if (typeof document !== 'undefined') (() => {
       finally{start.disabled=false;}
     };actions.append(vote);}actions.append(start);root.append(actions);
   }
-  function renderCaptainCases(){
+  function renderCaptainCases(latestId=null){
     const root=$('captain-case-grid');root.replaceChildren();if(!captainDraft)return;
     const complete=captainDraft.turn===captainDraft.cases.length,team=captainDraft.teams[captainDraft.turn%2],captain=team.players.find(p=>p.id===team.captainId);
     $('captain-case-status').textContent=complete?'Both teams are complete. '+($('tournament-format').value==='single'?'Choose and confirm a map selection method below, then select your map and publish.':'Ready to publish.'):'Next pick: '+captain.name+' · '+team.name+'. Click a case on behalf of the captain.';
     captainDraft.cases.forEach((item,i)=>{
       const button=element('button','captain-case'+(item.opened?' case-opened':'')),art=element('img','captain-case-art');button.type='button';art.src='assets/images/csgo-chroma-2-case.png';art.alt='';art.width=256;art.height=198;art.draggable=false;art.setAttribute('aria-hidden','true');button.append(art,element('span','case-number','CASE '+String(i+1).padStart(2,'0')));
+      if(item.opened && item.player.id===latestId)button.classList.add('pick-source');
       if(item.opened){button.append(element('strong','',item.player.name),element('small','',captainDraft.teams.find(team=>team.id===item.teamId).name));}else button.setAttribute('aria-label','Open case '+(i+1));
       button.onclick=async()=>{
         if(!isOrganiser() || busy || spinning || captainDraft.cases[i].opened)return;
@@ -1210,7 +1216,7 @@ if (typeof document !== 'undefined') (() => {
           lastPick={remaining:[...remaining],captainDraft};
           captainDraft=openCaptainCase(captainDraft,i);const player=captainDraft.cases[i].player;remaining=remaining.filter(p=>p.id!==player.id);selected.push(player);playTone(1046,.24);
           if(!remaining.length){draw=makeTournament(selected,Number($('team-size').value),current,undefined,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value),$('tournament-format').value);draw.teams=structuredClone(captainDraft.teams);drawOrder=draw.teams.map(team=>team.id);configureDraw();}
-          renderCaptainCases();showDrawTeams(player.id);$('captain-case-status').textContent=player.name+' joins '+team.name+'. '+$('captain-case-status').textContent;
+          renderCaptainCases(player.id);showDrawTeams(player.id);$('captain-case-status').textContent=player.name+' joins '+team.name+'. '+$('captain-case-status').textContent;
         }catch(error){$('captain-case-status').textContent=error.message;}finally{spinning=false;$('reset-draw').disabled=false;controls();}
       };root.append(button);
     });
