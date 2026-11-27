@@ -19,8 +19,15 @@
       "id": "t1",
       "name": "Team 01",
       "tag": "01",
-      "captainId": "p1",
       "players": [
+        {
+          "id": "p8",
+          "name": "Sam is a bitch"
+        },
+        {
+          "id": "p2",
+          "name": "Ramsten"
+        },
         {
           "id": "p1",
           "name": "cantlon"
@@ -30,16 +37,8 @@
           "name": "sAM dropped froppo"
         },
         {
-          "id": "p5",
-          "name": "dingy boater"
-        },
-        {
-          "id": "p8",
-          "name": "Sam is a bitch"
-        },
-        {
-          "id": "p10",
-          "name": "Aatori"
+          "id": "p6",
+          "name": "finesse"
         }
       ]
     },
@@ -47,11 +46,14 @@
       "id": "t2",
       "name": "Team 02",
       "tag": "02",
-      "captainId": "p2",
       "players": [
         {
-          "id": "p2",
-          "name": "Ramsten"
+          "id": "p10",
+          "name": "Aatori"
+        },
+        {
+          "id": "p3",
+          "name": "Mootmanden"
         },
         {
           "id": "p4",
@@ -62,12 +64,8 @@
           "name": "Dan"
         },
         {
-          "id": "p3",
-          "name": "Mootmanden"
-        },
-        {
-          "id": "p6",
-          "name": "finesse"
+          "id": "p5",
+          "name": "dingy boater"
         }
       ]
     }
@@ -141,7 +139,40 @@
     "Cache",
     "Cobblestone"
   ],
-  "mapMethod": "wheel",
-  "mapVeto": [],
+  "mapMethod": "veto",
+  "mapVeto": [
+    {
+      "teamId": "t1",
+      "map": "Mirage"
+    },
+    {
+      "teamId": "t2",
+      "map": "Dust2"
+    },
+    {
+      "teamId": "t1",
+      "map": "Cache"
+    },
+    {
+      "teamId": "t2",
+      "map": "Vertigo"
+    },
+    {
+      "teamId": "t1",
+      "map": "Cobblestone"
+    },
+    {
+      "teamId": "t2",
+      "map": "Anubis"
+    },
+    {
+      "teamId": "t1",
+      "map": "Inferno"
+    },
+    {
+      "teamId": "t2",
+      "map": "Ancient"
+    }
+  ],
   "discordEventId": "28c32de8-c79e-4fb2-90fe-6f8e843978d8"
 }
