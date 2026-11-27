@@ -17,11 +17,12 @@ function drawBroadcast(stage,scene){
   }
 }
 function broadcastBan(text){
-  const stage=document.getElementById('draw-stage');
-  stage.querySelector('.broadcast-lower-third')?.remove();
+  const actions=document.querySelector('#draw-stage .veto-reset-actions');
+  if(!actions)return;
+  actions.querySelector('.broadcast-lower-third')?.remove();
   const cue=broadcastNode('div','broadcast-lower-third',text);
   cue.setAttribute('role','status');
-  stage.append(cue);
+  actions.prepend(cue);
   setTimeout(()=>cue.remove(),2400);
 }
 function broadcastResult(data,id){
