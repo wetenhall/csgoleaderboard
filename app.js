@@ -342,8 +342,57 @@ function glitchLabel(text) {
   return label;
 }
 
+const mapBannerVariants = {
+  de_ancient: [1,2,3,4], de_anubis: [1,2,3,4,5], de_cache: [1,2,3,4],
+  de_debris: [1,2,3], de_dust2: [1,2,3], de_eldorado: [1,2,3,4],
+  de_inferno: [1,2,3,4], cs_italy: [1,2,3,0], de_mirage: [1,2,3,4],
+  de_nuke: [1,2,3,4], cs_office: [1,2,3,4], de_overpass: [1,2,3,4,5],
+  de_poseidon: [1,2,3], de_train: [1,2,3,4], de_vertigo: [1,2,3,4]
+};
+
+function rotateMapBanner(node) {
+  const original = node.dataset.bannerArt;
+  const prefix = original.match(/([^/]+)_1_png\.png$/)?.[1];
+  const variants = mapBannerVariants[prefix];
+  if (!variants || node.classList.contains('map-banner-fading')) return;
+  const index = ((Number(node.dataset.bannerIndex) || 0) + 1) % (variants.length + 1);
+  const suffix = index === variants.length ? '' : '_' + variants[index];
+  const image = new Image();
+  image.onload = () => {
+    if (!node.isConnected || node.dataset.bannerArt !== original ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const next = 'url("' + image.src + '")';
+    const layers = getComputedStyle(node).backgroundImage;
+    if (!layers.includes('url(')) return;
+    node.style.setProperty('--next-banner-layers', layers.replace(/url\("[^"]+"\)/, () => next));
+    node.classList.add('map-banner-fading');
+    setTimeout(() => {
+      if (node.dataset.bannerArt !== original) return;
+      node.style.setProperty('--map-image', next);
+      node.dataset.bannerIndex = String(index);
+      node.classList.remove('map-banner-fading');
+    }, 2050);
+  };
+  image.src = original.replace('_1_png.png', suffix + '_png.png');
+}
+
+setInterval(() => {
+  if (document.hidden || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  for (const banner of document.querySelectorAll('[data-banner-art]')) {
+    const bounds = banner.getBoundingClientRect();
+    if (bounds.height && bounds.bottom > 0 && bounds.top < window.innerHeight) rotateMapBanner(banner);
+  }
+}, 10000);
+
 function setMapBackdrop(node, map) {
   const url = mapImageUrl(map);
+  if (node.matches('.single-match-map,.fixture-summary,.history-card-summary,.player-reveal')) {
+    if (url && node.dataset.bannerArt === url) return;
+    node.classList.remove('map-banner-fading');
+    delete node.dataset.bannerIndex;
+    if (url && /_1_png\.png$/.test(url)) node.dataset.bannerArt = url;
+    else delete node.dataset.bannerArt;
+  }
   if (url) node.style.setProperty('--map-image', 'url("'+url+'")');
   else node.style.removeProperty('--map-image');
   node.classList.toggle('has-map-image', Boolean(url));
