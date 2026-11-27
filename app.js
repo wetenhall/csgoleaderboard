@@ -563,8 +563,16 @@ function renderTournament(data) {
       heading.append(logo.cloneNode(),element('h3','',team.name),element('span','eyebrow',match.winner===id?'Winners':team.players.length+' player'+(team.players.length===1?'':'s')));
       card.append(heading);
       const roster=element('ol','single-squad-players');
-      team.players.forEach(player=>{
+      const skins=i===0?['professional','masked','miami','sally','osiris']:['ava','sas','bio-haz','ricksaw','farlow'];
+      team.players.forEach((player,index)=>{
         const row=element('li','',player.name);
+        if(skins[index]){
+          const portrait=element('img','roster-portrait');
+          if(i===1 || index>=3)portrait.classList.add('roster-portrait-bust');
+          portrait.src='assets/images/agents/'+skins[index]+'.png';
+          portrait.alt='';
+          row.prepend(portrait);
+        }
         row.dataset.playerId=player.id;
         if(team.captainId===player.id)row.append(element('small','roster-captain','Captain'));
         roster.append(row);
