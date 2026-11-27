@@ -314,6 +314,13 @@ body.waiting-screen-open{overflow:hidden}
 .waiting-label{display:inline-block}
 .waiting-glitch-slice{display:none}
 @media (prefers-reduced-motion:no-preference) and (forced-colors:none) {
+  .match-glitch-label{position:relative;display:inline-block}
+  .match-glitch-label::after{content:attr(data-glitch) / ''}
+  .match-scoreboard-team{--tear-delay:2.6s}
+  .match-scoreboard-team:last-child{--tear-delay:4s}
+  .map-picker-card:nth-child(3n){--tear-delay:3s}
+  .map-picker-card:nth-child(3n + 1){--tear-delay:6s}
+  .match-glitch-label::after,
   .waiting-screen[open] .waiting-glitch-slice{
     display:block;
     position:absolute;

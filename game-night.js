@@ -292,7 +292,7 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
         choices.forEach(map=>{
           const card=element('div','map-picker-card');
           setMapBackdrop(card,map);
-          card.append(element('span','map-picker-name',map));
+          const name=glitchLabel(map);name.classList.add('map-picker-name');card.append(name);
           if(vote.result){
             const count=vote.result.counts[vote.maps.indexOf(map)];
             card.append(element('span','map-veto-card-action',count+' vote'+(count===1?'':'s')));
@@ -362,7 +362,8 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
           const hero=element('div','single-match-map');
           setMapBackdrop(hero,left[0]);
           hero.setAttribute('role','status');
-          hero.append(element('span','eyebrow','SELECTED MAP / CUSTOM '+draft.teamSize+'V'+draft.teamSize),element('h3','',left[0]));section.append(hero);
+          const heading=element('h3');heading.append(glitchLabel(left[0]));
+          hero.append(element('span','eyebrow','SELECTED MAP / CUSTOM '+draft.teamSize+'V'+draft.teamSize),heading);section.append(hero);
         }else if(left.length>1){
           const hero=element('div','single-match-map');hero.setAttribute('role','status');
           hero.append(element('span','eyebrow','MAP VETO / CUSTOM '+draft.teamSize+'V'+draft.teamSize),element('h3','',team.name+' bans next'),element('p','rules','The organiser clicks on behalf of each team.'));section.append(hero);
@@ -387,7 +388,8 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
               card.setAttribute('aria-label','Ban '+map);
             }
             setMapBackdrop(card,map);
-            card.append(element('span','map-picker-name',map),element('span','map-veto-card-action',banned?'Banned':'Ban'));
+            const name=banned?element('span','',map):glitchLabel(map);name.classList.add('map-picker-name');
+            card.append(name,element('span','map-veto-card-action',banned?'Banned':'Ban'));
             cards.append(card);
           });
           section.append(cards);

@@ -664,6 +664,7 @@ if (typeof document !== 'undefined') (() => {
       const meta=element('span','fixture-topline');
       const mapBadge=element('span','fixture-map',match.map || (current.teamSize===1?'Choose map in server':'Map not assigned'));
       setMapBackdrop(mapBadge,match.map);
+      if(mapImageUrl(match.map))mapBadge.replaceChildren(glitchLabel(match.map));
       meta.append(element('span','fixture-number','MATCH '+String(index+1).padStart(2,'0')),mapBadge,element('span','fixture-status',match.result?'PLAYED':playing?'PLAYING NOW':isFeatured?'UP NEXT':ready?'SCHEDULED':'AWAITING TEAMS'));
       const versus=element('span','fixture-versus');
       match.ids.forEach((id,i)=>{
@@ -855,7 +856,8 @@ if (typeof document !== 'undefined') (() => {
       input.type='checkbox'; input.value=map; input.checked=true;
       setMapBackdrop(label,map);
       input.onchange=()=>{drawnMap=null;if(draw)draw.mapVeto=[];updateMapCount();configureDraw();controls();};
-      label.append(input,element('span','map-picker-name',map));
+      const name=glitchLabel(map);name.classList.add('map-picker-name');
+      label.append(input,name);
       $('map-options').append(label);
     }
     updateMapCount();
@@ -1337,6 +1339,7 @@ if (typeof document !== 'undefined') (() => {
       next.teams=structuredClone(draw.teams);if(draw.mapMethod)next.mapMethod=draw.mapMethod;if(draw.mapVeto)next.mapVeto=structuredClone(draw.mapVeto); draw=next;
       setMapBackdrop($('player-reveal'),draw.format==='single' ? drawnMap : undefined);
       if(draw.format==='single'){if(drawnMap)draw.matches[0].map=drawnMap;else delete draw.matches[0].map;paintWheel((gameNightUI?.mapCandidates() || []).map(name=>({name})),0,-1,true);$('reveal-label').textContent=drawnMap?'SELECTED MAP':'MAP DRAW';$('reveal-name').textContent=drawnMap || 'Spin to choose your map';$('reveal-avatar').textContent='MAP';}
+      if(draw.format==='single' && mapImageUrl(drawnMap))$('reveal-name').replaceChildren(glitchLabel(drawnMap));
       $('format-preview').textContent = draw.groups.length ? draw.groups.map(g=>'Group '+g.id+': '+g.teams.length+' teams').join(' · ') + ' · Top '+draw.qualifiersPerGroup+' advance from each group.' + (draw.groups.length === 3 ? ' Byes fill the knockout bracket automatically.' : '') : (draw.format==='single'?'Single Game · Two squads of five · ':draw.format==='double'?'Double elimination · Best-of-three grand final · ':'Straight knockout · ')+draw.matches.length+' game'+(draw.matches.length === 1 ? '' : 's')+(draw.format==='single'?' · Ready for your custom game.':' · Byes advance automatically.');
       showDrawTeams();
       $('draw-fixtures').replaceChildren(element('h3','fixture-heading',draw.teamSize===1?'Fixtures · choose maps in server':'Fixture map preview'));

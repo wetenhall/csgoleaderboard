@@ -329,6 +329,12 @@ function mapImageUrl(map) {
     : '';
 }
 
+function glitchLabel(text) {
+  const label=element('span','match-glitch-label',text);
+  label.dataset.glitch=text;
+  return label;
+}
+
 function setMapBackdrop(node, map) {
   const url = mapImageUrl(map);
   if (url) node.style.setProperty('--map-image', 'url("'+url+'")');
@@ -475,13 +481,17 @@ function renderTournament(data) {
     const scoreLabel=match.result?match.result.scores.join(' to '):'No score recorded';
     const score=element('div','match-broadcast-score',match.result?match.result.scores.join(' : '):'VS');
     score.setAttribute('aria-label',scoreLabel);
-    hero.append(meta,element('h3','',match.map || 'Map pending'),scoreboard,element('div','match-broadcast-connect'));
+    const mapHeading=element('h3');
+    mapHeading.append(mapImageUrl(match.map)?glitchLabel(match.map):match.map || 'Map pending');
+    hero.append(meta,mapHeading,scoreboard,element('div','match-broadcast-connect'));
     bracketRoot.append(hero);
     const squads=element('div','single-match-squads');
     match.ids.forEach((id,i)=>{
       const team=teams.get(id),card=element('article','single-squad'+(match.winner===id?' is-winner':''));
       const side=element('div','match-scoreboard-team'+(match.winner===id?' is-winner':''));
-      side.append(teamEmblem(team,i===0?'t':'ct'),element('strong','',team.name));
+      const name=element('strong');
+      name.append(glitchLabel(team.name));
+      side.append(teamEmblem(team,i===0?'t':'ct'),name);
       scoreboard.append(side);
       if(i===0)scoreboard.append(score);
       const heading=element('div','single-squad-heading');
