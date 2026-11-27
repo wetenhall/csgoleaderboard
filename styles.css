@@ -632,10 +632,10 @@ body:has(:is(#tab-stats,#tab-history,#tab-team-setup,#tab-fixture-import,#tab-ma
 .draw-fullscreen-open .setup-music-track{display:none}
 .draw-fullscreen-open .setup-music :is(button,label){font-size:12px}
 .draw-fullscreen-open .setup-music button{min-height:30px;padding:4px 8px}
-.draw-fullscreen-open .setup-music input{width:72px}
+.draw-fullscreen-open .setup-music input{width:72px;margin:0;padding:0;background:transparent}
 .draw-fullscreen-open .draw-stage.fullscreen-fallback{
-  bottom:var(--setup-music-height,62px);
-  height:auto;
+  height:100dvh;
+  padding-block-end:calc(var(--setup-music-height,36px) + var(--stage-gap));
 }
 @media(max-width:480px){
   .setup-music{gap:8px}
@@ -822,25 +822,25 @@ body:has(>.topbar~footer){
 }
 
 /* Keep the reveal, rosters and stage actions within a single broadcast view. */
-.draw-stage.fullscreen-fallback:not(.map-selection-stage){
-  grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);
-  grid-template-rows:auto minmax(min-content,1fr) auto;
-}
-.fullscreen-fallback:not(.map-selection-stage)>.draw-action-bar{grid-row:3}
-.fullscreen-fallback:not(.map-selection-stage):not(:has(>.wheel-panel:not([hidden]),>.captain-case-panel:not([hidden])))>.draw-roster{
-  grid-column:1/-1;
+#draw-stage.fullscreen-fallback{
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:none;
 }
 .draw-stage.fullscreen-fallback{
-  --stage-gap:clamp(6px,1.3dvh,16px);
-  padding:var(--stage-gap) clamp(10px,2vw,28px);
-  gap:var(--stage-gap);
-  align-content:stretch;
-  background:radial-gradient(ellipse at 28% 42%,#29261f,#111318 65%);
+  --stage-gap:clamp(6px,1.15dvh,16px);
+  padding:var(--stage-gap) max(clamp(10px,2.5vw,36px),calc((100% - 1220px)/2));
+  gap:var(--stage-gap) clamp(10px,2vw,28px);
+  align-content:safe center;
+  background:radial-gradient(ellipse at 50% 38%,#30271d,#15171e 57%,#101218 85%);
 }
 .fullscreen-fallback .draw-stage-toolbar{
   position:static;
   padding:0 0 var(--stage-gap);
   background:transparent;
+}
+.fullscreen-fallback .draw-stage-toolbar>span{
+  color:#ffb553;
+  font-weight:700;
 }
 .fullscreen-fallback :is(.draw-toolbar-actions,.spin-actions){gap:6px}
 .fullscreen-fallback :is(.draw-stage-toolbar,.draw-action-bar,.map-method-control) :is(button,select,.auto-spin-toggle){
@@ -849,13 +849,29 @@ body:has(>.topbar~footer){
   font-size:13px;
 }
 .fullscreen-fallback .draw-animation-label select{min-width:0}
-.fullscreen-fallback .draw-action-bar{padding:6px;gap:6px}
+.fullscreen-fallback .draw-action-bar{
+  justify-content:center;
+  padding:6px;
+  gap:6px;
+  background:#171b23;
+}
+.fullscreen-fallback .draw-action-bar .spin-actions{justify-content:center}
 .draw-stage.fullscreen-fallback :is(.wheel-panel,.captain-case-panel,.draw-roster){min-width:0}
-.draw-stage.fullscreen-fallback .wheel-panel{align-self:center}
-.draw-stage.fullscreen-fallback .wheel-wrap{max-width:min(580px,52dvh)}
+.draw-stage.fullscreen-fallback :is(.wheel-panel,.captain-case-panel,.draw-roster){align-self:center}
+.draw-stage.fullscreen-fallback .wheel-wrap{max-width:min(580px,43dvh)}
 .draw-stage.fullscreen-fallback .case-reel-wrap{
-  width:min(100%,100dvh);
+  width:min(100%,1100px,120dvh);
   margin:4px auto;
+  border-color:#68543b;
+  box-shadow:0 12px 36px #0008,0 0 28px #ff9b011a;
+}
+.fullscreen-fallback .wheel-panel .draw-progress{
+  width:min(100%,760px);
+  margin-inline:auto;
+}
+.fullscreen-fallback :is(.draw-roster,.draw-action-bar){
+  width:min(100%,1100px);
+  margin-inline:auto;
 }
 .draw-stage.fullscreen-fallback #case-reel{width:100%;margin:0}
 .draw-stage.fullscreen-fallback .player-reveal{min-height:0;padding:6px 10px;margin-top:6px}
@@ -872,7 +888,11 @@ body:has(>.topbar~footer){
 }
 .fullscreen-fallback .draw-roster :is(.fixture-heading,p){margin:0 0 6px}
 .fullscreen-fallback .draw-roster p:empty{display:none}
-.fullscreen-fallback .draw-roster .draw-team{min-width:0;padding:6px 8px}
+.fullscreen-fallback .draw-roster .draw-team{
+  min-width:0;
+  padding:6px 8px;
+  background:linear-gradient(155deg,color-mix(in srgb,var(--team-colour) 11%,#21242d),#181c24 55%);
+}
 .fullscreen-fallback .draw-team input{min-width:0;margin:3px 0 5px;padding:4px 6px}
 .fullscreen-fallback .draft-slot{
   min-height:0;
@@ -892,25 +912,18 @@ body:has(>.topbar~footer){
 .fullscreen-fallback .captain-case-art{height:clamp(30px,8dvh,86px);margin:0}
 .fullscreen-fallback .captain-case strong{font-size:14px}
 
-.draw-stage.fullscreen-fallback.map-selection-stage{
-  grid-template-columns:minmax(0,3fr) minmax(230px,1fr);
-  grid-template-rows:auto auto minmax(min-content,1fr) auto auto;
-}
 .fullscreen-fallback.map-selection-stage>.captain-case-panel{display:none}
 .fullscreen-fallback.map-selection-stage>.draw-roster{
-  grid-column:2;
-  grid-row:3/5;
+  width:min(100%,920px);
+  order:1;
 }
 .fullscreen-fallback.map-selection-stage>.map-method-control{
-  grid-row:2;
   padding:6px 8px;
   gap:6px;
 }
 .fullscreen-fallback .map-method-control label{min-width:min(100%,190px)}
 .fullscreen-fallback .map-method-control select{margin-top:2px}
-.fullscreen-fallback.map-selection-stage>.map-draw-options,
-.fullscreen-fallback.map-selection-stage>.wheel-panel{grid-column:1;align-self:center}
-.fullscreen-fallback.map-selection-stage>.draw-action-bar{grid-row:5}
+.fullscreen-fallback.map-selection-stage>.draw-action-bar{order:2}
 .draw-stage.fullscreen-fallback.map-selection-stage .draw-roster .teams{grid-template-columns:repeat(2,minmax(0,1fr))}
 .fullscreen-fallback.map-selection-stage .draft-slot{font-size:12px}
 .fullscreen-fallback.map-selection-stage .slot-avatar{display:none}
@@ -930,19 +943,46 @@ body:has(>.topbar~footer){
 .fullscreen-fallback.map-selection-stage .wheel-wrap{max-width:min(460px,34dvh)}
 .fullscreen-fallback.map-selection-stage .case-reel-wrap{width:min(100%,72dvh)}
 
+@media(min-width:761px){
+  .fullscreen-fallback.map-selection-stage .draw-team{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:3px;
+  }
+  .fullscreen-fallback.map-selection-stage .draw-team>label{grid-column:1/-1}
+}
+@media(min-width:761px) and (max-height:950px){
+  .draw-stage.fullscreen-fallback{--stage-gap:6px}
+  .draw-stage.fullscreen-fallback .case-reel-wrap{width:min(100%,105dvh)}
+  .draw-stage.fullscreen-fallback .wheel-wrap{max-width:min(580px,35dvh)}
+  .fullscreen-fallback .wheel-panel:not([hidden]){
+    display:grid;
+    width:min(100%,1100px);
+    margin-inline:auto;
+    grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);
+    align-items:center;
+    column-gap:10px;
+  }
+  .fullscreen-fallback .wheel-panel>:is(.wheel-wrap,.case-reel-wrap,#draw-announcement){grid-column:1/-1}
+  .draw-stage.fullscreen-fallback .player-reveal{width:100%;min-width:0;margin-inline:0}
+  .fullscreen-fallback .player-reveal strong{font-size:clamp(17px,2.7dvh,24px)}
+  .fullscreen-fallback .player-reveal .eyebrow{margin-bottom:2px}
+  .fullscreen-fallback:not(.map-selection-stage) .draw-team{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:3px;
+  }
+  .fullscreen-fallback:not(.map-selection-stage) .draw-team>:is(label,p){grid-column:1/-1}
+  .fullscreen-fallback .draft-slot{margin:0}
+  .fullscreen-fallback.map-selection-stage .wheel-wrap{max-width:min(460px,28dvh)}
+  .fullscreen-fallback.map-selection-stage .case-reel-wrap{width:min(100%,65dvh)}
+  .fullscreen-fallback .draw-roster p{font-size:12px;line-height:1.3}
+  .fullscreen-fallback.map-selection-stage .map-method-control p{flex:0 1 auto}
+  .fullscreen-fallback .map-method-control label{min-width:0}
+  .fullscreen-fallback .single-match-map h3{font-size:clamp(20px,4dvh,38px)}
+  .fullscreen-fallback .map-veto-options .map-picker-card{min-height:clamp(38px,6dvh,60px)}
+}
 @media(max-width:760px){
-  .draw-stage.fullscreen-fallback:not(.map-selection-stage),
-  .draw-stage.fullscreen-fallback.map-selection-stage{
-    grid-template-columns:minmax(0,1fr);
-    grid-template-rows:none;
-  }
-  .fullscreen-fallback.map-selection-stage>:is(.draw-roster,.map-method-control,.map-draw-options,.wheel-panel,.draw-action-bar){
-    grid-column:1;
-    grid-row:auto;
-  }
-  .fullscreen-fallback:not(.map-selection-stage)>.draw-action-bar{grid-row:auto}
-  .fullscreen-fallback.map-selection-stage>.draw-roster{order:1}
-  .fullscreen-fallback.map-selection-stage>.draw-action-bar{order:2}
   .draw-stage.fullscreen-fallback{--stage-gap:6px}
   .draw-stage.fullscreen-fallback .wheel-wrap{max-width:min(65vw,24dvh)}
   .fullscreen-fallback .draw-toolbar-actions{width:auto;justify-content:flex-start}
