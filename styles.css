@@ -209,6 +209,7 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .draw-action-bar .draw-publish-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-inline-start:auto;text-align:left}
 .draw-action-bar .draw-publish-actions p,.draw-action-bar #publish-expanded{margin:0}
 .draw-action-bar .draw-publish-actions p:empty{display:none}
+.draw-action-bar:has(>.spin-actions[hidden]):not(:has(>.draw-publish-actions:not([hidden]))){display:none}
 .draw-stage>.map-draw-options{grid-column:1/-1}
 
 .player-game-banner{display:flex;align-items:center;flex-wrap:wrap;gap:6px 18px;padding:14px 18px;margin:18px 0 12px;border-left:4px solid var(--accent);background:linear-gradient(100deg,#ff9b011a,#171a21)}.player-game-banner>span{font:600 10px var(--mono);letter-spacing:1.5px;color:var(--accent)}.player-game-banner>strong{font-size:20px;color:var(--text)}.player-game-banner>small{margin-left:auto;color:var(--muted);font-size:13px}@media(max-width:600px){.player-game-banner>small{margin-left:0;flex-basis:100%}}
@@ -642,15 +643,22 @@ body:has(:is(#tab-stats,#tab-history,#tab-team-setup,#tab-fixture-import,#tab-ma
 .setup-music-volume input{flex:1;min-width:0;margin:0;padding:0;background:transparent;accent-color:var(--accent)}
 .setup-music [role=status]{margin:8px 0 0;font-size:12px}
 .setup-music [role=status]:empty{display:none}
-.draw-fullscreen-open .setup-music{
-  position:fixed;
-  inset:auto clamp(10px,2vw,28px) 6px auto;
-  z-index:1001;
+.draw-toolbar-actions .setup-music{
   margin:0;
+}
+.draw-toolbar-actions .setup-music-icon{
+  width:36px;
+  height:36px;
+  min-height:36px;
+}
+.draw-toolbar-actions .setup-music-panel{
+  inset:calc(100% + 8px) 0 auto auto;
+  font:14px var(--ui);
+  letter-spacing:normal;
 }
 .draw-fullscreen-open .draw-stage.fullscreen-fallback{
   height:100dvh;
-  padding-block-end:calc(50px + var(--stage-gap));
+  padding-block-end:var(--stage-gap);
 }
 #panel-team-setup .setup-stage .setup-card,
 #fixture-import-centre>.import-centre,
@@ -895,14 +903,18 @@ body:has(>.topbar~footer){
   background:#171b23;
 }
 .fullscreen-fallback .draw-action-bar .spin-actions{justify-content:center}
-.fullscreen-fallback .draw-action-bar .draw-publish-actions{
-  display:flex;
-  justify-content:flex-end;
-  gap:8px 16px;
+.fullscreen-fallback .draw-toolbar-actions .draw-publish-actions{
+  display:grid;
 }
-.fullscreen-fallback .draw-publish-actions:has(p:not(:empty)){flex:1 1 100%}
-.fullscreen-fallback .draw-publish-actions p{flex:1 1 180px;line-height:1.4}
-.fullscreen-fallback #publish-expanded{flex:none}
+.fullscreen-fallback #publish-expanded-status{
+  position:absolute;
+  width:1px;
+  height:1px;
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  clip-path:inset(50%);
+}
 .draw-stage.fullscreen-fallback :is(.wheel-panel,.captain-case-panel,.draw-roster){min-width:0}
 .draw-stage.fullscreen-fallback :is(.wheel-panel,.captain-case-panel,.draw-roster){align-self:center}
 .draw-stage.fullscreen-fallback .wheel-wrap{max-width:min(580px,39dvh)}
@@ -980,11 +992,12 @@ body:has(>.topbar~footer){
   padding:var(--panel-block) var(--panel-inline);
   background:linear-gradient(155deg,color-mix(in srgb,var(--team-colour) 11%,#21242d),#181c24 55%);
 }
-.fullscreen-fallback .draw-team input{min-width:0;margin:4px 0 6px;padding:4px 8px}
+.fullscreen-fallback .draw-roster .draw-team>label:has(>input){font-size:0}
+.fullscreen-fallback .draw-team input{min-width:0;margin:0 0 8px;padding:5px 9px;font-size:14px}
 .fullscreen-fallback .draft-slot{
   min-height:0;
   margin:3px 0;
-  padding:3px 8px;
+  padding:5px 10px;
   gap:5px;
   font-size:clamp(12px,1.8dvh,16px);
 }
@@ -1009,7 +1022,7 @@ body:has(>.topbar~footer){
 .draw-stage.fullscreen-fallback.map-selection-stage .draw-roster .teams{grid-template-columns:repeat(2,minmax(0,1fr))}
 .fullscreen-fallback.map-selection-stage .draft-slot{
   margin:2px 0 0;
-  padding:2px 8px;
+  padding:4px 10px;
   font-size:12px;
   line-height:1.2;
 }
@@ -1055,7 +1068,7 @@ body:has(>.topbar~footer){
   .fullscreen-fallback .player-reveal .eyebrow{margin-bottom:2px}
   .fullscreen-fallback .draft-slot{
     margin:2px 0 0;
-    padding-block:1px;
+    padding-block:3px;
     font-size:12px;
     line-height:1.2;
   }
@@ -1086,7 +1099,9 @@ body:has(>.topbar~footer){
 @media(max-width:760px){
   .draw-stage.fullscreen-fallback{--stage-gap:6px}
   .draw-stage.fullscreen-fallback .wheel-wrap{max-width:min(65vw,24dvh)}
-  .fullscreen-fallback .draw-toolbar-actions{width:auto;justify-content:flex-start}
+  .fullscreen-fallback .draw-toolbar-actions{position:relative;width:auto;justify-content:flex-start}
+  .fullscreen-fallback .draw-toolbar-actions .setup-music{position:static}
+  .fullscreen-fallback .draw-toolbar-actions .setup-music-panel{inset-inline:0 auto;max-width:100%}
   .fullscreen-fallback .draw-animation-label{width:auto}
   .fullscreen-fallback .draw-stage-toolbar>span{display:none}
   .fullscreen-fallback .wheel-panel:has(.case-reel-wrap[hidden]){
@@ -1107,12 +1122,10 @@ body:has(>.topbar~footer){
   .fullscreen-fallback .map-method-control p{font-size:12px;line-height:1.3}
   .fullscreen-fallback.map-selection-stage{--map-reel-width:36dvh}
   .fullscreen-fallback.map-selection-stage .draw-progress{line-height:1.2}
-  .fullscreen-fallback .draw-publish-actions{font-size:12px}
   .fullscreen-fallback .captain-case-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
   .fullscreen-fallback .single-match-map h3{font-size:clamp(20px,3dvh,30px)}
   .fullscreen-fallback .single-match-map .rules{font-size:12px;line-height:1.3}
   .fullscreen-fallback .veto-reset-actions button{padding:4px 8px;min-height:32px;font-size:12px}
-  .fullscreen-fallback.map-veto .draft-slot{padding-block:1px;margin-top:1px}
   .fullscreen-fallback.map-veto .single-match-map h3{font-size:22px}
   .fullscreen-fallback .map-veto-options:has(.map-picker-card){grid-template-columns:repeat(4,minmax(0,1fr))}
   .fullscreen-fallback .map-veto-options .map-picker-card{
@@ -1133,7 +1146,7 @@ body:has(>.topbar~footer){
 }
 .fullscreen-fallback.map-selection-stage:has(>.wheel-panel[hidden]):has(>.map-draw-options[hidden]) .draft-slot{
   margin:4px 0 0;
-  padding:4px 8px;
+  padding:6px 10px;
   gap:7px;
   font-size:clamp(12px,1.9dvh,16px);
 }

@@ -448,7 +448,7 @@ if (typeof document !== 'undefined') (() => {
     $('publish-draw').hidden=!locked || !manual || draw?.format==='single';$('publish-status').hidden=$('publish-draw').hidden;
     const publishActions=$('publish-expanded').parentElement;
     publishActions.hidden=!draw;
-    publishActions.parentElement.hidden=publishActions.hidden && spinActions.hidden;
+    publishActions.title=publishReason;
     $('publish-status').textContent=publishReason || 'Teams are ready to publish.';
     $('publish-expanded-status').textContent=spinning ? '' : mapPending && !busy && draw.mapMethod ? '' : publishReason;
     document.querySelectorAll('.result-form button, .tie-form button, #fixture-platform select').forEach(b => { b.disabled = busy || !token; });
@@ -1296,6 +1296,11 @@ if (typeof document !== 'undefined') (() => {
     expandedDraw=active;
     drawStage.classList.toggle('fullscreen-fallback',active);
     document.body.classList.toggle('draw-fullscreen-open',active);
+    const publishButton=$('publish-expanded');
+    const actions=drawStage.querySelector(active?'.draw-toolbar-actions':'.draw-action-bar');
+    actions.append(publishButton.parentElement);
+    publishButton.setAttribute('aria-describedby','publish-expanded-status');
+    setupMusic.moveControls(active?fullscreenButton:$('setup-music-audio'));
     fullscreenButton.textContent=active?'Exit expanded view':'Expand draw';
     fullscreenButton.setAttribute('aria-pressed',String(active));
     fullscreenButton.focus();

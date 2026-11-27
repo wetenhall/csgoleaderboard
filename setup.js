@@ -3,8 +3,8 @@ function createSetupMusic(){
   const toggle=document.getElementById('setup-music-toggle');
   const volume=document.getElementById('setup-music-volume');
   const status=document.getElementById('setup-music-status');
-  const musicBar=audio.closest('.setup-music');
   const opener=document.getElementById('setup-music-open');
+  const musicBar=opener.closest('.setup-music');
   const panel=document.getElementById('setup-music-panel');
   let active=false;
   let manuallyPaused=false;
@@ -56,7 +56,10 @@ function createSetupMusic(){
   document.getElementById('panel-team-setup').addEventListener('click',event=>{
     if(event.target.closest('button[id^="setup-next-"],#start-draw'))void play();
   },true);
-  return {setActive(visible){
+  return {moveControls(before){
+    setPanel(false);
+    before.before(musicBar);
+  },setActive(visible){
     if(visible===active)return;
     active=visible;
     if(active)void play();
