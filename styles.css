@@ -985,7 +985,16 @@ body:has(>.topbar~footer){
   gap:clamp(8px,1.2vw,16px);
   padding:0;
 }
-.fullscreen-fallback .draw-roster :is(.fixture-heading,p){margin:0 0 var(--stage-gap)}
+.fullscreen-fallback .draw-roster{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:6px 14px;
+}
+.fullscreen-fallback .draw-roster :is(.fixture-heading,p){margin:0}
+.fullscreen-fallback .draw-roster :is(#draft-swap-help,#draft-swap-status){font-size:12px;line-height:1.35}
+.fullscreen-fallback #draft-swap-status{color:#ffd28a}
+.fullscreen-fallback .draw-roster :is(.teams,.draw-balance-summary){flex-basis:100%}
 .fullscreen-fallback .draw-roster p:empty{display:none}
 .fullscreen-fallback .draw-roster .draw-team{
   min-width:0;
