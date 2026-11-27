@@ -56,5 +56,9 @@
   "faceitRefreshRequest": {
     "id": "3e4ab04b-2e70-4390-87e7-2c0d71a27ca8",
     "requestedAt": "2026-11-27T10:00:01.692Z"
+  },
+  "faceitRefreshResult": {
+    "id": "3e4ab04b-2e70-4390-87e7-2c0d71a27ca8",
+    "completedAt": "2026-11-27T10:00:22.031Z"
   }
 }
