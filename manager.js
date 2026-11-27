@@ -384,6 +384,7 @@ if (typeof document !== 'undefined') (() => {
     $('draw-stage').hidden=!locked || (manual && (!draw || draw.format!=='single'));
     $('draw-panel').classList.toggle('live-draw',locked && !$('draw-stage').hidden);
     $('reset-edit-draw').disabled=busy || spinning || skippingAnimation;
+    $('back-live-draw').disabled=$('reset-edit-draw').disabled;
     $('draw-stage').classList.toggle('manual-map',manual);
     document.querySelector('.draw-roster').hidden=manual && !selectingMap;
     $('draft-swap-help').hidden=!selectingMap;
@@ -1185,6 +1186,14 @@ if (typeof document !== 'undefined') (() => {
     fullscreenButton.focus();
   }
   fullscreenButton.onclick=()=>setExpandedDraw(!expandedDraw);
+  $('back-live-draw').onclick=()=>{
+    if($('back-live-draw').disabled)return;
+    $('setup-back-4').click();
+    if($('setup-stage-3').hidden)return;
+    if(expandedDraw)setExpandedDraw(false);
+    $('setup-tab-3').focus();
+    $('setup-stage-3').scrollIntoView({block:'start'});
+  };
   document.addEventListener('keydown',event=>{if(event.key==='Escape' && expandedDraw){event.preventDefault();setExpandedDraw(false);}});
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
   const tabs = Array.from(document.querySelectorAll('.page-tabs [role="tab"], .admin-tabs [role="tab"]'));
