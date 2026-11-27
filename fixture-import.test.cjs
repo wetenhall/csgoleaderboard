@@ -23,3 +23,12 @@ function leetifySample(){return {id:'02444a55-ee09-4e98-913a-e8c005ffbfdb',finis
 test('Leetify imports actual stats, suggests fixtures from saved profiles, and retains provider',()=>{const {normalizeLeetifyMatch,importPlayerAliases,suggestImportFixtures}=require('./fixture-import.js'),{data,fixture}=sample(),game=normalizeLeetifyMatch(leetifySample(),{'76561198320090889':'alice','76561198320090890':'bob'});const aliases=importPlayerAliases(data,game);assert.equal(aliases.aly,'Alice');assert.deepEqual(suggestImportFixtures(data,game,resolveTournament),[fixture.id]);const result=importedFixtureResult(data,fixture,game,{Aly:'a',Bobby:'b'});assert.equal(result.importSource.provider,'leetify');assert.match(result.importSource.id,/^leetify:/);assert.deepEqual(result.scores,[10,13]);assert.equal(result.players.a.kills,14);assert.equal(JSON.stringify(game).includes('76561198320090889'),false);});
 test('Leetify rejects partial stats, invalid scores and missing team membership',()=>{const {normalizeLeetifyMatch}=require('./fixture-import.js');for(const edit of [m=>delete m.stats[0].total_assists,m=>m.stats[0].total_kills=null,m=>m.stats[0].initial_team_number=9,m=>m.team_scores[0].score=-1,m=>m.stats.pop(),m=>m.finished_at='invalid']){const match=leetifySample();edit(match);assert.throws(()=>normalizeLeetifyMatch(match));}});
 test('Leetify imports reject incomplete fixture rosters and duplicate archived matches',()=>{const {normalizeLeetifyMatch}=require('./fixture-import.js'),{data,fixture}=sample(),game=normalizeLeetifyMatch(leetifySample());assert.throws(()=>importedFixtureResult(data,fixture,game,{Aly:'a'}));data.history=[{title:'Previous',tournament:{matches:[{result:{importSource:{id:game.id,provider:'leetify'}}}]}}];assert.throws(()=>importedFixtureResult(data,fixture,game,{Aly:'a',Bobby:'b'}),/already linked/);});
+
+
+test('FACEIT list includes only today and yesterday in UK time across midnight and DST',()=>{
+  const {recentFaceitGames}=require('./fixture-import.js');
+  const game=(id,date)=>({id,finishedAt:Date.parse(date)/1000});
+  const games=[game('today','2026-10-27T23:30:00Z'),game('yesterday','2026-10-26T12:00:00Z'),game('old','2026-10-25T23:59:00Z'),game('future','2026-10-28T12:00:00Z'),{id:'invalid',finishedAt:'bad'}];
+  assert.deepEqual(recentFaceitGames(games,new Date('2026-10-27T23:45:00Z')).map(g=>g.id),['today','yesterday']);
+  assert.deepEqual(recentFaceitGames([game('BST','2026-10-23T23:30:00Z'),game('old','2026-10-23T22:30:00Z')],new Date('2026-10-25T12:00:00Z')).map(g=>g.id),['BST']);
+});

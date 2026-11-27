@@ -49,7 +49,7 @@ Registration cards now include Join waiting list and Leave waiting list, includi
 
 Confirmed replacements update the published roster and current linked tournament atomically. Historical lineups, player names and KDA are preserved; a substitute receives a new opaque player ID and appears in future games. Substitution clears the old result-undo stack because it changes the roster. Completed tournaments cannot be substituted.
 
-Sort VC appears under published teams and in the organiser panel. It creates one category per event and channels named after the published teams. Repeated sorts reuse those channels. Discord identities are matched privately to registered gaming names; only players already connected to voice are moved. The bot needs Manage Channels, Move Members, View Channel and Connect; GuildVoiceStates is a non-privileged intent enabled in code. Cleanup deletes only tracked empty channels and an empty bot-created category; occupied channels remain.
+Sort VC appears under published teams and in the organiser panel. It creates channels named after the published teams inside the server’s existing `custom games` category. Repeated sorts reuse those channels and move any tracked team channels back into that category. Sorting requires exactly one category named `custom games`. Discord identities are matched privately to registered gaming names; only players already connected to voice are moved. The bot needs Manage Channels, Move Members, View Channel and Connect; GuildVoiceStates is a non-privileged intent enabled in code. Cleanup deletes only tracked empty channels and empty legacy categories created by the bot. Occupied channels and the shared `custom games` category remain.
 
 Groups, knockout and double elimination get a single auto-updating next-fixtures card, checked every 30 seconds, with active/upcoming games, maps, qualification waits and server readiness. Single Game does not get a queue. Completed linked tournaments receive a recap with podium, final match score, match-win standings, top fragger and MVP. Corrections update the same recap; undoing completion removes it. Player mentions are disabled on automated fixture and recap updates.
 
@@ -62,3 +62,20 @@ Closing a successful vote writes only the two captain names into the published D
 The website captain selection section has a Start Discord vote button beside Start captain draft for a loaded Discord event. Clicking it queues an explicit request in the event file; the running bot checks within 30 seconds, including before teams are published. Selecting captain mode never opens a vote. Repeated requests preserve an already-open election and its ballots. Close and resolve the election through /csadmin, then refresh the event on the website to load the elected captains.
 
 To cancel an event, use /csadmin, select the event, and click the red Cancel event button. A private confirmation is required and checked against the requesting organiser. Cancellation disables registration and votes, stops event sync, and removes the published event from the website selection list while preserving published tournament teams and results. Create a replacement with /csgame. Voice channels are kept; use Clean up voice channels before cancelling if required.
+
+Website deletion now records explicit event deletion requests. The bot processes these on its 30-second sync, closes registration and voting, and deletes tracked registration, team, vote, server, fixture, recap and result messages. Failed cleanup is retried; website tournament results and voice channels are preserved. Previously removed events without a deletion request are not automatically deleted.
+
+## Random member case opening
+
+Run `/csroll` to pick one member uniformly from all non-bot server members, including offline members. The public reply plays a CS-style animated GIF with a scrolling rarity-colored name strip, an easing stop and a winner reveal. Names use server display names; the final reply also identifies the username. Mentions are disabled. There is a 15-second server cooldown and one animation at a time. Rendering runs in a worker so other bot commands remain responsive.
+
+Enable **Server Members Intent** under Discord Developer Portal → your application → Bot → Privileged Gateway Intents. This command reads the full member list through paginated REST requests rather than relying on cached/online members; no member IDs are published to GitHub. No new Gateway intent or message-content access is required. The bot needs Attach Files and Embed Links in the command channel. Restart the bot to register the command.
+
+Run /csrollchannel to use the same single-play case animation with only non-bot members in your current voice channel. Join voice before running it. The candidate list is captured when the roll starts, and both roll commands share the cooldown. This command uses the existing voice-state intent and does not require the Server Members Intent setting.
+
+
+Fixtures Refresh games now requests a fresh FACEIT import through the running bot. Connect as organiser; the page waits up to 90 seconds and reads the new feed directly. FACEIT dropdowns and the import inbox show only games completed today or yesterday in Europe/London time; historical imported results are preserved.
+
+## Countdown timer
+Run /cscounter to open a duration form, or /cscounter duration:00:10:00 for a ten-minute timer. The public message displays HH:MM:SS, updating about once a second subject to Discord rate limits. One countdown can run per channel. The creator or an organiser can cancel it with Cancel timer. Timers use a saved deadline, survive restarts and finish at 00:00:00 without pinging members.
+

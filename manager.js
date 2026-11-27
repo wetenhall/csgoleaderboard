@@ -2,9 +2,9 @@
 const MAP_POOLS = {
   1: ['Pool Day','AWP Lego 2','AWP Orange','AWP India','AIM Crash Dust 1on1','AIM Puma','AIM Map Classic','AIM Long Dust'],
   2: ['Inferno','Nuke','Vertigo','Overpass','Poseidon','Debris','Eldorado'],
-  3: ['Mirage','Dust2','Inferno','Nuke','Ancient','Anubis','Vertigo','Cache','Train','Overpass','Office','Italy'],
-  4: ['Mirage','Dust2','Inferno','Nuke','Ancient','Anubis','Vertigo','Cache','Train','Overpass','Office','Italy'],
-  5: ['Mirage','Dust2','Inferno','Nuke','Ancient','Anubis','Vertigo','Cache','Train','Overpass','Office','Italy']
+  3: ['Mirage','Dust2','Inferno','Nuke','Ancient','Anubis','Vertigo','Cache','Train','Overpass','Office','Italy','Cobblestone'],
+  4: ['Mirage','Dust2','Inferno','Nuke','Ancient','Anubis','Vertigo','Cache','Train','Overpass','Office','Italy','Cobblestone'],
+  5: ['Mirage','Dust2','Inferno','Nuke','Ancient','Anubis','Vertigo','Cache','Train','Overpass','Office','Italy','Cobblestone']
 };
 function assignMaps(data, maps) {
   if (data.teamSize === 1) {
@@ -71,9 +71,19 @@ function doubleElimination(ids) {
     }
     stage++;
   }
-  matches.push({id:'f1',round:sequence++,bracket:'final',label:'Grand final',sources:[upper[0],lower[0]],result:null});
-  matches.push({id:'f2',round:sequence,bracket:'final',label:'Grand final reset · if needed',resetOf:'f1',sources:[upper[0],lower[0]],result:null});
+  for(let game=1;game<=3;game++)matches.push({id:'f'+game,round:sequence++,bracket:'final',seriesGame:game,label:'Grand final · Game '+game+(game===3?' · if needed':''),sources:[upper[0],lower[0]],result:null});
   return matches;
+}
+function bestOfThreeFinal(data){
+  const next=structuredClone(data);
+  if(next.format!=='double' || next.matches.some(m=>m.seriesGame))return next;
+  const first=next.matches.find(m=>m.id==='f1'),finals=next.matches.filter(m=>m.bracket==='final' || m.resetOf);
+  if(!first || finals.some(m=>m.result))throw Error('The grand final has already started. Keep its existing format.');
+  next.matches=next.matches.filter(m=>!finals.includes(m));
+  for(let game=1;game<=3;game++){const match={...structuredClone(first),id:'f'+game,round:first.round+game-1,seriesGame:game,label:'Grand final · Game '+game+(game===3?' · if needed':''),result:null};delete match.resetOf;next.matches.push(match);}
+  delete next.resultRevisions;
+  if(['f2','f3'].includes(next.activeMatchId))delete next.activeMatchId;
+  return next;
 }
 function drawTeamMembers(players,size,total=players.length) {
   const count=total/size;
@@ -162,16 +172,30 @@ function playerTotals(data) {
   return [...totals.values()].sort((a,b) => b.kills-a.kills || a.deaths-b.deaths || a.name.localeCompare(b.name));
 }
 function tournamentAwards(data) {
-  const totals=new Map(data.teams.map(team=>[team.id,{...team,games:0,wins:0,difference:0,streak:0}]));
+  const totals=new Map(data.teams.map(team=>[team.id,{...team,games:0,wins:0,difference:0,streak:0,conceded:0,biggestWin:0,closeWins:0,giantWins:0}]));
   // Streaks follow fixture order, so correcting an older result recomputes them.
   for(const match of orderedMatches(data.matches)) {
     if(!match.result)continue;
     match.result.teams.forEach((id,i)=>{const row=totals.get(id);if(!row)return;
       const won=match.result.scores[i]>match.result.scores[1-i] || (match.result.scores[i]===match.result.scores[1-i] && match.result.tiebreakWinner===id);
+      const margin=match.result.scores[i]-match.result.scores[1-i];
+      row.conceded+=match.result.scores[1-i];
+      if(won){row.biggestWin=Math.max(row.biggestWin,margin);if(margin<=2)row.closeWins++;}
       row.games++;row.wins+=Number(won);row.difference+=match.result.scores[i]-match.result.scores[1-i];row.streak=won?row.streak+1:0;
     });
   }
   const teams=[...totals.values()].filter(row=>row.games>=2),players=playerTotals(data).filter(row=>row.games>=2);
+  // Recompute upset wins against current standings after every result correction.
+  for(const match of data.matches) {
+    if(!match.result)continue;
+    match.result.teams.forEach((id,i)=>{
+      const row=totals.get(id),opponent=totals.get(match.result.teams[1-i]);
+      if(!row || !opponent || !row.games || !opponent.games)return;
+      const won=match.result.scores[i]>match.result.scores[1-i] || (match.result.scores[i]===match.result.scores[1-i] && match.result.tiebreakWinner===id);
+      const above=opponent.wins/opponent.games>row.wins/row.games || (opponent.wins/opponent.games===row.wins/row.games && opponent.difference>row.difference);
+      if(won && above)row.giantWins++;
+    });
+  }
   function award(title,icon,rule,rows,rank,metric,empty='Awaiting more matches') {
     function compare(a,b){const x=rank(a),y=rank(b);for(let i=0;i<x.length;i++){if(x[i]!==y[i])return x[i]>y[i]?-1:1;}return 0;}
     const sorted=[...rows].sort(compare),winners=sorted.length?sorted.filter(row=>compare(row,sorted[0])===0):[];
@@ -185,7 +209,11 @@ function tournamentAwards(data) {
       award('Top Dogs','🏆','Highest win rate, then round difference.',teams,r=>[r.wins/r.games,r.difference],winRate),
       award('On a Roll','🔥','Longest current winning streak in fixture order.',teams.filter(r=>r.streak>0),r=>[r.streak],r=>r.streak+' consecutive win'+(r.streak===1?'':'s'),teams.length?'No active winning streak':'Awaiting more matches'),
       award('Round Bullies','💥','Best rounds won minus rounds lost.',teams,r=>[r.difference],difference),
-      award('Wooden Spoon','🥔','Lowest win rate, then worst round difference.',teams,r=>[-r.wins/r.games,-r.difference],winRate)
+      award('Wooden Spoon','🥔','Lowest win rate, then worst round difference.',teams,r=>[-r.wins/r.games,-r.difference],winRate),
+      award('Steamrollers','»','Biggest round margin in a single victory.',teams.filter(r=>r.biggestWin>0),r=>[r.biggestWin],r=>'Won by '+r.biggestWin+' rounds',teams.length?'No qualifying victories':'Awaiting more matches'),
+      award('Nail-Biters','≈','Most wins decided by two rounds or fewer, including tiebreaks.',teams.filter(r=>r.closeWins>0),r=>[r.closeWins],r=>r.closeWins+' close win'+(r.closeWins===1?'':'s'),teams.length?'No close wins yet':'Awaiting more matches'),
+      award('Brick Wall','▥','Fewest rounds conceded per completed game.',teams,r=>[-r.conceded/r.games],r=>(r.conceded/r.games).toFixed(1)+' rounds conceded/game'),
+      award('Giant Slayers','⚔','Most wins against teams currently above them by win rate, then round difference.',teams.filter(r=>r.giantWins>0),r=>[r.giantWins],r=>r.giantWins+' win'+(r.giantWins===1?'':'s')+' against higher-ranked teams',teams.length?'No giant slayers yet':'Awaiting more matches')
     ],
     players:[
       award('MVP','👑','Highest kills per recorded game, then K/D.',players,r=>[r.kills/r.games,kd(r)],r=>(r.kills/r.games).toFixed(1)+' kills/game · '+(kd(r)===Infinity?'∞':kd(r).toFixed(2))+' K/D'),
@@ -222,7 +250,7 @@ function validateData(data, resolve) {
       if(!entry || typeof entry.id!=='string' || !entry.id || typeof entry.title!=='string' || !entry.title.trim() || entry.title.length>120 || typeof entry.archivedAt!=='string' || !Number.isFinite(Date.parse(entry.archivedAt)) || !entry.tournament || entry.tournament.history!==undefined || entry.tournament.activeMatchId!==undefined)throw Error('Invalid archived cup.');
       validateData(entry.tournament,resolve);
       const state=resolve(entry.tournament),first=state.matches.find(m=>m.id==='f1');
-      const final=entry.tournament.format==='double' && first?.winner===first?.ids[1] && first?.winner ? state.matches.find(m=>m.id==='f2') : first;
+      const final=state.final;
       if(!final?.winner || state.matches.some(m=>!m.skipped && !m.result))throw Error('Archived cups must be complete.');
     }
   }
@@ -294,7 +322,7 @@ function drawPublishReason(draw,state) {
   if(draw.format==='single' && !state.drawnMap)return 'Choose a map selection method, confirm it, then select the match map before publishing.';
   return '';
 }
-if (typeof module !== 'undefined') module.exports = { undoResultChange, drawPublishReason, makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament, tournamentAwards, updateHeaders, repositorySettings, soloDrawGroups, drawTeamMembers };
+if (typeof module !== 'undefined') module.exports = { bestOfThreeFinal, undoResultChange, drawPublishReason, makeTournament, orderedMatches, playerTotals, validateData, applyResult, MAP_POOLS, assignMaps, emptyTournament, tournamentAwards, updateHeaders, repositorySettings, soloDrawGroups, drawTeamMembers };
 if (typeof document !== 'undefined') (() => {
   const $ = id => document.getElementById(id);
   const repository=repositorySettings(document.querySelector('meta[name=dashboard-repository]')?.content,document.querySelector('meta[name=dashboard-branch]')?.content,location.hostname,location.pathname);
@@ -303,7 +331,7 @@ if (typeof document !== 'undefined') (() => {
   $('game-provider').value=current.gameProvider || 'manual';
   let setupUI=null,featureUI=null,gameNightUI=null,discordEventUI=null,loadedDiscordEvent=null,customPlayerNames='',rematchSource=null;
   let skippingAnimation=false;
-  let drawnMap=null,manualAssignments=[],manualNames=[],autoSpinTimer=null,captainDraft=null;
+  let drawnMap=null,manualAssignments=[],manualNames=[],autoSpinTimer=null,captainDraft=null,rosterPlan=null;
   let pool = [], remaining = [], selected = [], draw = null, spinning = false, locked = false, drawOrder = [];
   const tokenStorageKey = 'friends-cup.organiser-token.'+(repository?repository.owner+'/'+repository.repo:'unconfigured');
   function storeToken(value) {
@@ -315,7 +343,11 @@ if (typeof document !== 'undefined') (() => {
     } catch { return false; }
   }
   const say = text => { $('connection-status').textContent = text; if($('options-dialog').open)$('options-status').textContent=text; };
-  const announce = text => { $('draw-announcement').textContent = text; };
+  const announce = (text, isError = false) => {
+    const status=$('draw-announcement');
+    status.toggleAttribute('data-draw-error',isError);
+    status.textContent=text;
+  };
   function queueAutoSpin(delay=2000){
     clearTimeout(autoSpinTimer);autoSpinTimer=null;
     if(!$('auto-spin').checked || !token || $('spin').disabled)return;
@@ -335,13 +367,16 @@ if (typeof document !== 'undefined') (() => {
     $('player-pool-heading').textContent=loadedDiscordEvent?'Event players':'Player pool';
     $('setup-next-3').textContent='Continue';
     $('player-pool-help').textContent=loadedDiscordEvent?'Select who is playing below, then confirm your players.':'Choose who is playing this time. Add saved players above or enter names below, then load the pool and select your players.';
-    $('skip-animation').disabled=busy || spinning || skippingAnimation || !token || (!remaining.length && !(draw?.format==='single' && !drawnMap && draw.mapMethod && draw.mapMethod!=='veto' && selectedMaps().length)) || (remaining.length>0 && ['manual','captains'].includes($('team-creation').value));
+    const mapCandidates=gameNightUI?.mapCandidates() || [];
+    $('skip-animation').disabled=busy || spinning || skippingAnimation || !token || (!remaining.length && !(draw?.format==='single' && !drawnMap && mapCandidates.length)) || (remaining.length>0 && ['manual','captains'].includes($('team-creation').value));
     const manual=$('team-creation').value==='manual';
     const captains=$('team-creation').value==='captains';
     $('captain-case-panel').hidden=!captains || !locked;
     const selectingMap=draw?.format==='single' && !remaining.length;
-    document.querySelector('.wheel-panel').hidden=(captains && (!draw || draw.format!=='single')) || (selectingMap && (!draw.mapMethod || draw.mapMethod==='veto'));
-    document.querySelector('.spin-actions').hidden=document.querySelector('.wheel-panel').hidden;
+    const mapSelected=!!(selectingMap && drawnMap);
+    $('draw-stage').classList.toggle('map-result-selected',mapSelected);
+    $('player-reveal').hidden=!!selectingMap && !mapSelected;
+    document.querySelector('.wheel-panel').hidden=(captains && (!draw || draw.format!=='single')) || (selectingMap && !mapSelected && !mapCandidates.length);
     $('draw-animation').closest('label').hidden=selectingMap || (captains && !draw);
     $('draw-stage').classList.toggle('captain-style',captains);
     $('captain-choices').querySelectorAll('select,button').forEach(input=>{input.disabled=busy || spinning || !!captainDraft || !token;});
@@ -353,11 +388,20 @@ if (typeof document !== 'undefined') (() => {
     $('manual-teams').hidden=!manual || !locked || !manualAssignments.length;
     $('manual-team-list').querySelectorAll('input,select').forEach(input=>{input.disabled=busy || !token;});
     $('use-manual-teams').disabled=busy || !token || manualAssignments.some(id=>!id) || !manualAssignments.length || new Set(manualAssignments).size!==manualAssignments.length;
-    $('draw-stage').hidden=!locked || (manual && (!draw || draw.format!=='single'));
+    const planning=locked && !!rosterPlan && !draw;
+    $('roster-reveal').hidden=!planning;
+    $('draw-stage').hidden=!locked || planning || (manual && (!draw || draw.format!=='single'));
     $('draw-panel').classList.toggle('live-draw',locked && !$('draw-stage').hidden);
     $('reset-edit-draw').disabled=busy || spinning || skippingAnimation;
+    $('back-live-draw').disabled=$('reset-edit-draw').disabled;
     $('draw-stage').classList.toggle('manual-map',manual);
-    document.querySelector('.draw-roster').hidden=manual;
+    document.querySelector('.draw-roster').hidden=manual && !selectingMap;
+    $('draft-swap-help').hidden=!selectingMap;
+    const canSwap=selectingMap && !!token && !busy && !spinning && !skippingAnimation;
+    $('draw-teams').querySelectorAll('.draft-swap-player').forEach(button=>{
+      button.disabled=!canSwap;
+      button.draggable=canSwap;
+    });
     $('draw-animation').disabled=busy || spinning;
     $('case-reel').setAttribute('aria-label',draw?.format==='single' && !remaining.length?'Map selection case reel':'Player selection case reel');
     $('open-options').hidden = false;
@@ -393,15 +437,22 @@ if (typeof document !== 'undefined') (() => {
     $('refresh-data').disabled = busy;
     $('clear-tournament').disabled = busy || spinning || !token;
     const mapPending=draw?.format==='single' && !remaining.length && !drawnMap;
-    $('spin').textContent=mapPending?'Spin for map':'Spin for next player';
-    $('wheel').setAttribute('aria-label',mapPending?'Map selection wheel':'Player selection wheel');
-    $('spin').disabled = (captains && (!draw || remaining.length>0)) || busy || spinning || (!remaining.length && !mapPending) || (mapPending && (!selectedMaps().length || !draw.mapMethod || draw.mapMethod==='veto'));
+    const spinActions=document.querySelector('.spin-actions');
+    spinActions.hidden=document.querySelector('.wheel-panel').hidden || (!remaining.length && !mapPending);
+    $('skip-animation').textContent=mapPending?'Skip map animation':'Skip animation & assign teams';
+    $('spin').textContent=mapPending?(draw.mapMethod==='player-vote'?'Open finalist reel':'Spin for map'):'Spin for next player';
+    $('wheel').setAttribute('aria-label',selectingMap?'Map selection wheel':'Player selection wheel');
+    $('spin').disabled = (captains && (!draw || remaining.length>0)) || busy || spinning || (!remaining.length && !mapPending) || (mapPending && !mapCandidates.length);
     $('disconnect').disabled = busy;
     $('remember-token').disabled = busy;
     const publishReason=drawPublishReason(draw,{busy,spinning,connected:!!token,drawnMap,format:$('tournament-format').value,groups:Number($('group-count').value),qualifiers:Number($('qualifiers-per-group').value),teamSize:Number($('team-size').value),maps:selectedMaps()});
     $('publish-draw').disabled=!!publishReason;$('publish-expanded').disabled=!!publishReason;
     $('publish-draw').hidden=!locked || !manual || draw?.format==='single';$('publish-status').hidden=$('publish-draw').hidden;
-    for(const id of ['publish-status','publish-expanded-status']){$(id).textContent=publishReason || 'Teams are ready to publish.';}
+    const publishActions=$('publish-expanded').parentElement;
+    publishActions.hidden=!draw;
+    publishActions.title=publishReason;
+    $('publish-status').textContent=publishReason || 'Teams are ready to publish.';
+    $('publish-expanded-status').textContent=spinning ? '' : mapPending && !busy && draw.mapMethod ? '' : publishReason;
     document.querySelectorAll('.result-form button, .tie-form button, #fixture-platform select').forEach(b => { b.disabled = busy || !token; });
     document.querySelectorAll('.fixture-import,#fixture-platform,#import-centre').forEach(el=>el.hidden=!token);featureUI?.controls();gameNightUI?.controls();setupUI?.render();queueAutoSpin();
   }
@@ -547,30 +598,50 @@ if (typeof document !== 'undefined') (() => {
     document.getElementById('fixture-platform')?.remove();document.getElementById('import-centre')?.remove();$('player-links').replaceChildren();
     if(token){const centre=createImportCentre({dedicated:true,playerContainer:$('player-links'),data:structuredClone(current),resolve:resolveTournament,isBusy:()=>busy,isOrganiser:()=>!!token,saveImport:saveImportedFixture,saveProfiles:async profiles=>{const next=structuredClone(current);next.leetifyProfiles=profiles;await publish(next,'Update Leetify player profile links');},saveAliases:async aliases=>{const next=structuredClone(current);next.importAliases={...current.importAliases,faceit:aliases};await publish(next,'Update FACEIT player name links');},undo:async()=>{await publish(undoResultChange(current,resolveTournament),'Undo last result change');}});centre.id='import-centre';$('fixture-import-centre').replaceChildren(centre);}
 
-    if(token){const label=element('label','fixture-platform','Game platform'),select=element('select');label.id='fixture-platform';for(const [value,text] of [['manual','Other · Manual results'],['faceit','FACEIT · Pull up gang queue']]){const o=element('option','',text);o.value=value;select.append(o);}select.value=current.gameProvider || 'manual';select.disabled=busy;select.onchange=async()=>{try{const next=structuredClone(current);next.gameProvider=select.value;await publish(next,'Update fixture game platform');}catch(error){say(error.message);select.value=current.gameProvider || 'manual';}};label.append(select);$('schedule').before(label);}
+    if(token){const label=element('label','fixture-platform','Game platform'),select=element('select');label.id='fixture-platform';for(const [value,text] of [['manual','Other · Manual results'],['faceit','FACEIT · Pull up gang queue']]){const o=element('option','',text);o.value=value;select.append(o);}select.value=current.gameProvider || 'manual';select.disabled=busy;select.onchange=async()=>{try{const next=structuredClone(current);next.gameProvider=select.value;await publish(next,'Update fixture game platform');}catch(error){say(error.message);select.value=current.gameProvider || 'manual';}};label.append(select);$('schedule').after(label);}
 
-    $('schedule').replaceChildren(); const state = resolveTournament(current);
+    const schedule=$('schedule');
+    schedule.replaceChildren();
+    const {state,active,next:[nextMatch]}=matchNight(current,resolveTournament,orderedMatches);
     if (!state.matches.length) { $('schedule').append(element('p','rules','No fixtures yet. Create and publish a tournament in Team setup.')); return; }
-    const matches = orderedMatches(state.matches); let markedNext = false;
+    const matches = orderedMatches(state.matches);
+    const featured = nextMatch || active;
+    const remaining = matches.filter(match=>match.id!==featured?.id);
+    const featuredSection=featured?element('section','fixture-section fixture-feature'):null;
+    if(featured){
+      const heading=element('h3','fixture-heading',nextMatch?'Next match':'Match in progress');
+      heading.id='fixtures-featured';
+      featuredSection.setAttribute('aria-labelledby',heading.id);
+      featuredSection.append(heading);
+      schedule.append(featuredSection);
+    }
     const sections = {};
     for (const [key, title] of [['upcoming','Upcoming games'],['played','Played games']]) {
-      const section = element('section','fixture-section');
-      const heading = element('h3','fixture-heading'); heading.id = 'fixtures-' + key;
-      section.setAttribute('aria-labelledby',heading.id);
-      const count = matches.filter(match => Boolean(match.result) === (key === 'played')).length;
-      heading.textContent = title + ' · ' + count; section.append(heading);
-      if (!count) section.append(element('p','rules',key === 'played' ? 'No games played yet. Completed results will appear here.' : 'All games complete.'));
-      sections[key] = section; $('schedule').append(section);
+      const played=key==='played';
+      const count=remaining.filter(match=>Boolean(match.result)===played).length;
+      if(!count && (featured || played))continue;
+      const section=element(played?'details':'section','fixture-section'+(played?' fixture-results':''));
+      const heading=element(played?'summary':'h3','fixture-heading',title+' · '+count);
+      heading.id='fixtures-'+key;
+      if(!played)section.setAttribute('aria-labelledby',heading.id);
+      section.append(heading);
+      if(!count)section.append(element('p','rules','All games complete.'));
+      sections[key]=element('div','fixture-list');
+      section.append(sections[key]);
+      schedule.append(section);
     }
     matches.forEach((match,index) => {
-      const container = sections[match.result ? 'played' : 'upcoming'];
-      const details = element('details','scheduled-match');
-      const ready = match.ids.every(Boolean); const next = !markedNext && !match.result && ready;
-      if (next) { markedNext = true; details.classList.add('next-match'); }
+      const isFeatured=match.id===featured?.id;
+      const container=isFeatured?featuredSection:sections[match.result?'played':'upcoming'];
+      const details=element('details','scheduled-match'+(isFeatured?' next-match':''));
+      const ready=match.ids.every(Boolean),playing=match.id===active?.id;
       const names = match.ids.map((id,i) => state.teams.has(id) ? teamDisplayLabel({...state.teams.get(id),...(match.result?.lineups?.[id]?{players:match.result.lineups[id]}:{})}) : matchPlaceholder(match,i));
       const summary=element('summary','fixture-summary');
+      if(isFeatured)setMapBackdrop(summary,match.map);
       const meta=element('span','fixture-topline');
-      meta.append(element('span','fixture-number','MATCH '+String(index+1).padStart(2,'0')),element('span','fixture-map',match.map || (current.teamSize===1?'Choose map in server':'Map not assigned')),element('span','fixture-status',match.result?'PLAYED':match.id===current.activeMatchId?'PLAYING NOW':next?'UP NEXT':ready?'SCHEDULED':'AWAITING TEAMS'));
+      const mapBadge=element('span','fixture-map',match.map || (current.teamSize===1?'Choose map in server':'Map not assigned'));
+      setMapBackdrop(mapBadge,match.map);
+      meta.append(element('span','fixture-number','MATCH '+String(index+1).padStart(2,'0')),mapBadge,element('span','fixture-status',match.result?'PLAYED':playing?'PLAYING NOW':isFeatured?'UP NEXT':ready?'SCHEDULED':'AWAITING TEAMS'));
       const versus=element('span','fixture-versus');
       match.ids.forEach((id,i)=>{
         if(i===1)versus.append(element('span','fixture-score',match.result?match.result.scores.join(' : '):'VS'));
@@ -579,6 +650,7 @@ if (typeof document !== 'undefined') (() => {
         identity.append(element('span','fixture-team',names[i]));versus.append(identity);
       });
       summary.append(meta,versus);
+      if(match.seriesGame)summary.append(element('span','fixture-edit-hint','Grand final · Game '+match.seriesGame+' · Best of three · First to two wins'));
       summary.append(element('span','fixture-edit-hint',!ready?'Waiting for qualification':token?(current.teamSize===1?(match.result?'Edit score · stats calculated automatically':'Enter score · stats calculated automatically'):(match.result?'Edit score & player stats':'Enter score & player stats')):'View match details'));
       if(match.result?.tiebreakWinner)summary.append(element('span','fixture-decision','Tiebreak winner: '+teamDisplayLabel(state.teams.get(match.result.tiebreakWinner))));
       else if(match.result && match.result.scores[0]===match.result.scores[1])summary.append(element('span','fixture-decision','DRAW'));
@@ -630,7 +702,7 @@ if (typeof document !== 'undefined') (() => {
       if(inputs.length)form.append(stats);
       const note = element('p','form-note'); note.setAttribute('role','status');
       const update = element('button','', match.result?'Save corrected result':'Save match result'); update.type='submit';
-      const actions=element('div','result-actions');actions.append(update,element('p','entry-help',token?'Saves the score and any entered stats, then updates standings and knockout places.':'Connect through the settings cog to enter and save results.'));form.append(actions,note);
+      const actions=element('div','result-actions');actions.append(update,element('p','entry-help',token?'Saves the score and any entered stats, then updates standings and knockout places.':'Open Organiser settings to enter and save results.'));form.append(actions,note);
       form.onsubmit = async event => {
         event.preventDefault(); if (!token || busy) return;
         try {
@@ -662,18 +734,14 @@ if (typeof document !== 'undefined') (() => {
       const container=$(type==='teams'?'team-awards':'player-awards');container.replaceChildren();
       for(const award of awards[type]) {
         const card=element('article','award-card'+(!award.winners.length?' award-pending':''));
-        const heading=element('h3','award-title');const icon=element('span','award-icon',({'Top Dogs':'01','On a Roll':'↑','Round Bullies':'+','Wooden Spoon':'↓','MVP':'★','Top Fragger':'⌖','Wingman':'Ⅱ','Respawn Regular':'↺'})[award.title]);icon.setAttribute('aria-hidden','true');heading.append(icon,document.createTextNode(award.title));card.append(heading);
+        const heading=element('h3','award-title');const icon=element('span','award-icon',({'Top Dogs':'01','On a Roll':'↑','Round Bullies':'+','Wooden Spoon':'↓','Steamrollers':'»','Nail-Biters':'≈','Brick Wall':'▥','Giant Slayers':'⚔','MVP':'★','Top Fragger':'⌖','Wingman':'Ⅱ','Respawn Regular':'↺'})[award.title]);icon.setAttribute('aria-hidden','true');heading.append(icon,document.createTextNode(award.title));card.append(heading);
         card.append(element('p','award-winner',award.winners.length?award.winners.map(row=>type==='teams'?teamDisplayLabel(row):row.name+' ('+row.team+')').join(' / '):'Still up for grabs'));
         card.append(element('p','award-metric',(award.winners.length>1?'Joint award · ':'')+award.metric),element('p','award-rule',award.rule));container.append(card);
       }
     }
   }
   function renderStats() {
-    $('player-stats').replaceChildren(); const rows = playerTotals(current);
-    if (!rows.length) { $('player-stats').append(element('p','rules','Draw and publish your teams to start tracking player stats.')); return; }
-    const table = element('table'); const head = element('thead'); const header = element('tr');
-    ['Player','Team','Recorded games','Kills','Deaths','Assists','K/D','Kills / game'].forEach(label=>{const th=element('th','',label);th.scope='col';header.append(th);});head.append(header);table.append(head);
-    const body=element('tbody'); rows.forEach(row=>{const tr=element('tr');[row.name,row.team,row.games,row.kills,row.deaths,row.assists,row.games ? (row.deaths ? (row.kills/row.deaths).toFixed(2) : row.kills ? '∞' : '—') : '—',row.games ? (row.kills/row.games).toFixed(1) : '—'].forEach(value=>tr.append(element('td','',String(value))));body.append(tr);});table.append(body);$('player-stats').append(table);
+    renderMatchPlayerStats($('player-stats'),playerTotals(current),'Current tournament player stats');
   }
   function renderTies() {
     const qualifiers=current.qualifiersPerGroup ?? 2;
@@ -746,6 +814,9 @@ if (typeof document !== 'undefined') (() => {
     singleOption.textContent='Single Game · '+$('team-size').value+'v'+$('team-size').value;
     $('single-match-note').textContent='Select exactly '+(Number($('team-size').value)*2)+' players for two teams. Create your teams, then select a map for the match.';
     if(singleOption.disabled && $('tournament-format').value==='single'){$('tournament-format').value='groups';$('group-count').value='1';}
+    const twoTeams=!solo && $('tournament-format').value==='single';
+    for(const value of ['rivalry','balanced'])$('team-creation').querySelector('option[value="'+value+'"]').disabled=!twoTeams;
+    if(!twoTeams && ['rivalry','balanced'].includes($('team-creation').value))$('team-creation').value='wheel';
     if($('tournament-format').value==='single')$('group-count').value='0';
     $('map-selection').hidden = solo;
     $('solo-map-note').hidden = !solo;
@@ -756,8 +827,12 @@ if (typeof document !== 'undefined') (() => {
     document.querySelector('.draw-stage-toolbar>span').textContent=solo && $('tournament-format').value==='groups'?'LIVE GROUP DRAW':'LIVE TEAM DRAW';
     if (solo) return;
     for (const map of MAP_POOLS[Number($('team-size').value)]) {
-      const label=element('label'),input=element('input'); input.type='checkbox'; input.value=map; input.checked=true;
-      input.onchange=()=>{drawnMap=null;if(draw)draw.mapVeto=[];updateMapCount();configureDraw();controls();}; label.append(input,document.createTextNode(map)); $('map-options').append(label);
+      const label=element('label','map-picker-card'),input=element('input');
+      input.type='checkbox'; input.value=map; input.checked=true;
+      setMapBackdrop(label,map);
+      input.onchange=()=>{drawnMap=null;if(draw)draw.mapVeto=[];updateMapCount();configureDraw();controls();};
+      label.append(input,element('span','map-picker-name',map));
+      $('map-options').append(label);
     }
     updateMapCount();
   }
@@ -777,16 +852,24 @@ if (typeof document !== 'undefined') (() => {
     const names=loadedDiscordEvent ? [...loadedDiscordEvent.players] : $('pool-input').value.split(/\r?\n/).map(n=>n.trim()).filter(Boolean);
     if(!names.length || names.some(n=>n.length>40) || new Set(names.map(n=>n.toLowerCase())).size!==names.length){announce('Use distinct names, one per line, up to 40 characters each.');return;}
     pool=names.map((name,i)=>({id:`p${i+1}`,name}));$('pool-list').replaceChildren();
-    pool.forEach(p=>{const label=element('label');const box=element('input');box.type='checkbox';box.value=p.id;box.checked=true;box.onchange=selectionCount;label.append(box,document.createTextNode(p.name));$('pool-list').append(label);});selectionCount();announce('Select your players, then lock the pool.');
+    pool.forEach(player=>{
+      const label=element('label','player-picker-tile'),box=element('input');
+      const icon=element('span','player-picker-icon');
+      icon.ariaHidden='true';
+      box.type='checkbox';box.value=player.id;box.checked=true;box.onchange=selectionCount;
+      label.append(box,icon,element('span','player-picker-name',player.name));
+      $('pool-list').append(label);
+    });
+    selectionCount();announce('Select your players, then lock the pool.');
   };
   $('load-pool').onclick=loadPlayerPool;
   const teamColours=['#ff9b01','#67afd3','#b6a0ee','#73d1a9','#f18e97','#e1cf80'];
   let soundEnabled=true,audioContext=null;
   function initials(name) { return name.trim().split(/\s+/).map(part=>part[0]).join('').slice(0,2).toUpperCase(); }
-  function playTone(frequency,duration=0.035) {
+  function playTone(frequency,duration=0.035,waveform='sine',volume=0.045) {
     if(!soundEnabled || !audioContext || audioContext.state!=='running')return;
     try { const oscillator=audioContext.createOscillator(),gain=audioContext.createGain();
-      oscillator.type='sine';oscillator.frequency.value=frequency;gain.gain.setValueAtTime(0.045,audioContext.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,audioContext.currentTime+duration);
+      oscillator.type=waveform;oscillator.frequency.value=frequency;gain.gain.setValueAtTime(volume,audioContext.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,audioContext.currentTime+duration);
       oscillator.connect(gain);gain.connect(audioContext.destination);oscillator.start();oscillator.stop(audioContext.currentTime+duration);
     } catch { /* Sound is optional. */ }
   }
@@ -800,17 +883,98 @@ if (typeof document !== 'undefined') (() => {
     soundEnabled=!soundEnabled;await prepareSound();
     if(soundEnabled)playTone(660,0.1);
   };
-  let wheelFrame = [[],0,-1];
+  let menuTap;
+  document.addEventListener('click',event=>{
+    const control=event.target.closest('button[role="tab"],.setup-navigation>button,.draw-toolbar-actions>button');
+    if(!event.isTrusted || !control || control.disabled || !soundEnabled)return;
+    menuTap ||= new Audio('assets/audio/menu-tap.wav');
+    menuTap.currentTime=0;
+    menuTap.play().catch(()=>{}); // Navigation still works when playback is blocked.
+  });
+  let wheelFrame = [[],0,-1,false];
+  const wheelMapImages=new Map();
   document.fonts?.ready.then(()=>{if(!spinning)paintWheel(...wheelFrame);});
-  function paintWheel(names,angle=0,highlight=-1) {
-    wheelFrame = [names,angle,highlight];
+  function mapWheelImage(name){
+    const url=mapImageUrl(name);
+    if(!url)return null;
+    if(!wheelMapImages.has(url)){
+      const image=new Image();
+      wheelMapImages.set(url,image);
+      image.onload=()=>{if(!spinning && wheelFrame[3])paintWheel(...wheelFrame);};
+      image.src=url;
+    }
+    const image=wheelMapImages.get(url);
+    return image.complete && image.naturalWidth && image.naturalHeight ? image : null;
+  }
+  let wheelPanX=0,wheelPanY=0,wheelPanFrame=0;
+  function panWheelArtwork(x,y){
+    if(x===wheelPanX && y===wheelPanY)return;
+    wheelPanX=x;
+    wheelPanY=y;
+    if(!spinning && wheelFrame[3] && !wheelPanFrame){
+      wheelPanFrame=requestAnimationFrame(()=>{
+        wheelPanFrame=0;
+        if(!spinning && wheelFrame[3])paintWheel(...wheelFrame);
+      });
+    }
+  }
+  const wheelMotion=window.matchMedia('(any-hover: hover) and (any-pointer: fine) and (prefers-reduced-motion: no-preference)');
+  $('wheel').addEventListener('pointermove',event=>{
+    if(!wheelMotion.matches || event.pointerType!=='mouse' || !wheelFrame[3])return;
+    const bounds=event.currentTarget.getBoundingClientRect();
+    panWheelArtwork((event.clientX-bounds.left)/bounds.width-.5,(event.clientY-bounds.top)/bounds.height-.5);
+  });
+  $('wheel').addEventListener('pointerleave',()=>panWheelArtwork(0,0));
+  wheelMotion.addEventListener('change',()=>panWheelArtwork(0,0));
+  function paintMapWheelSlice(ctx,name,mid,angle,count,active){
+    ctx.save();
+    ctx.clip();
+    ctx.rotate(mid);
+    const image=mapWheelImage(name);
+    ctx.fillStyle='#292d37';ctx.fillRect(-302,-302,604,604);
+    if(image){
+      const left=count===1?-302:0,width=302-left;
+      const height=count<=2?604:604*Math.sin(Math.PI/count);
+      const margin=wheelMotion.matches?8:0;
+      const scale=Math.max((width+2*margin)/image.naturalWidth,(height+2*margin)/image.naturalHeight);
+      const sourceWidth=width/scale,sourceHeight=height/scale;
+      const rotation=mid+angle*Math.PI/180;
+      const shiftX=margin*(wheelPanX*Math.cos(rotation)+wheelPanY*Math.sin(rotation))/scale;
+      const shiftY=margin*(wheelPanY*Math.cos(rotation)-wheelPanX*Math.sin(rotation))/scale;
+      ctx.drawImage(image,(image.naturalWidth-sourceWidth)/2+shiftX,(image.naturalHeight-sourceHeight)/2+shiftY,
+        sourceWidth,sourceHeight,left,-height/2,width,height);
+    }
+    const tint=ctx.createLinearGradient(55,0,302,0);
+    tint.addColorStop(0,'#121620ee');
+    tint.addColorStop(1,active?'#493215a8':'#11141b88');
+    ctx.fillStyle=tint;ctx.fillRect(-302,-302,604,604);
+    ctx.translate(204,0);
+    if(Math.cos(mid+angle*Math.PI/180)<0)ctx.rotate(Math.PI);
+    ctx.font='700 26px Rajdhani, Arial';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.shadowColor='#101316';
+    ctx.shadowBlur=5;
+    ctx.fillStyle=active?'#ffe275':'#ffc33f';
+    ctx.fillText(name,0,1,154);
+    ctx.restore();
+  }
+  function paintWheel(names,angle=0,highlight=-1,mapWheel=false) {
+    wheelFrame = [names,angle,highlight,mapWheel];
     if($('draw-animation').value==='case'){paintCaseReel(names,angle,highlight);return;}
-    const ctx=$('wheel').getContext('2d'),n=names.length;ctx.clearRect(0,0,640,640);
+    const wheel=$('wheel'),ctx=wheel.getContext('2d'),n=names.length;
+    const label=mapWheel?'Map selection wheel':'Player selection wheel';
+    if(wheel.getAttribute('aria-label')!==label)wheel.setAttribute('aria-label',label);
+    ctx.clearRect(0,0,640,640);
     ctx.save();ctx.translate(320,320);ctx.rotate(angle*Math.PI/180);
     if(!n){ctx.fillStyle='#23262e';ctx.beginPath();ctx.arc(0,0,302,0,2*Math.PI);ctx.fill();}
     names.forEach((p,i)=>{
       const start=-Math.PI/2+i*2*Math.PI/n,active=i===highlight;
       ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,302,start,start+2*Math.PI/n);ctx.closePath();
+      if(mapWheel){
+        paintMapWheelSlice(ctx,p.name,start+Math.PI/n,angle,n,active);
+        ctx.strokeStyle=active?'#ffe4ad':'#101316';ctx.lineWidth=active?5:2;ctx.stroke();
+        return;
+      }
       ctx.fillStyle=active?'#ffe4ad':teamColours[i%teamColours.length];ctx.globalAlpha=active?1:0.78;ctx.fill();ctx.globalAlpha=1;
       ctx.strokeStyle=active?'#fff5df':'#101316';ctx.lineWidth=active?5:2;ctx.stroke();
       ctx.save();ctx.rotate(start+Math.PI/n);ctx.fillStyle='#101820';ctx.font='bold '+(n>24?12:18)+'px Rajdhani, Arial';ctx.textAlign='right';
@@ -820,7 +984,7 @@ if (typeof document !== 'undefined') (() => {
     });ctx.restore();
     ctx.beginPath();ctx.arc(320,320,302,0,2*Math.PI);ctx.strokeStyle='#ff9b01';ctx.lineWidth=5;ctx.stroke();
     ctx.beginPath();ctx.arc(320,320,64,0,2*Math.PI);ctx.fillStyle='#1e202f';ctx.fill();ctx.strokeStyle='#65717b';ctx.lineWidth=2;ctx.stroke();
-    ctx.fillStyle='#ff9b01';ctx.textAlign='center';ctx.font='bold 19px Rajdhani, Arial';ctx.fillText(n?'DRAFT':'PLAYER',320,316);ctx.font='500 12px Rajdhani, Arial';ctx.fillText(n?n+' LEFT':'DRAW',320,338);
+    ctx.fillStyle='#ff9b01';ctx.textAlign='center';ctx.font='bold 19px Rajdhani, Arial';ctx.fillText(mapWheel?'MAP DRAW':n?'DRAFT':'PLAYER',320,316);ctx.font='500 12px Rajdhani, Arial';ctx.fillText(mapWheel?n+(n===1?' MAP':' MAPS'):n?n+' LEFT':'DRAW',320,338);
   }
   function paintCaseReel(names,angle,highlight){
     const ctx=$('case-reel').getContext('2d'),width=1100,height=360,pitch=210,n=names.length;
@@ -842,11 +1006,20 @@ if (typeof document !== 'undefined') (() => {
     ctx.fillStyle='#ff9b01';ctx.beginPath();ctx.moveTo(536,12);ctx.lineTo(564,12);ctx.lineTo(550,40);ctx.closePath();ctx.fill();ctx.fillRect(549,40,2,282);ctx.beginPath();ctx.moveTo(536,346);ctx.lineTo(564,346);ctx.lineTo(550,320);ctx.closePath();ctx.fill();
   }
   $('draw-animation').onchange=()=>{
-    const reel=$('draw-animation').value==='case';if(!['manual','captains','random'].includes($('team-creation').value))$('team-creation').value=reel?'case':'wheel';$('case-reel-wrap').hidden=!reel;document.querySelector('.wheel-wrap').hidden=reel;$('draw-stage').classList.toggle('case-style',reel);paintWheel(...wheelFrame);controls();
+    const reel=$('draw-animation').value==='case';if(['wheel','case'].includes($('team-creation').value))$('team-creation').value=reel?'case':'wheel';$('case-reel-wrap').hidden=!reel;document.querySelector('.wheel-wrap').hidden=reel;$('draw-stage').classList.toggle('case-style',reel);paintWheel(...wheelFrame);controls();
   };
-  function resetReveal(){ $('reveal-avatar').textContent='?';$('reveal-label').textContent='NEXT RECRUIT';$('reveal-name').textContent='Who’s joining your team?';$('player-reveal').classList.remove('revealed');$('draw-progress').value=0;$('draw-progress-label').textContent='Load players to start'; }
+  function resetReveal(){ $('reveal-avatar').textContent='?';$('reveal-label').textContent='NEXT RECRUIT';$('reveal-name').textContent='Who’s joining your team?';$('player-reveal').classList.remove('revealed');setMapBackdrop($('player-reveal'));$('draw-progress').value=0;$('draw-progress-label').textContent='Load players to start'; }
   function showDrawTeams(latestId=null) {
     $('draw-teams').replaceChildren();const size=Number($('team-size').value),total=selected.length+remaining.length;
+    const review=$('draft-swap-help');
+    review.hidden=draw?.format!=='single' || remaining.length>0;
+    $('draft-swap-status').textContent='';
+    const balance=$('draw-balance-summary');
+    balance.hidden=!rosterPlan?.ratings || !draw;
+    if(!balance.hidden){
+      const totals=draw.teams.map(team=>team.players.reduce((sum,player)=>sum+rosterPlan.ratings.get(player.id),0));
+      balance.textContent=draw.teams.map((team,i)=>team.name+' · '+totals[i]+' stars').join('  /  ')+' · Gap '+Math.abs(totals[0]-totals[1]);
+    }
     $('draw-progress').max=Math.max(1,total);$('draw-progress').value=selected.length;
     if(size===1 && total && $('tournament-format').value==='groups' && Number($('group-count').value)>0){
       const count=Number($('group-count').value),groups=soloDrawGroups(total,count);
@@ -865,17 +1038,88 @@ if (typeof document !== 'undefined') (() => {
     }
     $('draw-progress-label').textContent=total?selected.length+' of '+total+' players selected · '+(remaining.length?'Next: Team '+String(captainDraft?captainDraft.turn%2+1:size===5?selected.length%(total/size)+1:Math.floor(selected.length/size)+1).padStart(2,'0'):'All teams complete'):'Load players to start';
     const drawnTeams=draw?draw.teams.map(t=>t.players):captainDraft?captainDraft.teams.map(t=>t.players):drawTeamMembers(selected,size,total);
+    let swapSelection, dragPlayer;
+    function swapPlayers(source,target){
+      if(source.disabled || target.disabled || source.dataset.team===target.dataset.team)return;
+      const first=source.dataset.player,second=target.dataset.player;
+      const teams=swapDraftPlayers(draw.teams,first,second);
+      if(rosterPlan?.pairs.some(([a,b])=>teams.some(team=>team.players.some(p=>p.id===a) && team.players.some(p=>p.id===b)))){
+        $('draft-swap-status').textContent='That swap would put a rivalry pair on the same team.';
+        return;
+      }
+      draw.teams=teams;
+      if($('team-creation').value==='manual'){
+        manualAssignments=draw.teams.flatMap(team=>team.players.map(player=>player.id));
+        updateManualSlots();
+      }
+      showDrawTeams();
+      controls();
+      $('draw-teams').querySelectorAll('.draft-swap-player').forEach(button=>{
+        if(button.dataset.player===first)button.focus({preventScroll:true});
+      });
+      $('draft-swap-status').textContent=source.dataset.name+' swapped with '+target.dataset.name+'.';
+    }
     for(let i=0;i<total/size;i++){
       const members=drawnTeams[i],complete=members.length===size,latest=members.some(p=>p.id===latestId);
       const card=element('div','draw-team'+(complete?' team-complete':'')+(latest&&complete?' team-flash':''));card.style.setProperty('--team-colour',teamColours[i%teamColours.length]);
       const label=element('label','', 'Team '+String(i+1).padStart(2,'0')),name=element('input');name.value=draw?.teams[i].name || 'Team '+String(i+1).padStart(2,'0');name.maxLength=60;name.disabled=!draw;name.oninput=()=>{draw.teams[i].name=name.value.trim();};label.append(name);card.append(label);
-      for(let j=0;j<size;j++) {const player=members[j],slot=element('div','draft-slot'+(player?' filled':'')+(player?.id===latestId?' player-arrives':''));slot.append(element('span','slot-avatar',player?initials(player.name):String(j+1)),element('span','',player?player.name+((draw?.teams[i].captainId || captainDraft?.teams[i].captainId)===player.id?' · Captain':''):'Awaiting player'));card.append(slot);}
+      if(!review.hidden && $('team-creation').value==='manual')name.readOnly=true;
+      for(let j=0;j<size;j++){
+        const player=members[j],editable=player && !review.hidden;
+        const slot=element(editable?'button':'div','draft-slot'+(player?' filled':'')+(player?.id===latestId?' player-arrives':'')+(editable?' draft-swap-player':''));
+        const captainId=(draw?.teams[i] || captainDraft?.teams[i])?.captainId;
+        const avatar=element('span','slot-avatar',player?initials(player.name):String(j+1));
+        if(editable)avatar.setAttribute('aria-hidden','true');
+        slot.append(avatar,element('span','',player?player.name+(captainId===player.id?' · Captain':''):'Awaiting player'));
+        if(editable){
+          slot.type='button';
+          slot.dataset.player=player.id;
+          slot.dataset.name=player.name;
+          slot.dataset.team=draw.teams[i].id;
+          slot.setAttribute('aria-pressed','false');
+          slot.onclick=()=>{
+            if(swapSelection && swapSelection.dataset.team!==slot.dataset.team){
+              swapPlayers(swapSelection,slot);
+              return;
+            }
+            swapSelection?.setAttribute('aria-pressed','false');
+            swapSelection=swapSelection===slot?null:slot;
+            swapSelection?.setAttribute('aria-pressed','true');
+            $('draft-swap-status').textContent=swapSelection?'Select a player on the other team to swap with '+player.name+'.':'';
+          };
+          slot.ondragstart=event=>{
+            if(!slot.draggable){event.preventDefault();return;}
+            dragPlayer=slot;
+            event.dataTransfer.effectAllowed='move';
+            event.dataTransfer.setData('text/plain',player.name);
+          };
+          slot.ondragend=()=>{
+            dragPlayer=null;
+            $('draw-teams').querySelectorAll('.swap-drop-target').forEach(button=>button.classList.remove('swap-drop-target'));
+          };
+          slot.ondragover=event=>{
+            if(!dragPlayer || slot.disabled || dragPlayer.dataset.team===slot.dataset.team)return;
+            event.preventDefault();
+            event.dataTransfer.dropEffect='move';
+            slot.classList.add('swap-drop-target');
+          };
+          slot.ondragleave=()=>slot.classList.remove('swap-drop-target');
+          slot.ondrop=event=>{
+            if(!dragPlayer)return;
+            event.preventDefault();
+            slot.classList.remove('swap-drop-target');
+            swapPlayers(dragPlayer,slot);
+            dragPlayer=null;
+          };
+        }
+        card.append(slot);
+      }
       card.append(element('p','team-state',complete?'TEAM COMPLETE':members.length+' / '+size+' PLAYERS'));
       if(draw)card.append(element('p','accent',draw.groups.length?'Group '+draw.groups.find(g=>g.teams.includes(draw.teams[i].id)).id:draw.format==='single'?'Single Game':'Knockout'));
       $('draw-teams').append(card);
     }
   }
-  $('team-creation').onchange=()=>{if($('team-creation').value==='captains')stopAutoSpin();if(!['manual','captains','random'].includes($('team-creation').value)){$('draw-animation').value=$('team-creation').value;$('draw-animation').onchange();}selectionCount();controls();};
+  $('team-creation').onchange=()=>{const mode=$('team-creation').value;if(['captains','rivalry','balanced'].includes(mode))stopAutoSpin();if(['wheel','case'].includes(mode)){$('draw-animation').value=mode;$('draw-animation').onchange();}selectionCount();controls();};
   function invalidateManualTeams(){draw=null;drawnMap=null;gameNightUI?.renderDraft();$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();$('format-preview').textContent='Assign every selected player, then click Use these teams.';controls();}
   function updateManualSlots(){
     $('manual-team-list').querySelectorAll('select').forEach((select,slot)=>{
@@ -888,6 +1132,7 @@ if (typeof document !== 'undefined') (() => {
     const root=$('manual-team-list'),size=Number($('team-size').value);root.replaceChildren();
     manualNames.forEach((name,i)=>{
       const card=element('div','draw-team'),label=element('label','','Team '+String(i+1).padStart(2,'0')+' name'),input=element('input');input.value=name;input.maxLength=60;input.oninput=()=>{manualNames[i]=input.value;invalidateManualTeams();};label.append(input);card.append(label);
+      card.style.setProperty('--team-colour',teamColours[i%teamColours.length]);
       for(let j=0;j<size;j++){const slot=i*size+j,label=element('label','','Team '+String(i+1).padStart(2,'0')+' · Player '+(j+1)),select=element('select'),blank=element('option','','Choose player');blank.value='';select.append(blank);selected.forEach(player=>{const option=element('option','',player.name);option.value=player.id;select.append(option);});select.value=manualAssignments[slot];select.onchange=()=>{manualAssignments[slot]=select.value;invalidateManualTeams();updateManualSlots();};label.append(select);card.append(label);}
       root.append(card);
     });updateManualSlots();
@@ -940,27 +1185,48 @@ if (typeof document !== 'undefined') (() => {
       };root.append(button);
     });
   }
-  function lock(value){locked=value;['team-creation','team-size','pool-input','load-pool','start-draw'].forEach(id=>{$(id).disabled=value;});$('pool-list').querySelectorAll('input').forEach(i=>{i.disabled=value;});}
+  function lock(value){locked=value;if(!value){rosterPlan=null;$('roster-reveal').replaceChildren();}['team-creation','team-size','pool-input','load-pool','start-draw'].forEach(id=>{$(id).disabled=value;});$('pool-list').querySelectorAll('input').forEach(i=>{i.disabled=value;});}
   $('start-draw').onclick=async()=>{
     if(busy)return;
     const ids=[...$('pool-list').querySelectorAll('input:checked')].map(i=>i.value),size=Number($('team-size').value);
+    const mode=$('team-creation').value,planned=['rivalry','balanced'].includes(mode);
     if($('tournament-format').value==='single' && (size<2 || ids.length!==size*2)){announce('Select exactly '+(size*2)+' players for one '+size+'v'+size+' match.');return;}
     if(Number($('group-count').value)===1 && Number($('qualifiers-per-group').value)===1){announce('Top 1 needs at least two groups to create a knockout stage.');return;}
     if($('team-creation').value==='captains' && ids.length!==size*2){announce('Select exactly '+(size*2)+' players for two captain-led teams.');return;}
     if(ids.length<size*2 || ids.length%size)return;
+    if(planned && ($('tournament-format').value!=='single' || size<2 || ids.length!==size*2))return;
     if(size===1 && $('tournament-format').value==='groups' && Number($('group-count').value)>0){try{soloDrawGroups(ids.length,Number($('group-count').value));}catch(error){announce(error.message);return;}}
-    captainDraft=null;$('captain-choices').replaceChildren();$('captain-case-grid').replaceChildren();manualAssignments=[];manualNames=[];rematchSource=null;drawnMap=null;remaining=pool.filter(p=>ids.includes(p.id));selected=[];draw=null;lock(true);resetReveal();if($('team-creation').value==='captains'){stopAutoSpin();showCaptainChoices();showDrawTeams();controls();return;}if($('team-creation').value==='manual'){selected=[...remaining];remaining=[];manualAssignments=selected.map(()=>'');manualNames=Array.from({length:selected.length/size},(_,i)=>'Team '+String(i+1).padStart(2,'0'));renderManualTeams();controls();return;}showDrawTeams();paintWheel(remaining);controls();
+    captainDraft=null;$('captain-choices').replaceChildren();$('captain-case-grid').replaceChildren();manualAssignments=[];manualNames=[];rematchSource=null;drawnMap=null;remaining=pool.filter(p=>ids.includes(p.id));selected=[];draw=null;lock(true);resetReveal();
+    if(planned){
+      stopAutoSpin();
+      rosterPlan={ratings:null,pairs:[]};
+      renderRosterReveal($('roster-reveal'),mode,remaining,(rosters,ratings,pairs)=>{
+        if(!locked || busy || !token)return;
+        const next=makeTournament(remaining,size,current,undefined,0,selectedMaps(),Number($('qualifiers-per-group').value),'single');
+        next.teams.forEach((team,i)=>{team.players=rosters[i];});
+        rosterPlan={ratings,pairs:structuredClone(pairs)};
+        selected=[...remaining];remaining=[];draw=next;drawOrder=next.teams.map(team=>team.id);
+        configureDraw();
+        $('map-selection-method').focus();
+      });
+      controls();
+      $('roster-reveal').scrollIntoView({block:'start'});
+      return;
+    }
+    if(mode==='captains'){stopAutoSpin();showCaptainChoices();showDrawTeams();controls();return;}
+    if(mode==='manual'){selected=[...remaining];remaining=[];manualAssignments=selected.map(()=>'');manualNames=Array.from({length:selected.length/size},(_,i)=>'Team '+String(i+1).padStart(2,'0'));renderManualTeams();controls();return;}
+    showDrawTeams();paintWheel(remaining);controls();
     announce(size===1 && $('tournament-format').value==='groups' && Number($('group-count').value)>0?'Drawing Group A. Spin to select its first player.':'Drawing Team 01. Spin to select its first player.');
-    if($('team-creation').value==='random')await $('skip-animation').onclick();
+    if(mode==='random')await $('skip-animation').onclick();
   };
   $('skip-animation').onclick=async()=>{
     if($('skip-animation').disabled)return;
     stopAutoSpin();skippingAnimation=true;controls();
     try{
       while(remaining.length && token && !busy)await $('spin').onclick();
-      if(draw?.format==='single' && !drawnMap && draw.mapMethod!=='veto' && selectedMaps().length && token && !busy)await spinMap();
+      if(draw?.format==='single' && !drawnMap && token && !busy && gameNightUI?.mapCandidates().length)await spinMap();
     }
-    catch(error){announce(error.message);}
+    catch(error){announce(error.message,true);}
     finally{skippingAnimation=false;controls();}
   };
   $('spin').onclick=async()=>{
@@ -1005,14 +1271,15 @@ if (typeof document !== 'undefined') (() => {
     } finally {spinning=false;$('reset-draw').disabled=false;controls();}
   };
   async function spinMap(){
-    if(busy || spinning || !draw || drawnMap || !draw.mapMethod || draw.mapMethod==='veto' || !selectedMaps().length)return;
-    const names=selectedMaps().map(name=>({name})),index=randomIndex(names.length),target=2880+360-(index+.5)*360/names.length;
+    const maps=gameNightUI?.mapCandidates() || [];
+    if(busy || spinning || !draw || drawnMap || !maps.length)return;
+    const names=maps.map(name=>({name})),index=randomIndex(names.length),target=2880+360-(index+.5)*360/names.length;
     spinning=true;controls();$('reset-draw').disabled=true;
     try{
       await prepareSound();$('reveal-label').textContent='MAP DRAW IN PROGRESS';$('reveal-name').textContent='Selecting a map…';
       const duration=skippingAnimation || matchMedia('(prefers-reduced-motion: reduce)').matches?0:6800;
-      if(duration)await new Promise(resolve=>{const start=performance.now();let previous=-1;function frame(now){const fraction=Math.min(1,(now-start)/duration),angle=target*(1-Math.pow(1-fraction,4)),active=Math.floor(((360-angle%360)%360)/360*names.length)%names.length;paintWheel(names,angle,active);if(active!==previous)playTone(850);previous=active;if(fraction<1)requestAnimationFrame(frame);else resolve();}requestAnimationFrame(frame);});
-      drawnMap=names[index].name;configureDraw();paintWheel(names,target,index);$('player-reveal').classList.add('revealed');playTone(1046,0.24);announce(drawnMap+' selected. Publish your teams and map to show the custom match on the leaderboard.');
+      if(duration)await new Promise(resolve=>{const start=performance.now();let previous=-1;function frame(now){const fraction=Math.min(1,(now-start)/duration),angle=target*(1-Math.pow(1-fraction,4)),active=Math.floor(((360-angle%360)%360)/360*names.length)%names.length;paintWheel(names,angle,active,true);if(active!==previous)playTone(850);previous=active;if(fraction<1)requestAnimationFrame(frame);else resolve();}requestAnimationFrame(frame);});
+      drawnMap=names[index].name;configureDraw();paintWheel(names,target,index,true);$('player-reveal').classList.add('revealed');playTone(1046,0.24);announce(drawnMap+' selected. Publish your teams and map to show the custom match on the leaderboard.');
     }finally{spinning=false;$('reset-draw').disabled=false;controls();}
   }
   function configureDraw() {
@@ -1021,8 +1288,9 @@ if (typeof document !== 'undefined') (() => {
       const order = drawOrder;
       const next = makeTournament(selected,draw.teamSize,current,order,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value),$('tournament-format').value);
       next.teams=structuredClone(draw.teams);if(draw.mapMethod)next.mapMethod=draw.mapMethod;if(draw.mapVeto)next.mapVeto=structuredClone(draw.mapVeto); draw=next;
-      if(draw.format==='single'){if(drawnMap)draw.matches[0].map=drawnMap;else delete draw.matches[0].map;paintWheel(selectedMaps().map(name=>({name})));$('reveal-label').textContent=drawnMap?'SELECTED MAP':'MAP DRAW';$('reveal-name').textContent=drawnMap || 'Spin to choose your map';$('reveal-avatar').textContent='MAP';}
-      $('format-preview').textContent = draw.groups.length ? draw.groups.map(g=>'Group '+g.id+': '+g.teams.length+' teams').join(' · ') + ' · Top '+draw.qualifiersPerGroup+' advance from each group.' + (draw.groups.length === 3 ? ' Byes fill the knockout bracket automatically.' : '') : (draw.format==='single'?'Single Game · Two squads of five · ':draw.format==='double'?'Double elimination (includes a reset final if needed) · ':'Straight knockout · ')+draw.matches.length+' game'+(draw.matches.length === 1 ? '' : 's')+(draw.format==='single'?' · Ready for your custom game.':' · Byes advance automatically.');
+      setMapBackdrop($('player-reveal'),draw.format==='single' ? drawnMap : undefined);
+      if(draw.format==='single'){if(drawnMap)draw.matches[0].map=drawnMap;else delete draw.matches[0].map;paintWheel((gameNightUI?.mapCandidates() || []).map(name=>({name})),0,-1,true);$('reveal-label').textContent=drawnMap?'SELECTED MAP':'MAP DRAW';$('reveal-name').textContent=drawnMap || 'Spin to choose your map';$('reveal-avatar').textContent='MAP';}
+      $('format-preview').textContent = draw.groups.length ? draw.groups.map(g=>'Group '+g.id+': '+g.teams.length+' teams').join(' · ') + ' · Top '+draw.qualifiersPerGroup+' advance from each group.' + (draw.groups.length === 3 ? ' Byes fill the knockout bracket automatically.' : '') : (draw.format==='single'?'Single Game · Two squads of five · ':draw.format==='double'?'Double elimination · Best-of-three grand final · ':'Straight knockout · ')+draw.matches.length+' game'+(draw.matches.length === 1 ? '' : 's')+(draw.format==='single'?' · Ready for your custom game.':' · Byes advance automatically.');
       showDrawTeams();
       $('draw-fixtures').replaceChildren(element('h3','fixture-heading',draw.teamSize===1?'Fixtures · choose maps in server':'Fixture map preview'));
       const list=element('ol','map-preview');
@@ -1033,28 +1301,64 @@ if (typeof document !== 'undefined') (() => {
   }
   $('group-count').onchange = $('qualifiers-per-group').onchange = ()=>{selectionCount();configureDraw();controls();};
   $('reset-draw').onclick=()=>{if(spinning || busy)return;if(selected.length && !confirm('Discard this unpublished draw?'))return;stopAutoSpin();captainDraft=null;$('captain-choices').replaceChildren();$('captain-case-grid').replaceChildren();manualAssignments=[];manualNames=[];$('manual-team-list').replaceChildren();rematchSource=null;drawnMap=null;selected=[];remaining=[];draw=null;gameNightUI?.renderDraft();lock(false);$('spin').disabled=true;$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();$('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();announce('Select your players to start a new draw.');};
-  $('publish-draw').onclick=async()=>{if($('publish-draw').disabled){announce($('publish-status').textContent);return;}try{const next=structuredClone(draw);next.gameProvider=$('game-provider').value;if(!rematchSource){next.serverAddress='';delete next.serverPassword;}if(loadedDiscordEvent){next.discordEventId=loadedDiscordEvent.id;next.name=loadedDiscordEvent.title;next.headers={...next.headers,banner:loadedDiscordEvent.title};}else if(rematchSource && current.discordEventId){next.discordEventId=current.discordEventId;}if(current.savedPlayers!==undefined)next.savedPlayers=structuredClone(current.savedPlayers);if(rematchSource && rematchSource!==JSON.stringify(current))throw Error('The saved match changed. Reload it and start the rematch again.');if(current.history)next.history=structuredClone(current.history);else delete next.history;if(rematchSource && completedCup(current,resolveTournament))next.history=archiveCup(current,resolveTournament,emptyTournament,((current.headers?.banner || current.name)+' · '+(current.matches[0].map || '5v5')).slice(0,120)).history;await publish(next,'Publish new player draw and tournament groups');stopAutoSpin();captainDraft=null;draw=null;selected=[];lock(false);$('captain-choices').replaceChildren();$('captain-case-grid').replaceChildren();manualAssignments=[];manualNames=[];rematchSource=null;gameNightUI?.renderDraft();$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();setExpandedDraw(false);selectTab($('tab-leaderboard'),true);$('panel-leaderboard').scrollIntoView({block:'start'});setupUI?.reset();say('Teams published. Your '+(current.format==='single'?'match is ready on the Match tab.':'tournament is ready on the Leader board.'));}catch(error){announce(error.message);}};
+  $('publish-draw').onclick=async()=>{if($('publish-draw').disabled){announce($('publish-status').textContent);return;}try{const next=structuredClone(draw);next.gameProvider=$('game-provider').value;if(!rematchSource){next.serverAddress='';delete next.serverPassword;}if(loadedDiscordEvent){next.discordEventId=loadedDiscordEvent.id;next.name=loadedDiscordEvent.title;next.headers={...next.headers,banner:loadedDiscordEvent.title};}else if(rematchSource && current.discordEventId){next.discordEventId=current.discordEventId;}if(current.savedPlayers!==undefined)next.savedPlayers=structuredClone(current.savedPlayers);if(rematchSource && rematchSource!==JSON.stringify(current))throw Error('The saved match changed. Reload it and start the rematch again.');if(current.history)next.history=structuredClone(current.history);else delete next.history;if(rematchSource && completedCup(current,resolveTournament))next.history=archiveCup(current,resolveTournament,emptyTournament,((current.headers?.banner || current.name)+' · '+(current.matches[0].map || '5v5')).slice(0,120)).history;await publish(next,'Publish new player draw and tournament groups');stopAutoSpin();captainDraft=null;draw=null;selected=[];lock(false);$('captain-choices').replaceChildren();$('captain-case-grid').replaceChildren();manualAssignments=[];manualNames=[];rematchSource=null;gameNightUI?.renderDraft();$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();setExpandedDraw(false);selectTab($('tab-leaderboard'));setupUI?.reset();setExpandedPublished(true);say('Teams published. Your '+(current.format==='single'?'match is ready on the Match tab.':'tournament is ready on the Leader board.'));}catch(error){announce(error.message,true);}};
   $('reset-edit-draw').onclick=()=>{
     if(busy || spinning || skippingAnimation)return;
     $('reset-draw').onclick();
     if(!locked){setExpandedDraw(false);$('setup-stage-4').scrollIntoView({block:'start'});$('team-creation').focus();}
   };
-  $('start-draw').addEventListener('click',()=>{if(locked && !$('draw-stage').hidden)$('draw-stage').scrollIntoView({block:'start'});});
+  $('start-draw').addEventListener('click',()=>{
+    if(locked && !$('draw-stage').hidden)setExpandedDraw(true);
+  });
   $('publish-expanded').onclick=()=>{if(!$('publish-draw').disabled)$('publish-draw').click();};
   const drawStage=$('draw-stage'),fullscreenButton=$('fullscreen-draw');
+  const publishedPanel=$('panel-leaderboard'),exitPublishedButton=$('exit-published-view');
   let expandedDraw=false;
+  function setExpandedPublished(active){
+    document.body.classList.toggle('published-view-open',active);
+    exitPublishedButton.parentElement.hidden=!active;
+    if(active){
+      publishedPanel.scrollTop=0;
+      exitPublishedButton.focus();
+    }
+  }
+  exitPublishedButton.onclick=()=>{
+    setExpandedPublished(false);
+    $('tab-leaderboard').focus();
+  };
   function setExpandedDraw(active) {
     expandedDraw=active;
     drawStage.classList.toggle('fullscreen-fallback',active);
     document.body.classList.toggle('draw-fullscreen-open',active);
+    const publishButton=$('publish-expanded');
+    const actions=drawStage.querySelector(active?'.draw-toolbar-actions':'.draw-action-bar');
+    actions.append(publishButton.parentElement);
+    publishButton.setAttribute('aria-describedby','publish-expanded-status');
+    setupMusic.moveControls(active?fullscreenButton:$('setup-music-audio'));
     fullscreenButton.textContent=active?'Exit expanded view':'Expand draw';
     fullscreenButton.setAttribute('aria-pressed',String(active));
     fullscreenButton.focus();
   }
   fullscreenButton.onclick=()=>setExpandedDraw(!expandedDraw);
-  document.addEventListener('keydown',event=>{if(event.key==='Escape' && expandedDraw){event.preventDefault();setExpandedDraw(false);}});
+  $('back-live-draw').onclick=()=>{
+    if($('back-live-draw').disabled)return;
+    $('setup-back-4').click();
+    if($('setup-stage-3').hidden)return;
+    if(expandedDraw)setExpandedDraw(false);
+    $('setup-tab-3').focus();
+    $('setup-stage-3').scrollIntoView({block:'start'});
+  };
+  document.addEventListener('keydown',event=>{
+    if(event.key!=='Escape' || event.defaultPrevented || document.querySelector('dialog[open]'))return;
+    if(expandedDraw){event.preventDefault();setExpandedDraw(false);}
+    else if(document.body.classList.contains('published-view-open')){
+      event.preventDefault();
+      exitPublishedButton.click();
+    }
+  });
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
   const tabs = Array.from(document.querySelectorAll('.page-tabs [role="tab"], .admin-tabs [role="tab"]'));
+  const setupMusic=createSetupMusic();
   function defaultTab(){return current.registrationEnabled!==false && !token ? $('tab-register') : $('tab-leaderboard');}
   let registrationSubmitting=false;
   $('registration-form').addEventListener('submit',async event=>{
@@ -1079,11 +1383,14 @@ if (typeof document !== 'undefined') (() => {
   });
   function selectTab(tab, focus = false, updateUrl = true) {
     if(!tab || tab.hidden)tab=defaultTab();
+    if(tab.id!=='tab-leaderboard')setExpandedPublished(false);
+    document.body.classList.toggle('viewing-match',tab.id==='tab-leaderboard');
     tabs.forEach(item => {
       const active = item === tab;
       item.setAttribute('aria-selected', String(active)); item.tabIndex = active ? 0 : -1;
       $(item.getAttribute('aria-controls')).hidden = !active;
     });
+    setupMusic.setActive(tab.id==='tab-team-setup' && !!token);
     for(const menu of document.querySelectorAll('.page-tabs,.admin-tabs')){const items=tabs.filter(item=>item.parentElement===menu && !item.hidden);if(items.length && !items.some(item=>item.tabIndex===0))items[0].tabIndex=0;}
     if (updateUrl) history.replaceState(null,'','#'+tab.id.slice(4));
     if (focus) tab.focus();
@@ -1102,6 +1409,7 @@ if (typeof document !== 'undefined') (() => {
     });
   });
   const discordEventConfig=()=>({api:repository.api.replace(/tournament\.json$/,'discord-events.json'),branch:repository.branch,token});
+  faceitRefreshConfig=discordEventConfig;
   discordEventUI=createDiscordEventLoader({readEvents:async()=>token?(await readPublishedDiscordEvents(discordEventConfig())).data:null,clearEvents:async()=>{
     if(!token || !repository || locked || busy || spinning)throw Error('Connect as organiser and finish or reset the draw before clearing events.');
     busy=true;controls();try{await clearPublishedDiscordEvents(discordEventConfig());}finally{busy=false;controls();}
@@ -1119,7 +1427,7 @@ if (typeof document !== 'undefined') (() => {
     $('pool-input').value=mergePlayerNames($('pool-input').value,names);
     $('load-pool').click();
   },save:publish,resetDraw:resetDrawState,notify:say,goToFixtures:()=>selectTab($('tab-fixtures'),true)});
-  gameNightUI=createGameNightTools({saveServer:async address=>{if(locked || spinning)throw Error('Finish or reset the current draw before updating the match server.');const next=structuredClone(current);Object.assign(next,parseServerConnection(address));await publish(next,'Update published match server');},getData:()=>current,getDraft:()=>draw,isOrganiser:()=>!!token,isBusy:()=>busy || spinning,refreshDraft:configureDraw,getMaps:selectedMaps,setMapMethod:method=>{if(!draw || busy || spinning)return;drawnMap=null;draw.mapVeto=[];if(method)draw.mapMethod=method;else delete draw.mapMethod;if(method==='wheel' || method==='case'){$('draw-animation').value=method;$('draw-animation').onchange();}configureDraw();controls();},setMap:map=>{drawnMap=map;configureDraw();controls();},notify:say,beginRematch:()=>{
+  gameNightUI=createGameNightTools({saveServer:async address=>{if(locked || spinning)throw Error('Finish or reset the current draw before updating the match server.');const next=structuredClone(current);Object.assign(next,parseServerConnection(address));await publish(next,'Update published match server');},getData:()=>current,getDraft:()=>draw,isOrganiser:()=>!!token,isBusy:()=>busy || spinning,refreshDraft:configureDraw,getMaps:selectedMaps,getVoteEvent:()=>loadedDiscordEvent?.id || (rematchSource?current.discordEventId:null),startMapVote:(id,method,maps)=>requestDiscordMapVote(discordEventConfig(),id,method,maps),readMapVote:async id=>(await readPublishedDiscordEvents(discordEventConfig())).data.events.find(event=>event.id===id)?.mapVoteRequest,setMapMethod:method=>{if(!draw || busy || spinning)return;drawnMap=null;draw.mapVeto=[];if(method)draw.mapMethod=method;else delete draw.mapMethod;if(['wheel','case','player-vote'].includes(method)){$('draw-animation').value=method==='player-vote'?'case':method;$('draw-animation').onchange();}configureDraw();controls();},setMap:map=>{drawnMap=map;configureDraw();controls();},notify:say,beginRematch:()=>{
     if(!token || busy || spinning || current.format!=='single')return;
     if((draw || remaining.length) && !confirm('Replace the unpublished draw with a rematch?'))return;
     const source=structuredClone(current);discordEventUI?.resetChoice();loadedDiscordEvent=null;resetDrawState();rematchSource=JSON.stringify(current);

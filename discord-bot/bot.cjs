@@ -1,10 +1,13 @@
 const fs=require('node:fs'),path=require('node:path'),{randomUUID}=require('node:crypto');
 const {Client,GatewayIntentBits,Events,PermissionFlagsBits,SlashCommandBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,StringSelectMenuBuilder,ModalBuilder,TextInputBuilder,TextInputStyle,EmbedBuilder,escapeMarkdown,MessageFlags}=require('discord.js');
 const {register,publishEvent,teamAnnouncements}=require('./core.cjs');
-const {renderTeamImages}=require('./team-image.cjs');
+const {renderTeamAnnouncementImages:renderTeamImages}=require('./team-image.cjs');
 const {syncFaceitGames}=require('./faceit.cjs');
 const {syncResultCards}=require('./results.cjs');
 const {createOperations}=require('./operations.cjs');
+const {createCaseRoll}=require('./case-roll.cjs');
+const handleCaseRoll=createCaseRoll();
+const {createCounter,counterCommand}=require('./counter.cjs');
 for(const key of ['DISCORD_TOKEN','DISCORD_GUILD_ID','GITHUB_TOKEN','GITHUB_REPOSITORY','GITHUB_BRANCH','SITE_URL'])if(!process.env[key])throw Error('Missing '+key);
 if(!/^[\w.-]+\/[\w.-]+$/.test(process.env.GITHUB_REPOSITORY))throw Error('Invalid repository.');
 if(new URL(process.env.SITE_URL).protocol!=='https:')throw Error('SITE_URL must use HTTPS.');
@@ -13,6 +16,7 @@ let data=fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):{events:[]
 function save(){fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file+'.tmp',JSON.stringify(data,null,2));fs.renameSync(file+'.tmp',file);}
 function admin(i){return i.memberPermissions?.has(PermissionFlagsBits.Administrator) || (process.env.DISCORD_ADMIN_ROLE_ID && i.member.roles.cache.has(process.env.DISCORD_ADMIN_ROLE_ID));}
 const client=new Client({intents:[GatewayIntentBits.Guilds,GatewayIntentBits.GuildVoiceStates]});
+const counter=createCounter({client,data,save,admin});
 function card(event){
   if(event.cancelledAt)return {embeds:[new EmbedBuilder().setTitle(event.title).setColor(0xed4245).setDescription('Event cancelled by an organiser. Registration and voting are closed.')],components:[],allowedMentions:{parse:[]}};
   const rows=[new ActionRowBuilder().addComponents(
@@ -28,19 +32,28 @@ async function update(event){const channel=await client.channels.fetch(event.cha
 client.once(Events.ClientReady,async()=>{
   const command=new SlashCommandBuilder().setName('csgame').setDescription('Create a tournament registration event').setDMPermission(false).addStringOption(o=>o.setName('title').setDescription('Event title').setRequired(true).setMaxLength(100)).addIntegerOption(o=>o.setName('players').setDescription('Required players').setRequired(true).setMinValue(2).setMaxValue(64));
   await client.application.commands.create(command,process.env.DISCORD_GUILD_ID);
+  await client.application.commands.create(new SlashCommandBuilder().setName('csroll').setDescription('Open a case to pick a random non-bot server member').setDMPermission(false),process.env.DISCORD_GUILD_ID);
+  await client.application.commands.create(new SlashCommandBuilder().setName('csrollchannel').setDescription('Open a case to pick a random member from your voice channel').setDMPermission(false),process.env.DISCORD_GUILD_ID);
+  await client.application.commands.create(counterCommand(),process.env.DISCORD_GUILD_ID);
+  void counter.resume();
   const commands=await client.application.commands.fetch({guildId:process.env.DISCORD_GUILD_ID});
   for(const old of commands.values())if(['event','event-admin','organiser','playgame','playpublish','playorganiser','csorganiser'].includes(old.name))await client.application.commands.delete(old.id,process.env.DISCORD_GUILD_ID);
   await client.application.commands.create(new SlashCommandBuilder().setName('cspublish').setDescription('Open your private event publishing panel').setDMPermission(false),process.env.DISCORD_GUILD_ID);
   await client.application.commands.create(new SlashCommandBuilder().setName('csadmin').setDescription('Private game-night controls, substitutes, imports and voice channels').setDMPermission(false),process.env.DISCORD_GUILD_ID);
-  for(const event of data.events){try{await update(event);}catch{console.error('Could not refresh an existing event card. Check channel permissions.');}}
+  for(const event of data.events){if(event.discordDeletedAt)continue;try{await update(event);}catch{console.error('Could not refresh an existing event card. Check channel permissions.');}}
   console.log('Registration bot ready.');
   void syncTeams();setInterval(()=>void syncTeams(),30000);
-  let faceitSyncing=false;const refreshFaceit=async()=>{if(faceitSyncing)return;faceitSyncing=true;try{await syncFaceitGames();}catch(error){console.error('FACEIT game sync failed. Will retry in five minutes.');}finally{faceitSyncing=false;}};void refreshFaceit();setInterval(()=>void refreshFaceit(),300000);
+  let faceitSyncing=false;const refreshFaceit=async()=>{if(faceitSyncing)return;faceitSyncing=true;try{await refreshFaceitImports();}catch(error){console.error('FACEIT game sync failed. Will retry in five minutes.');}finally{faceitSyncing=false;}};void refreshFaceit();setInterval(()=>void refreshFaceit(),300000);
 });
+let faceitImportPending=null;
+function refreshFaceitImports(){
+  if(!faceitImportPending)faceitImportPending=syncFaceitGames().finally(()=>{faceitImportPending=null;});
+  return faceitImportPending;
+}
 let queue=Promise.resolve();
 let syncingTeams=false;
 const serial=operation=>{const next=queue.then(operation);queue=next.catch(()=>{});return next;};
-const operations=createOperations({client,data,save,admin,update,serial,refreshImports:()=>syncFaceitGames()});
+const operations=createOperations({client,data,save,admin,update,serial,refreshImports:refreshFaceitImports});
 async function syncTeams(){
   if(syncingTeams)return;syncingTeams=true;
   const operation=queue.then(async()=>{
@@ -51,14 +64,14 @@ async function syncTeams(){
     const file=await response.json(),tournament=JSON.parse(Buffer.from(file.content,'base64').toString('utf8'));
     const event=data.events.find(event=>event.id===tournament.discordEventId && event.publishedAt && !event.cancelledAt);
     if(!event || !tournament.teams?.length)return;
-    const roster=teamAnnouncements(tournament,escapeMarkdown),signature='game-night-tools-v1:'+JSON.stringify([roster,tournament.serverAddress||'']);
+    const roster=teamAnnouncements(tournament,escapeMarkdown),signature='game-night-tools-v2:'+JSON.stringify([roster,tournament.serverAddress||'']);
     const map=tournament.format==='single'?tournament.matches?.[0]?.map:null;
     const descriptions=['Teams ready · '+tournament.teamSize+'v'+tournament.teamSize+(map?' · '+escapeMarkdown(map):'')];
     const channel=await client.channels.fetch(event.channelId),registration=await channel.messages.fetch(event.messageId);
     await syncResultCards({tournament,event,channel,registration,save});
     await operations.sync(tournament,event);
     if(event.teamSignature===signature)return;
-    const images=renderTeamImages(tournament);
+    const images=await renderTeamImages(tournament);
     event.teamMessageIds ||= [];
     for(let i=0;i<descriptions.length;i++){
       const payload={embeds:[new EmbedBuilder().setTitle((event.title+' · Teams').slice(0,256)).setColor(0xf5a623).setDescription(descriptions[i]).setURL(process.env.SITE_URL)],allowedMentions:{parse:[],repliedUser:false}};
@@ -82,8 +95,11 @@ async function syncTeams(){
   try{await operation;}catch{console.error('Could not sync published teams to Discord. Will retry automatically.');}finally{syncingTeams=false;}
 }
 client.on(Events.InteractionCreate,async i=>{
+  console.log('Discord interaction:',i.commandName || i.customId?.split(':')[0],'age ms:',Date.now()-i.createdTimestamp);
   if(i.guildId!==process.env.DISCORD_GUILD_ID)return;
   try{
+    if(await counter.handle(i))return;
+    if(await handleCaseRoll(i))return;
     if(await operations.handle(i))return;
     if(i.isChatInputCommand() && i.commandName==='cspublish'){
       if(!admin(i))return i.reply({content:'Only event organisers can open this panel.',flags:MessageFlags.Ephemeral});
@@ -126,7 +142,9 @@ client.on(Events.InteractionCreate,async i=>{
       try{await update(event);}catch{throw Error('Your change was saved, but the event card could not update. Check bot channel permissions.');}
       await i.editReply(action==='publish'?'Roster published to GitHub. It will appear after deployment; use Refresh events on the site.':action==='withdraw'?'Registration removed.':'You are registered.');
     });queue=operation.catch(()=>{});await operation;
-  }catch(error){const content=error.message || 'Action failed. Try again.';if(i.deferred || i.replied)await i.editReply({content}).catch(()=>{});else await i.reply({content,flags:MessageFlags.Ephemeral}).catch(()=>{});}
+  }catch(error){console.error('Discord action failed:',error?.name,error?.code || error?.cause?.code || 'unknown');const content=error.message || 'Action failed. Try again.';if(i.deferred || i.replied)await i.editReply({content}).catch(()=>{});else await i.reply({content,flags:MessageFlags.Ephemeral}).catch(()=>{});}
 });
-client.on(Events.Error,()=>console.error('Discord connection error. Check connection and credentials.'));
+client.on(Events.Error,error=>console.error('Discord connection error:',error?.name,error?.code || error?.cause?.code || 'unknown'));
+client.on(Events.ShardDisconnect,(event,id)=>console.error('Discord shard disconnected:',id,'code:',event.code));
+client.on(Events.ShardReady,id=>console.log('Discord gateway connected:',id));
 client.login(process.env.DISCORD_TOKEN);

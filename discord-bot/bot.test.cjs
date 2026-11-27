@@ -1,5 +1,21 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {register,publishEvent}=require('./core.cjs');
+
+test('publish verifies an ambiguous GitHub write before retrying',async()=>{
+  const event={id:'new',title:'Friday',capacity:2,players:[{userId:'123',name:'Alice'},{userId:'456',name:'Bob'}]};
+  let content=Buffer.from('{"version":1,"events":[]}').toString('base64');
+  let writes=0;
+  const publishedAt=await publishEvent(event,{repository:'owner/repo',branch:'main',token:'test'},async(url,options)=>{
+    if(options.method==='PUT'){
+      writes++;
+      content=JSON.parse(options.body).content;
+      return {ok:false,status:502};
+    }
+    return {ok:true,json:async()=>({sha:'current',content})};
+  });
+  assert.equal(writes,1);
+  assert.equal(JSON.parse(Buffer.from(content,'base64').toString()).events[0].publishedAt,publishedAt);
+});
 const {validateDiscordEvents}=require('../discord-events.js');
 test('Discord sync posts once, skips unchanged teams and edits the existing reply on changes',async()=>{
   const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
@@ -37,7 +53,7 @@ test('clear events updates only the event file using the latest GitHub SHA',asyn
     if(options.method==='PUT'){saved=JSON.parse(options.body);return {ok:true};}
     return {ok:true,json:async()=>({sha:'latest',content:Buffer.from(JSON.stringify({version:1,events:[{id:'cup',title:'Cup',players:['Alice']}]})).toString('base64')})};
   });
-  assert.equal(saved.sha,'latest');assert.equal(saved.branch,'main');assert.deepEqual(JSON.parse(atob(saved.content)),{version:1,events:[]});
+  assert.equal(saved.sha,'latest');assert.equal(saved.branch,'main');assert.deepEqual(JSON.parse(atob(saved.content)),{version:1,events:[],deletedEventIds:['cup']});
   await assert.rejects(clearPublishedDiscordEvents(config,async(url,options)=>options.method==='PUT'?{ok:false,status:409}:{ok:true,json:async()=>({sha:'old',content:btoa('{"version":1,"events":[]}')})}),/changed/);
 });
 test('registrations update by account, reject duplicate names and respect capacity',()=>{

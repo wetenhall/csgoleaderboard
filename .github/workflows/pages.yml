@@ -4,6 +4,7 @@ on:
     branches: ["**"]
   workflow_dispatch:
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
@@ -30,6 +31,19 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+      - name: Wait for the Pages artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for attempt in {1..12}; do
+            artifact_id=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts?name=github-pages" --jq '.artifacts[] | select(.expired == false) | .id') || artifact_id=
+            if [[ -n "$artifact_id" ]]; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::The uploaded GitHub Pages artifact did not become visible."
+          exit 1
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

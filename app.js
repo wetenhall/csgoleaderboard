@@ -43,6 +43,13 @@ function resolveTournament(data) {
     const sources = match.sources || (match.seeds ? match.seeds.map(seed => ({seed})) : (match.from || []).map(winner => ({winner})));
     if (sources.length !== 2) throw Error('Invalid knockout participants.');
     if(match.resetOf){const first=resolved.get(match.resetOf);if(!first)throw Error('Invalid reset final.');if(first.winner!==first.ids[1] || !first.winner){if(match.result)throw Error('Reset final is not active.');resolved.set(match.id,{...match,ids:[null,null],winner:null,skipped:!!first.winner});continue;}}
+    if(match.seriesGame){
+      if(data.format!=='double' || match.bracket!=='final' || ![1,2,3].includes(match.seriesGame) || match.id!=='f'+match.seriesGame)throw Error('Invalid grand final series.');
+      const previous=[...resolved.values()].filter(m=>m.seriesGame),wins=new Map();
+      for(const game of previous)if(game.winner)wins.set(game.winner,(wins.get(game.winner)||0)+1);
+      const finished=[...wins.values()].some(count=>count===2),waiting=previous.length!==match.seriesGame-1 || previous.some(m=>!m.result);
+      if(finished || waiting){if(match.result)throw Error('Grand final game is not active.');resolved.set(match.id,{...match,ids:[null,null],winner:null,skipped:finished});continue;}
+    }
     const ids = sources.map(source => {
       if (source.team) { if (!teams.has(source.team)) throw Error('Unknown knockout team.'); return source.team; }
       if (source.seed) {
@@ -56,7 +63,14 @@ function resolveTournament(data) {
     });
     resolve(match, ids);
   }
-  return { teams, groups, matches: [...resolved.values()] };
+  const matches=[...resolved.values()],first=resolved.get('f1');
+  let final=data.format==='double' && first?.winner && first.winner===first.ids[1]?resolved.get('f2'):first;
+  if(first?.seriesGame){
+    if(matches.filter(m=>m.seriesGame).length!==3)throw Error('Grand final needs three series fixtures.');
+    const scores=first.ids.map(id=>id?matches.filter(m=>m.seriesGame && m.winner===id).length:0),winner=scores.some(score=>score===2)?first.ids[scores.indexOf(2)]:null;
+    final={...first,id:'grand-final',winner,seriesScores:scores,result:winner?{teams:first.ids,scores}:null};
+  }
+  return { teams, groups, matches, final };
 }
 function matchPlaceholder(match, index) {
   const source = match.sources?.[index] || (match.seeds ? {seed:match.seeds[index]} : {winner:match.from?.[index]});
@@ -82,8 +96,104 @@ function teamDisplayLabel(team) {
   const display = teamDisplayName(team);
   return display === team.name ? display : `${display} (${team.name})`;
 }
-function teamEmblem(team) {
-  const badge=element('span','team-emblem',team.tag || team.id.replace(/[^0-9]/g,'').padStart(2,'0'));
+function playerStatRatio(numerator,denominator){
+  return denominator ? numerator/denominator : numerator ? Infinity : null;
+}
+
+function renderMatchPlayerStats(root,totals,title){
+  const rows=totals.map(row=>({
+    ...row,
+    kills:row.games?row.kills:null, deaths:row.games?row.deaths:null, assists:row.games?row.assists:null,
+    ratio:row.games?playerStatRatio(row.kills,row.deaths):null,
+    killsPerGame:row.games?row.kills/row.games:null
+  }));
+  const columns=[
+    {key:'team',label:'Team'}, {key:'games',label:'Recorded games',sort:true},
+    {key:'kills',label:'Kills',sort:true}, {key:'deaths',label:'Deaths',sort:true},
+    {key:'assists',label:'Assists',sort:true}, {key:'ratio',label:'K/D',sort:true,format:value=>value.toFixed(2)},
+    {key:'killsPerGame',label:'Kills / game',sort:true,format:value=>value.toFixed(1)}
+  ];
+  renderPlayerComparison(root,rows,columns,{title,empty:'No player stats available yet.'});
+}
+
+function renderPlayerComparison(root,rows,columns,{title,empty}){
+  const previous=Object.fromEntries([...root.querySelectorAll('[data-stat-control]')].map(input=>[input.dataset.statControl,input.value]));
+  root.replaceChildren();
+  if(!rows.length){root.append(element('p','stats-empty',empty));return;}
+  const byId=new Map(rows.map(row=>[String(row.id ?? row.name),row]));
+  const controls=element('div','stats-controls');
+  const control=(label,key,input)=>{
+    const field=element('label','',label);
+    input.dataset.statControl=key;
+    input.setAttribute('aria-label',label);
+    field.append(input);controls.append(field);
+    return input;
+  };
+  const search=control('Find a player','search',element('input'));
+  search.type='search';search.placeholder='Player name';search.value=previous.search || '';
+  const select=(label,key,options)=>{
+    const input=control(label,key,element('select'));
+    options.forEach(([value,name])=>{const option=element('option','',name);option.value=value;input.append(option);});
+    if(options.some(([value])=>value===previous[key]))input.value=previous[key];
+    return input;
+  };
+  const order=select('Sort by','sort',[['','Default order'],...columns.filter(column=>column.sort).map(column=>[column.key,column.label])]);
+  const names=[...byId].sort(([,a],[,b])=>a.name.localeCompare(b.name)).map(([id,row])=>[id,row.name+(row.team?' · '+row.team:'')]);
+  const first=select('Compare player','first',[['','Select player'],...names]);
+  const second=select('With player','second',[['','Select player'],...names]);
+  const comparison=element('div','stats-comparison');
+  const results=element('div','table-scroll stats-table');
+  root.append(controls,comparison,results);
+  const display=(column,row)=>{
+    const value=row[column.key];
+    return value==null?'—':value===Infinity?'∞':String(column.format?column.format(value):value);
+  };
+  function tableFor(labels,label,body){
+    const table=element('table');table.setAttribute('aria-label',label);
+    const head=element('thead'),header=element('tr');
+    labels.forEach(text=>{const cell=element('th','',text);cell.scope='col';header.append(cell);});
+    head.append(header);table.append(head,body);return table;
+  }
+  function rowFor(name,values){
+    const row=element('tr'),heading=element('th','',name);
+    heading.scope='row';row.append(heading);
+    values.forEach(value=>row.append(element('td','',value)));
+    return row;
+  }
+  function update(){
+    comparison.replaceChildren();results.replaceChildren();
+    const selected=[byId.get(first.value),byId.get(second.value)];
+    for(const [input,other] of [[first,second],[second,first]]){
+      for(const option of input.options)option.disabled=Boolean(option.value && option.value===other.value);
+    }
+    if(selected.every(Boolean) && selected[0]!==selected[1]){
+      const body=element('tbody');
+      columns.forEach(column=>body.append(rowFor(column.label,selected.map(row=>display(column,row)))));
+      comparison.append(tableFor(['Stat',...selected.map(row=>row.name)],title+' head-to-head comparison',body));
+    }
+    const query=search.value.trim().toLowerCase();
+    const filtered=rows.filter(row=>row.name.toLowerCase().includes(query));
+    if(!filtered.length){results.append(element('p','stats-empty','No players match your search.'));return;}
+    if(order.value)filtered.sort((a,b)=>{
+      const left=a[order.value],right=b[order.value];
+      if(left===right)return a.name.localeCompare(b.name);
+      if(left==null)return 1;
+      if(right==null)return -1;
+      return right>left?1:-1;
+    });
+    const body=element('tbody');
+    filtered.forEach(row=>body.append(rowFor(row.name,columns.map(column=>display(column,row)))));
+    results.append(tableFor(['Player',...columns.map(column=>column.label)],title,body));
+  }
+  search.oninput=update;
+  order.onchange=first.onchange=second.onchange=update;
+  update();
+}
+
+function teamEmblem(team, symbol) {
+  const numberLabel=team.tag || team.id.replace(/[^0-9]/g,'').padStart(2,'0');
+  const badge=element('span','team-emblem',symbol ? '' : numberLabel);
+  if(symbol)badge.append(element('span','squad-emblem-icon squad-emblem-'+symbol));
   const colours=['#ff9b01','#67afd3','#b6a0ee','#73d1a9','#f18e97','#e1cf80'];
   const number=Number(team.id.replace(/[^0-9]/g,'')) || 1;badge.style.setProperty('--emblem-colour',colours[(number-1)%colours.length]);
   badge.setAttribute('aria-hidden','true');return badge;
@@ -99,8 +209,9 @@ function tournamentPodium(data, state = resolveTournament(data)) {
   const places=[{rank:1,ids:[],note:'Awaiting the final'},{rank:2,ids:[],note:'Awaiting the final'},{rank:3,ids:[],note:'Awaiting results'}];
   const first=state.matches.find(m=>m.id==='f1');
   if(!first)return places;
-  const final=data.format==='double' && first.winner && first.winner===first.ids[1] ? state.matches.find(m=>m.id==='f2') : first;
+  const final=state.final;
   if(final?.winner){places[0].ids=[final.winner];places[0].note='Champion';places[1].ids=final.ids.filter(id=>id!==final.winner);places[1].note='Runner-up';}
+  else if(first.seriesGame){places[0].note=places[1].note='Grand final · Best of three · '+final.seriesScores.join('–');}
   else if(data.format==='double' && first.winner){places[0].note=places[1].note='Awaiting the reset final';}
   const loser=match=>match?.winner?match.ids.filter(id=>id!==match.winner):[];
   if(data.teams.length<3){places[2].note='Not applicable · two entrants';return places;}
@@ -177,7 +288,7 @@ function bracketLayout(matches) {
   }
   const links=[];
   for(const node of nodes){
-    const refs=node.match.resetOf?[{winner:node.match.resetOf}]:(node.match.sources||[]);
+    const refs=node.match.seriesGame>1?[{winner:'f'+(node.match.seriesGame-1)}]:node.match.resetOf?[{winner:node.match.resetOf}]:(node.match.sources||[]);
     refs.forEach((source,i)=>{const parent=byId.get(source.winner);if(!parent)return;
       const x1=parent.x+width,y1=parent.y+height/2,x2=node.x,y2=node.y+(node.match.resetOf?height/2:i===0?32:64),mid=x2-gap/2;
       links.push({from:parent.match.id,to:node.match.id,path:'M '+x1+' '+y1+' H '+mid+' V '+y2+' H '+x2});
@@ -197,11 +308,34 @@ function renderConnectedBracket(root,matches,teams) {
     const card=element('article','bracket-game'+(match.result?' is-played':''));card.style.left=x+'px';card.style.top=y+'px';card.setAttribute('aria-label',match.label+' · '+match.id.toUpperCase());
     card.append(element('div','bracket-game-label',match.id.toUpperCase()+' · '+match.label));
     match.ids.forEach((id,i)=>{const team=teams.get(id),name=team?teamDisplayName({...team,...(match.result?.lineups?.[id]?{players:match.result.lineups[id]}:{})}):matchPlaceholder(match,i),row=element('div','bracket-player'+(id && id===match.winner?' winner':'')+(!team?' pending':''));row.title=name;row.append(element('span','bracket-seed',team?.tag||'—'),element('span','bracket-player-name',name),element('strong','bracket-score',match.result?String(match.result.scores[i]):'—'));card.append(row);});
+    if(match.seriesGame)card.title=match.skipped?'Not needed — the grand final is already won.':'Grand final · Best of three · First to two wins.';
     if(match.resetOf)card.title='Only played if the losers bracket champion wins the first grand final.';
     canvas.append(card);
   }
   viewport.append(canvas);root.append(viewport);
 }
+function mapImageUrl(map) {
+  const thumbnails = {
+    ancient: 'de_ancient_1', anubis: 'de_anubis_1', cache: 'de_cache_1', cobblestone: 'de_cbble',
+    debris: 'de_debris_1', dust2: 'de_dust2_1', eldorado: 'de_eldorado_1',
+    inferno: 'de_inferno_1', italy: 'cs_italy_1', mirage: 'de_mirage_1',
+    nuke: 'de_nuke_1', office: 'cs_office_1', overpass: 'de_overpass_1',
+    poseidon: 'de_poseidon_1', train: 'de_train_1', vertigo: 'de_vertigo_1'
+  };
+  const name = map?.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const key = name === 'dustii' ? 'dust2' : name;
+  return Object.hasOwn(thumbnails, key)
+    ? 'https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/main/images/thumbs/'+thumbnails[key]+'_png.png'
+    : '';
+}
+
+function setMapBackdrop(node, map) {
+  const url = mapImageUrl(map);
+  if (url) node.style.setProperty('--map-image', 'url("'+url+'")');
+  else node.style.removeProperty('--map-image');
+  node.classList.toggle('has-map-image', Boolean(url));
+}
+
 async function downloadMatchImage(data) {
   await document.fonts.ready;
   const state=resolveTournament(data),match=state.matches[0],canvas=document.createElement('canvas');
@@ -209,6 +343,19 @@ async function downloadMatchImage(data) {
   const text=(value,x,y,size,color='#f4f4f4',width=670,align='left')=>{ctx.fillStyle=color;ctx.textAlign=align;ctx.font='700 '+size+'px Rajdhani, sans-serif';while(ctx.measureText(value).width>width && size>12){size--;ctx.font='700 '+size+'px Rajdhani, sans-serif';}ctx.fillText(value,x,y);};
   ctx.fillStyle='#101316';ctx.fillRect(0,0,1600,900);
   const gradient=ctx.createLinearGradient(30,0,1570,250);gradient.addColorStop(0,'#352b1d');gradient.addColorStop(1,'#23272f');ctx.fillStyle=gradient;ctx.fillRect(30,30,1540,230);ctx.fillStyle='#ff9b01';ctx.fillRect(30,30,1540,5);
+  const mapUrl=mapImageUrl(match.map);
+  if(mapUrl){
+    const image=new Image();
+    image.crossOrigin='anonymous';
+    image.src=mapUrl;
+    await image.decode().catch(()=>{});
+    if(image.naturalWidth && image.naturalHeight){
+      const scale=Math.max(1540/image.naturalWidth,225/image.naturalHeight);
+      const width=1540/scale,height=225/scale;
+      ctx.drawImage(image,(image.naturalWidth-width)/2,(image.naturalHeight-height)/2,width,height,30,35,1540,225);
+      ctx.fillStyle='#1d160bcc';ctx.fillRect(30,35,1540,225);
+    }
+  }
   text('SELECTED MAP / CUSTOM '+data.teamSize+'V'+data.teamSize,800,90,22,'#ff9b01',1400,'center');text((match.map || 'Map pending').toUpperCase(),800,205,100,'#ff9b01',1400,'center');
   match.ids.forEach((id,i)=>{const team=state.teams.get(id),x=30+i*785,color=i===0?'#70b4cd':'#ff9b01';ctx.fillStyle='#23272f';ctx.fillRect(x,290,755,570);ctx.strokeStyle='#424b55';ctx.strokeRect(x,290,755,570);ctx.fillStyle=color;ctx.fillRect(x,290,755,4);
     text(team.name,x+30,365,42,'#f4f4f4',570);text(match.result?String(match.result.scores[i]):'—',x+715,365,42,'#ff9b01',100,'right');text(match.winner===id?'WINNERS':team.players.length+' PLAYER'+(team.players.length===1?'':'S'),x+30,410,20,'#ff9b01');
@@ -219,6 +366,7 @@ async function downloadMatchImage(data) {
 }
 
 function renderTournament(data) {
+  document.body.classList.toggle('has-match-broadcast',data.format==='single' && data.teamSize>=2 && data.teams.length>0);
   document.getElementById('bracket-heading').textContent=data.format==='single'?'Custom match':'Playoffs';
   document.getElementById('bracket-heading').nextElementSibling.textContent=data.format==='single'?'TWO SQUADS / ONE GAME':'WIN AND ADVANCE';
   const qualifiers = data.qualifiersPerGroup ?? 2;
@@ -248,7 +396,7 @@ function renderTournament(data) {
   document.getElementById('groups-heading').closest('section').hidden = !groups.length;
   document.getElementById('roster-count').textContent = `${data.teams.length} TEAMS / 1 TROPHY`;
   document.getElementById('group-rules').textContent = 'Ranked by wins, then round difference (RD). Remaining ties need a tiebreak decision. Playoff places are confirmed when each team has played every other team in its group.';
-  document.getElementById('schedule-rules').textContent = (data.format==='single' ? 'One custom '+data.teamSize+'v'+data.teamSize+' game between your two drawn teams.' : data.format==='double' ? 'Lose once to enter the losers bracket; a second loss eliminates you. If the losers bracket winner wins the grand final, play the reset final.' : groups.length ? `Play group games in numbered order. Top ${qualifiers} from each group advance to the knockout stages.` : 'Straight knockout: winners advance. Teams with a first-round bye enter in the following round.') + ' Connect in Settings to enter or correct results in Fixtures.';
+  document.getElementById('schedule-rules').textContent = (data.format==='single' ? 'One custom '+data.teamSize+'v'+data.teamSize+' game between your two drawn teams.' : data.format==='double' ? data.matches.some(m=>m.seriesGame)?'Lose once to enter the losers bracket; a second bracket loss eliminates you. Grand final: best of three games, first to two wins. Game three is skipped after 2–0.':'Lose once to enter the losers bracket; a second loss eliminates you. If the losers bracket winner wins the grand final, play the reset final.' : groups.length ? `Play group games in numbered order. Top ${qualifiers} from each group advance to the knockout stages.` : 'Straight knockout: winners advance. Teams with a first-round bye enter in the following round.') + ' Connect in Settings to enter or correct results in Fixtures.';
   document.getElementById('status').textContent = completed === matches.length ? 'Tournament complete' : completed ? 'Tournament underway' : 'Awaiting first match';
   if (!data.teams.length) {
     document.getElementById('format-name').textContent='Not configured';
@@ -306,8 +454,8 @@ function renderTournament(data) {
   }
   const singleSquads=data.format==='single' && data.teamSize>=2;
   const leaderboardTab=document.getElementById('tab-leaderboard');
-  leaderboardTab.textContent=singleSquads?'Match':'Leader board';
-  leaderboardTab.setAttribute('aria-label',singleSquads?'Match':'Leader board');
+  leaderboardTab.textContent=singleSquads?'Match':'Tournament';
+  leaderboardTab.setAttribute('aria-label',leaderboardTab.textContent);
   document.getElementById('teams').closest('section').hidden=singleSquads;
   document.getElementById('team-awards-heading').closest('section').hidden=singleSquads;
   document.getElementById('champion').closest('section').hidden=singleSquads;
@@ -316,14 +464,28 @@ function renderTournament(data) {
   bracketRoot.classList.toggle('single-squads',singleSquads);
   bracketRoot.classList.toggle('double-bracket',data.format==='double');
   if(singleSquads){
-    const match=matches[0],hero=element('div','single-match-map');
-    hero.append(element('span','eyebrow','SELECTED MAP / CUSTOM 5V5'),element('h3','',match.map || 'Map pending'));
+    const match=matches[0],hero=element('div','single-match-map match-broadcast');
+    const status=match.result?'Final':data.activeMatchId===match.id?'Playing now':'Upcoming';
+    setMapBackdrop(hero,match.map);
+    const meta=element('div','match-broadcast-meta');
+    const statusBadge=element('span','match-broadcast-status',status);
+    statusBadge.dataset.status=status.toLowerCase().replaceAll(' ','-');
+    meta.append(element('span','eyebrow','Custom '+data.teamSize+'v'+data.teamSize),statusBadge);
+    const scoreboard=element('div','match-scoreboard');
+    const scoreLabel=match.result?match.result.scores.join(' to '):'No score recorded';
+    const score=element('div','match-broadcast-score',match.result?match.result.scores.join(' : '):'VS');
+    score.setAttribute('aria-label',scoreLabel);
+    hero.append(meta,element('h3','',match.map || 'Map pending'),scoreboard,element('div','match-broadcast-connect'));
     bracketRoot.append(hero);
     const squads=element('div','single-match-squads');
     match.ids.forEach((id,i)=>{
       const team=teams.get(id),card=element('article','single-squad'+(match.winner===id?' is-winner':''));
+      const side=element('div','match-scoreboard-team'+(match.winner===id?' is-winner':''));
+      side.append(teamEmblem(team,i===0?'t':'ct'),element('strong','',team.name));
+      scoreboard.append(side);
+      if(i===0)scoreboard.append(score);
       const heading=element('div','single-squad-heading');
-      heading.append(teamEmblem(team),element('h3','',team.name),element('strong','single-squad-score',match.result?String(match.result.scores[i]):'—'));
+      heading.append(element('h3','',team.name+' roster'));
       card.append(heading,element('p','eyebrow',match.winner===id?'WINNERS':team.players.length+' PLAYER'+(team.players.length===1?'':'S')));
       const roster=element('ol','single-squad-players');
       team.players.forEach(player=>roster.append(element('li','',player.name+(team.captainId===player.id?' · Captain':''))));
@@ -342,13 +504,13 @@ function renderTournament(data) {
     column.append(list);bracketRoot.append(column);
   });
   const firstFinal=matches.find(match=>match.id==='f1');
-  const final = data.format==='double' && firstFinal.winner===firstFinal.ids[1] && firstFinal.winner ? matches.find(match=>match.id==='f2') : firstFinal;
+  const final = resolveTournament(data).final;
   if (final?.winner) {
     document.getElementById('champion').textContent = teamDisplayLabel(teams.get(final.winner));
-    document.getElementById('champion-note').textContent = headers.brand+' champions';
+    document.getElementById('champion-note').textContent = headers.brand+' champions'+(final.seriesScores?' · Grand final '+final.seriesScores.join('–'):'');
   }
   const eliminated = new Set(matches.filter(match => !match.group && match.winner).flatMap(match => match.ids.filter(id => id !== match.winner)));
-  if(data.format==='double'){for(const id of eliminated){if(matches.filter(m=>m.winner && m.ids.includes(id) && m.winner!==id).length<2)eliminated.delete(id);}}
+  if(data.format==='double'){for(const id of eliminated){if(matches.filter(m=>!m.seriesGame && m.winner && m.ids.includes(id) && m.winner!==id).length<2 && !(final?.winner && final.winner!==id && final.ids.includes(id)))eliminated.delete(id);}}
   groups.filter(group => group.qualified).forEach(group => group.rows.slice(qualifiers).forEach(row => eliminated.add(row.id)));
   data.teams.forEach(team => {
     const card = element('article', 'contender'); const details = element('div');
@@ -362,6 +524,22 @@ function renderTournament(data) {
   });
 }
 if (typeof document !== 'undefined') {
+  if (window.matchMedia) {
+    const motion = window.matchMedia('(any-hover: hover) and (any-pointer: fine) and (prefers-reduced-motion: no-preference)');
+    const backdrop = document.body.style;
+    function centerBackdrop() {
+      backdrop.removeProperty('--backdrop-x');
+      backdrop.removeProperty('--backdrop-y');
+    }
+    document.addEventListener('pointermove', event => {
+      if (!motion.matches || event.pointerType !== 'mouse') return;
+      backdrop.setProperty('--backdrop-x', (0.5 - event.clientX / window.innerWidth) * 28 + 'px');
+      backdrop.setProperty('--backdrop-y', (0.5 - event.clientY / window.innerHeight) * 20 + 'px');
+    }, { passive: true });
+    document.documentElement.addEventListener('pointerleave', centerBackdrop);
+    window.addEventListener('blur', centerBackdrop);
+    motion.addEventListener('change', centerBackdrop);
+  }
   try { renderTournament(TOURNAMENT); }
   catch (error) {
     document.getElementById('status').textContent = 'Results unavailable';
@@ -369,4 +547,4 @@ if (typeof document !== 'undefined') {
     alert.textContent = 'Tournament results could not be loaded. Please check back shortly.'; console.error(error);
   }
 }
-if (typeof module !== 'undefined') module.exports = { resolveTournament, teamDisplayName, teamDisplayLabel, bracketLayout, tournamentPodium, podiumRecord };
+if (typeof module !== 'undefined') module.exports = { resolveTournament, teamDisplayName, teamDisplayLabel, bracketLayout, tournamentPodium, podiumRecord, mapImageUrl };

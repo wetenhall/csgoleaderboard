@@ -10,7 +10,7 @@ test('fixture updates exclude Single Game and show ready and blocked fixtures',(
 test('recaps wait for completion and use actual podium',()=>{let t=tournament();assert.equal(recapData(t),null);while(resolveTournament(t).matches.some(m=>!m.result&&!m.skipped)){const match=resolveTournament(t).matches.find(m=>!m.result&&m.ids.every(Boolean));t=applyResult(t,match.id,{teams:match.ids,scores:[13,10]},resolveTournament).next;}const recap=recapData(t);assert.equal(recap.podium[0].rank,1);assert.equal(recap.podium[2].names.split(', ').length,2);assert.ok(recap.champion);assert.throws(()=>substitutePlayer(t,event(),'0','new'),/complete/);});
 test('voice plan uses registration identity and exact published team names',()=>{const t=tournament(),e=event();t.teams[0].name='Blue team';const plan=voicePlan(t,e);assert.equal(plan[0].name,'Blue team');assert.deepEqual(plan[0].members,['0']);assert.throws(()=>voicePlan({...t,discordEventId:'other'},e),/Publish/);});
 
-test('Sort VC reuses its own channels and cleanup keeps occupied channels',async()=>{const {createOperations}=require('./operations.cjs'),{PermissionsBitField,PermissionFlagsBits,ChannelType}=require('discord.js');const e=event(),t=tournament(),channels=new Map();let created=0,moved=0;const permissions=new PermissionsBitField([PermissionFlagsBits.ManageChannels,PermissionFlagsBits.MoveMembers,PermissionFlagsBits.ViewChannel,PermissionFlagsBits.Connect]);const guild={members:{fetchMe:async()=>({permissions}),fetch:async id=>({voice:{setChannel:async channel=>{moved++;guild.voiceStates.cache.set(id,{channelId:channel.id});}}})},voiceStates:{cache:new Map([['0',{channelId:'lobby'}]])},channels:{fetch:async id=>channels.get(id)||null,create:async options=>{created++;const channel={id:'c'+created,name:options.name,type:options.type,parentId:options.parent,children:{cache:{size:0}},members:new Map(),permissionsFor:()=>permissions,setName:async name=>{channel.name=name;},delete:async()=>{channels.delete(channel.id);}};channels.set(channel.id,channel);return channel;}}};const ops=createOperations({client:{guilds:{fetch:async()=>guild}},data:{events:[e]},save(){},admin:()=>true,update:async()=>{},serial:fn=>fn(),refreshImports:async()=>{},env:{DISCORD_GUILD_ID:'guild'}});await ops.sortVoice(e,t);assert.equal(created,5);assert.equal(moved,1);await ops.sortVoice(e,t);assert.equal(created,5);assert.equal(moved,1);channels.get(e.voiceChannels.t1).members.set('0',{});const summary=await ops.cleanup(e);assert.match(summary,/3 empty/);assert.equal(Object.keys(e.voiceChannels).length,1);});
+test('Sort VC creates and reparents team channels under custom games and cleanup preserves the category',async()=>{const {createOperations}=require('./operations.cjs'),{PermissionsBitField,PermissionFlagsBits,ChannelType,Collection}=require('discord.js');const e=event(),t=tournament(),channels=new Collection();const category={id:'custom',name:'custom games',type:ChannelType.GuildCategory};channels.set(category.id,category);let created=0,moved=0;const permissions=new PermissionsBitField([PermissionFlagsBits.ManageChannels,PermissionFlagsBits.MoveMembers,PermissionFlagsBits.ViewChannel,PermissionFlagsBits.Connect]);const guild={members:{fetchMe:async()=>({permissions}),fetch:async id=>({voice:{setChannel:async channel=>{moved++;guild.voiceStates.cache.set(id,{channelId:channel.id});}}})},voiceStates:{cache:new Map([['0',{channelId:'lobby'}]])},channels:{fetch:async id=>id===undefined?channels:channels.get(id)||null,create:async options=>{created++;const channel={id:'c'+created,name:options.name,type:options.type,parentId:options.parent,children:{cache:{size:0}},members:new Map(),permissionsFor:()=>permissions,setParent:async parent=>{channel.parentId=parent;},setName:async name=>{channel.name=name;},delete:async()=>{channels.delete(channel.id);}};channels.set(channel.id,channel);return channel;}}};const ops=createOperations({client:{guilds:{fetch:async()=>guild}},data:{events:[e]},save(){},admin:()=>true,update:async()=>{},serial:fn=>fn(),refreshImports:async()=>{},env:{DISCORD_GUILD_ID:'guild'}});channels.delete(category.id);await assert.rejects(ops.sortVoice(e,t),/exactly one Discord category/);assert.equal(created,0);assert.equal(moved,0);channels.set(category.id,category);await ops.sortVoice(e,t);assert.equal(created,4);assert.equal(moved,1);for(const id of Object.values(e.voiceChannels))assert.equal(channels.get(id).parentId,category.id);channels.get(e.voiceChannels.t1).parentId=null;await ops.sortVoice(e,t);assert.equal(created,4);assert.equal(channels.get(e.voiceChannels.t1).parentId,category.id);assert.equal(moved,1);channels.get(e.voiceChannels.t1).members.set('0',{});const summary=await ops.cleanup(e);assert.match(summary,/3 empty/);assert.equal(Object.keys(e.voiceChannels).length,1);channels.get(e.voiceChannels.t1).members.clear();await ops.cleanup(e);assert.deepEqual([...channels.keys()],[category.id]);});
 test('non-organisers cannot invoke Sort VC or private import controls',async()=>{const {createOperations}=require('./operations.cjs'),e=event();const ops=createOperations({client:{},data:{events:[e]},save(){},admin:()=>false,update:async()=>{},serial:fn=>fn(),refreshImports:async()=>{}});for(const action of ['sort','cleanup','refresh','confirm'])await assert.rejects(ops.handle({isChatInputCommand:()=>false,customId:'ops:'+action+':event'}),/Only event organisers/);});
 test('only the offered user can accept a substitute place',async()=>{const {createOperations}=require('./operations.cjs'),e=event();e.offer={userId:'new',createdAt:new Date().toISOString()};const ops=createOperations({client:{},data:{events:[e]},save(){},admin:()=>false,update:async()=>{},serial:fn=>fn(),refreshImports:async()=>{}});await assert.rejects(ops.handle({isChatInputCommand:()=>false,customId:'ops:accept:event',user:{id:'other'},deferReply:async()=>{}}),/another waiting player/);assert.equal(e.offer.acceptedAt,undefined);});
 
@@ -41,3 +41,71 @@ test('website captain vote requests start only on request and are processed once
 test('event cancellation requires organiser confirmation and removes only its published roster',async()=>{const {createOperations}=require('./operations.cjs'),e=event();e.title='Cup';let reply,updated=0,writes=0;let feed={version:1,events:[{id:e.id,players:['A']},{id:'other',players:['Other']}]};const ops=createOperations({client:{},data:{events:[e]},save(){},admin:i=>i.user.id==='admin',update:async()=>updated++,serial:fn=>fn(),env:{GITHUB_REPOSITORY:'owner/repo',GITHUB_BRANCH:'main'},request:async(url,o)=>{assert.match(url,/discord-events.json/);if(o.method==='PUT'){writes++;feed=JSON.parse(Buffer.from(JSON.parse(o.body).content,'base64'));return {ok:true,status:200,json:async()=>({})};}return {ok:true,status:200,json:async()=>({sha:'latest',content:Buffer.from(JSON.stringify(feed)).toString('base64')})};}}),i={isChatInputCommand:()=>false,user:{id:'admin'},deferReply:async()=>{},deferUpdate:async()=>{},editReply:async p=>{reply=p;}};await assert.rejects(ops.handle({...i,user:{id:'visitor'},customId:'ops:cancelevent:event'}),/Only event organisers/);await ops.handle({...i,customId:'ops:cancelevent:event'});assert.equal(writes,0);assert.equal(e.cancelledAt,undefined);const id=reply.components[0].toJSON().components[0].custom_id;await assert.rejects(ops.handle({...i,user:{id:'visitor'},customId:id}),/Only event organisers/);await ops.handle({...i,customId:id});assert.equal(writes,1);assert.deepEqual(feed.events.map(e=>e.id),['other']);assert.ok(e.cancelledAt);assert.equal(updated,1);await assert.rejects(ops.handle({...i,customId:'ops:wait:event'}),/cancelled/);});
 
 test('cancel controls edit the existing private panel and stale buttons clear themselves',async()=>{const {createOperations}=require('./operations.cjs'),e=event();e.title='Cup';delete e.publishedAt;let updates=0,deferred=0,replies=0,payload,cardUpdates=0;const ops=createOperations({client:{},data:{events:[e]},save(){},admin:()=>true,update:async()=>cardUpdates++,serial:fn=>fn()}),i={isChatInputCommand:()=>false,user:{id:'admin'},deferUpdate:async()=>deferred++,deferReply:async()=>replies++,editReply:async p=>{payload=p;}};await ops.handle({...i,customId:'ops:panel:event'});assert.equal(payload.components.length,5);await ops.handle({...i,customId:'ops:cancelevent:event'});const confirm=payload.components[0].toJSON().components[0].custom_id;await ops.handle({...i,customId:confirm});assert.ok(e.cancelledAt);assert.deepEqual(payload.components,[]);await ops.handle({...i,customId:confirm});assert.match(payload.content,/already been cancelled/);assert.deepEqual(payload.components,[]);assert.equal(deferred,4);assert.equal(replies,0);assert.equal(cardUpdates,2);});
+
+test('website deletion closes only requested events and retries message cleanup',async()=>{
+ const {createOperations}=require('./operations.cjs');const e=event(),other={...event(),id:'other'};e.messageId='registration';e.teamMessageIds=['teams'];e.captainCard={id:'vote'};let fail=true;const removed=[];
+ const ops=createOperations({client:{channels:{fetch:async()=>({messages:{delete:async id=>{if(id==='teams'&&fail)throw Error('offline');removed.push(id);}}})}},data:{events:[e,other]},save(){},request:async()=>({ok:true,status:200,json:async()=>({content:Buffer.from(JSON.stringify({events:[],deletedEventIds:[e.id]})).toString('base64')})}),env:{GITHUB_REPOSITORY:'owner/repo',GITHUB_BRANCH:'main'}});
+ await assert.rejects(ops.syncCaptainRequests(),/offline/);assert.ok(e.cancelledAt);assert.equal(e.discordDeletedAt,undefined);assert.equal(other.cancelledAt,undefined);
+ fail=false;await ops.syncCaptainRequests();assert.ok(e.discordDeletedAt);assert.ok(removed.includes('registration'));assert.ok(removed.includes('vote'));const count=removed.length;await ops.syncCaptainRequests();assert.equal(removed.length,count);
+});
+
+
+test('website FACEIT refresh runs import once and records completion or failure without losing other edits',async()=>{
+  const {createOperations}=require('./operations.cjs');
+  for(const failed of [false,true]){
+    let stored={version:1,events:[],faceitRefreshRequest:{id:'request'}},imports=0;
+    const request=async(url,options={})=>{
+      if(options.method==='PUT'){stored=JSON.parse(Buffer.from(JSON.parse(options.body).content,'base64'));return {ok:true,json:async()=>({})};}
+      return {ok:true,json:async()=>({sha:'current',content:Buffer.from(JSON.stringify(stored)).toString('base64')})};
+    };
+    const ops=createOperations({client:{},data:{events:[]},save(){},admin(){},update(){},serial:fn=>fn(),env:{FACEIT_API_KEY:'test',GITHUB_REPOSITORY:'owner/repo',GITHUB_BRANCH:'main'},request,refreshImports:async()=>{imports++;stored.other='preserved';if(failed)throw Error('private upstream details');}});
+    await ops.syncCaptainRequests();await ops.syncCaptainRequests();
+    assert.equal(imports,1);assert.equal(stored.other,'preserved');assert.equal(stored.faceitRefreshResult.id,'request');assert.equal(!!stored.faceitRefreshResult.error,failed);assert.equal(JSON.stringify(stored).includes('private upstream'),false);
+  }
+});
+
+test('Discord map ballots lock in one click and publish only voter progress before closing',async()=>{
+  const {createOperations}=require('./operations.cjs');
+  const e={id:'event-map',title:'Friday',channelId:'channel',messageId:'registration',publishedAt:'now',players:[{userId:'111',name:'Ash'},{userId:'222',name:'Blake'}]};
+  const id='8fe02672-bbe8-41de-b98d-b271cb20dafd';
+  let published={events:[{id:e.id,mapVoteRequest:{id,mode:'duel',maps:['Nuke','Mirage']}}]},payload,edits=0,replies=0;
+  const request=async(url,options)=>{
+    if(options.method==='PUT'){
+      published=JSON.parse(Buffer.from(JSON.parse(options.body).content,'base64').toString('utf8'));
+      return {ok:true,json:async()=>({})};
+    }
+    return {ok:true,json:async()=>({sha:'sha',content:Buffer.from(JSON.stringify(published)).toString('base64')})};
+  };
+  const message={id:'vote-card',edit:async next=>{edits++;payload=next;}};
+  const registration={reply:async next=>{replies++;payload=next;return message;}};
+  const channel={messages:{fetch:async key=>key===e.messageId?registration:message}};
+  const ops=createOperations({client:{channels:{fetch:async()=>channel}},data:{events:[e]},save(){},admin:()=>false,serial:fn=>fn(),request,env:{GITHUB_REPOSITORY:'owner/repo',GITHUB_BRANCH:'main'}});
+  await ops.syncCaptainRequests();
+  assert.deepEqual(payload.components[0].toJSON().components.map(button=>button.label),['Nuke','Mirage']);
+  const cast=(userId,index)=>ops.handle({isChatInputCommand:()=>false,customId:'ops:mapcast:'+id+':'+index,user:{id:userId},deferReply:async()=>{},editReply:async()=>{}});
+  await assert.rejects(cast('999',0),/registered/);
+  await cast('111',0);
+  assert.deepEqual(published.events[0].mapVoteRequest.submitted,['Ash']);
+  assert.equal(published.events[0].mapVoteRequest.result,undefined);
+  assert.equal(JSON.stringify(published).includes('"111"'),false);
+  await assert.rejects(cast('111',1),/already locked/);
+  await cast('222',1);
+  const result=published.events[0].mapVoteRequest.result;
+  assert.deepEqual(result.counts,[1,1]);
+  assert.equal(result.coinFlip,true);
+  assert.deepEqual(payload.components,[]);
+  assert.equal(replies,1);
+  assert.equal(edits,2);
+});
+
+test('Player Vote selects up to three voted maps and keeps a closed result stable',()=>{
+  const {openMapVote,castMapVote,closeMapVote}=require('./map-vote.cjs');
+  const request={id:'a9cdbef8-f555-41b7-8d16-ccb952b0c567',mode:'player-vote',maps:['Nuke','Mirage','Ancient','Inferno','Train']};
+  const players=Array.from({length:8},(_,i)=>({userId:String(i),name:'Player '+i}));
+  const vote=openMapVote(request,players,0);
+  [0,0,0,1,1,2,2,4].forEach((index,i)=>castMapVote(vote,String(i),index,1));
+  assert.deepEqual(closeMapVote(vote,()=>.5).finalists,['Nuke','Mirage','Ancient']);
+  assert.equal(closeMapVote(vote,()=>.1),vote.result);
+  assert.throws(()=>castMapVote(vote,'1',2,2),/closed/);
+  assert.deepEqual(closeMapVote(openMapVote(request,players,0)).finalists,[]);
+});

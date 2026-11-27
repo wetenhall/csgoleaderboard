@@ -33,7 +33,7 @@ function mergePlayerNames(text, added) {
 }
 function cupFinal(data, resolve) {
   const state=resolve(data), first=state.matches.find(m=>m.id==='f1');
-  return data.format==='double' && first?.winner && first.winner===first.ids[1] ? state.matches.find(m=>m.id==='f2') : first;
+  return state.final;
 }
 function completedCup(data, resolve) {
   return !!cupFinal(data,resolve)?.winner && resolve(data).matches.every(m=>m.skipped || m.result);
@@ -153,20 +153,36 @@ function createTournamentExtras({getData,isOrganiser,isBusy,isPoolLocked,addName
     if(!night.next.length)cards.append(card(null,'Up next'));root.append(cards);
   }
   function renderCareer(data) {
-    const rows=careerRecords(data.history,mode,resolveTournament,playerTotals),root=$('career-table');root.replaceChildren();
+    const rows=careerRecords(data.history,mode,resolveTournament,playerTotals).map(row=>({
+      ...row,
+      winRate:row.games?100*row.wins/row.games:null,
+      ratio:row.recorded?(playerStatRatio(row.kills,row.deaths) ?? 0):null,
+      kills:row.recorded?row.kills:null, deaths:row.recorded?row.deaths:null, assists:row.recorded?row.assists:null
+    }));
     $('career-caption').textContent=modeLabel(mode)+' · Archived cups only · Ranked by trophies, wins, then kills';
-    if(!rows.length){root.append(element('p','rules','No archived '+modeLabel(mode)+' tournaments yet. Archive a completed cup to start these records.'));return;}
-    const table=element('table');table.setAttribute('aria-label',modeLabel(mode)+' all-time player records');
-    const head=element('thead'),tr=element('tr');['#','Player','Cups','Trophies','P','W','D','Win %','K','D','A','K/D','Stats games'].forEach(t=>tr.append(element('th','',t)));head.append(tr);table.append(head);
-    const body=element('tbody');rows.forEach((r,i)=>{const row=element('tr');[i+1,r.name,r.cups,r.trophies,r.games,r.wins,r.draws,r.games?(100*r.wins/r.games).toFixed(0)+'%':'—',r.recorded?r.kills:'—',r.recorded?r.deaths:'—',r.recorded?r.assists:'—',r.recorded?(r.deaths?(r.kills/r.deaths).toFixed(2):r.kills?'∞':'0.00'):'—',r.recorded].forEach(v=>row.append(element('td','',String(v))));body.append(row);});table.append(body);root.append(table);
+    const columns=[
+      {key:'cups',label:'Cups',sort:true}, {key:'trophies',label:'Trophies',sort:true},
+      {key:'games',label:'Played',sort:true}, {key:'wins',label:'Wins',sort:true}, {key:'draws',label:'Draws',sort:true},
+      {key:'winRate',label:'Win %',sort:true,format:value=>value.toFixed(0)+'%'},
+      {key:'kills',label:'Kills',sort:true}, {key:'deaths',label:'Deaths',sort:true}, {key:'assists',label:'Assists',sort:true},
+      {key:'ratio',label:'K/D',sort:true,format:value=>value.toFixed(2)}, {key:'recorded',label:'Stats games',sort:true}
+    ];
+    renderPlayerComparison($('career-table'),rows,columns,{title:modeLabel(mode)+' all-time player records',empty:'No archived '+modeLabel(mode)+' tournaments yet.'});
   }
   function renderHistory(data) {
     const root=$('cup-history');root.replaceChildren();
     if(!data.history?.length){root.append(element('p','rules','No archived tournaments yet. When your cup finishes, use Archive & start new tournament in Team setup.'));return;}
     [...data.history].reverse().forEach(entry=>{
       const cup=entry.tournament,state=resolveTournament(cup),final=cupFinal(cup,resolveTournament),details=element('details','history-cup'),summary=element('summary');
-      summary.append(element('strong','',entry.title),element('span','',modeLabel(cupMode(cup))+' · '+new Date(entry.archivedAt).toLocaleDateString()+' · '+cup.teams.length+' teams'));
-      details.append(summary,element('h3','history-winner','★ '+teamLabel(state,final.winner)),element('p','rules','Final: '+final.ids.map(id=>teamLabel(state,id)).join(' vs ')+' · '+final.result.scores.join(' – ')));
+      const identity=element('span','history-identity');
+      identity.append(element('strong','',entry.title),element('span','',modeLabel(cupMode(cup))+' · '+new Date(entry.archivedAt).toLocaleDateString()));
+      const result=element('span','history-card-result');
+      result.append(element('strong','',final.result.scores.join(' : ')),element('span','',teamLabel(state,final.winner)+' won'));
+      summary.classList.add('history-card-summary');
+      const map=final.seriesScores?null:final.map;
+      setMapBackdrop(summary,map);
+      summary.append(identity,result);
+      details.append(summary,element('p','rules','Final · '+final.ids.map(id=>teamLabel(state,id)).join(' vs ')+(map?' · '+map:'')));
       const download=element('button','secondary','Download champion card');download.type='button';download.onclick=()=>downloadCard(cup,entry.title);details.append(download);
       const remove=button('Delete archived cup',async()=>{
         if(!isOrganiser() || isBusy())return;
@@ -175,7 +191,9 @@ function createTournamentExtras({getData,isOrganiser,isBusy,isPoolLocked,addName
         notify('Archived cup deleted. All-time records and Saved players updated.');
       });remove.classList.add('danger');details.append(remove);
       const list=element('ol','history-results');orderedMatches(state.matches).filter(m=>m.result).forEach(m=>list.append(element('li','',m.ids.map(id=>teamLabel(state,id)).join(' vs ')+' · '+m.result.scores.join(' – ')+' · '+(m.map || m.id.toUpperCase())+(m.result.tiebreakWinner?' · Tiebreak: '+teamLabel(state,m.result.tiebreakWinner):''))));details.append(list);
-      const playerList=element('div','table-scroll'),table=element('table'),head=element('tr');['#','Player','Games','Kills','Deaths','Assists'].forEach(v=>head.append(element('th','',v)));const thead=element('thead');thead.append(head);table.append(thead);const tbody=element('tbody');playerTotals(cup).forEach((p,i)=>{const row=element('tr');[i+1,p.name,p.games,p.games?p.kills:'—',p.games?p.deaths:'—',p.games?p.assists:'—'].forEach(v=>row.append(element('td','',String(v))));tbody.append(row);});table.append(tbody);playerList.append(table);details.append(playerList);root.append(details);
+      const playerList=element('div','history-player-stats');
+      renderMatchPlayerStats(playerList,playerTotals(cup),entry.title+' player stats');
+      details.append(element('h3','fixture-heading','Player stats'),playerList);root.append(details);
     });
   }
   async function downloadCard(data,title=label(data)) {

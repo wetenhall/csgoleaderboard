@@ -1,5 +1,33 @@
 let importCentreState={open:false,inbox:false,links:false,linkTab:'faceit',fixtureTab:'faceit'};
 let faceitFeedCache=null;
+let faceitRefreshConfig=null,faceitRefreshPending=null;
+function recentFaceitGames(games,now=new Date()){
+  const day=d=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+  const today=day(now),[y,m,d]=today.split('-').map(Number),yesterday=day(new Date(Date.UTC(y,m-1,d-1,12)));
+  return games.filter(g=>{const date=new Date(g.finishedAt*1000);return Number.isFinite(date.getTime()) && [today,yesterday].includes(day(date));}).sort((a,b)=>b.finishedAt-a.finishedAt);
+}
+async function requestFaceitRefresh(config,request=fetch,pause=ms=>new Promise(resolve=>setTimeout(resolve,ms))){
+  if(!config?.token)throw Error('Connect as organiser to refresh FACEIT games.');
+  const file=await readPublishedDiscordEvents(config,request),id=crypto.randomUUID();
+  file.data.faceitRefreshRequest={id,requestedAt:new Date().toISOString()};
+  const content=btoa(Array.from(new TextEncoder().encode(JSON.stringify(file.data,null,2)+'\n'),b=>String.fromCharCode(b)).join(''));
+  const response=await request(config.api,{method:'PUT',headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+config.token,'Content-Type':'application/json'},body:JSON.stringify({message:'Request fresh FACEIT games',branch:config.branch,sha:file.sha,content})});
+  if(!response.ok)throw Error('Could not request FACEIT refresh. Try again ('+response.status+').');
+  for(let attempt=0;attempt<36;attempt++){
+    await pause(2500);
+    const latest=await readPublishedDiscordEvents(config,request),result=latest.data.faceitRefreshResult;
+    if(result?.id!==id)continue;
+    if(result.error)throw Error(result.error);
+    const feed=await request(config.api.replace(/discord-events\.json$/,'faceit-games.json')+'?ref='+encodeURIComponent(config.branch),{cache:'no-store',headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+config.token}});
+    if(!feed.ok)throw Error('Import finished, but the game list could not load. Try again.');
+    const stored=await feed.json();return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(stored.content.replace(/\s/g,'')),c=>c.charCodeAt(0))));
+  }
+  throw Error('FACEIT refresh is still pending. Check that the Discord bot is online, then try again.');
+}
+async function refreshFaceitFeed(){
+  if(!faceitRefreshPending)faceitRefreshPending=requestFaceitRefresh(faceitRefreshConfig?.()).then(feed=>{faceitFeedCache=Promise.resolve(feed);return feed;}).finally(()=>{faceitRefreshPending=null;});
+  return faceitRefreshPending;
+}
 async function loadFaceitFeed(force=false){if(!faceitFeedCache || force)faceitFeedCache=fetch('faceit-games.json?v='+Date.now(),{cache:'no-store'}).then(async response=>{if(!response.ok)throw Error('Game list is not available yet. Check that the bot is running.');return response.json();}).catch(error=>{faceitFeedCache=null;throw error;});return faceitFeedCache;}
 function normalizeLeetifyProfileUrl(value){
   if(!String(value).trim())return '';
@@ -32,7 +60,7 @@ function createFixtureImporter({data,fixture,save,isBusy,isOrganiser,gameId,prel
   const provider=preloadedGame?.provider||'faceit',providerName=provider==='leetify'?'Leetify':'FACEIT';
   const root=element('section','fixture-import'),status=element('p','rules'),select=element('select'),load=element('button','secondary','Refresh '+providerName+' games'),preview=element('div');
   load.type='button';select.setAttribute('aria-label','Available '+providerName+' games');let games=[];const label=element('label','','Import game');label.append(select);root.append(element('h4','','Import '+providerName+' results'),label,load,status,preview);
-  async function refresh(force=false){load.disabled=true;status.textContent='Loading completed queue games…';try{const feed=preloadedGame?{games:[preloadedGame],updatedAt:new Date().toISOString()}:await loadFaceitFeed(force);games=feed.games||[];select.replaceChildren(element('option','','Select a completed game'));select.firstChild.value='';for(const game of games){const option=element('option','',new Date(game.finishedAt*1000).toLocaleString()+' · '+game.map+' · '+game.teams.map(t=>t.players.map(p=>p.name).join(', ')).join(' vs ')+' · '+game.teams.map(t=>t.score).join('–'));option.value=game.id;const used=importedGameUsage(data,game.id);if(used.length){option.textContent+=' · Already imported: '+used.map(u=>u.label).join(', ');option.disabled=used.some(u=>u.archived || u.fixtureId!==fixture.id);}select.append(option);}status.textContent=games.length+' games available · Synced '+new Date(feed.updatedAt).toLocaleString();preview.replaceChildren();if(gameId||preloadedGame){select.value=gameId||preloadedGame.id;select.onchange();}}catch(error){status.textContent=error.message;}finally{load.disabled=false;}}
+  async function refresh(force=false){load.disabled=true;status.textContent=force?'Importing latest FACEIT games… This can take up to 90 seconds.':'Loading games from today and yesterday…';try{const feed=preloadedGame?{games:[preloadedGame],updatedAt:new Date().toISOString()}:await (force?refreshFaceitFeed():loadFaceitFeed());games=preloadedGame?feed.games:recentFaceitGames(feed.games||[]);select.replaceChildren(element('option','','Select a completed game'));select.firstChild.value='';for(const game of games){const option=element('option','',new Date(game.finishedAt*1000).toLocaleString()+' · '+game.map+' · '+game.teams.map(t=>t.players.map(p=>p.name).join(', ')).join(' vs ')+' · '+game.teams.map(t=>t.score).join('–'));option.value=game.id;const used=importedGameUsage(data,game.id);if(used.length){option.textContent+=' · Already imported: '+used.map(u=>u.label).join(', ');option.disabled=used.some(u=>u.archived || u.fixtureId!==fixture.id);}select.append(option);}status.textContent=games.length+' games from today and yesterday (UK time) · Synced '+new Date(feed.updatedAt).toLocaleString();preview.replaceChildren();if(gameId||preloadedGame){select.value=gameId||preloadedGame.id;select.onchange();}}catch(error){status.textContent=error.message;}finally{load.disabled=false;}}
   if(preloadedGame)load.hidden=true;
   load.onclick=()=>refresh(true);
   select.onchange=()=>{preview.replaceChildren();const game=games.find(g=>g.id===select.value);if(!game)return;const roster=data.teams.filter(t=>fixture.ids.includes(t.id)).flatMap(t=>fixture.result?.lineups?.[t.id]||t.players),links=Object.create(null),aliases=importPlayerAliases(data,game);
@@ -42,7 +70,7 @@ function createFixtureImporter({data,fixture,save,isBusy,isOrganiser,gameId,prel
   };
   void refresh();return root;
 }
-if(typeof module!=='undefined')module.exports={normalizeLeetifyMatch,leetifyMatchId,importPlayerAliases,normalizeLeetifyProfileUrl,importedFixtureResult,importedGameUsage,suggestImportFixtures};
+if(typeof module!=='undefined')module.exports={recentFaceitGames,requestFaceitRefresh,normalizeLeetifyMatch,leetifyMatchId,importPlayerAliases,normalizeLeetifyProfileUrl,importedFixtureResult,importedGameUsage,suggestImportFixtures};
 function importedGameUsage(data,id){
   return [...data.matches.filter(m=>m.result?.importSource?.id===id).map(m=>({fixtureId:m.id,archived:false,label:m.id.toUpperCase()})),...(data.history||[]).flatMap(entry=>entry.tournament.matches.filter(m=>m.result?.importSource?.id===id).map(m=>({fixtureId:m.id,archived:true,label:entry.title+' / '+m.id.toUpperCase()})))];
 }
@@ -72,10 +100,10 @@ function createImportCentre({data,resolve,isBusy,isOrganiser,saveImport,saveAlia
   function showLinkTab(provider){importCentreState.linkTab=provider;tabButtons.forEach(item=>{const selected=item.provider===provider;item.tab.setAttribute('aria-selected',String(selected));item.tab.tabIndex=selected?0:-1;item.panel.hidden=!selected;});}
   tabButtons.forEach((item,index)=>item.tab.onkeydown=event=>{const next=event.key==='ArrowRight'?(index+1)%2:event.key==='ArrowLeft'?(index+1)%2:event.key==='Home'?0:event.key==='End'?1:null;if(next!==null){event.preventDefault();showLinkTab(tabButtons[next].provider);tabButtons[next].tab.focus();}});
   manager.insertBefore(linkTabs,profilesBody);showLinkTab(importCentreState.linkTab||'faceit');
-  const load=async(force=false)=>{note.textContent='Loading FACEIT games…';try{feed=await loadFaceitFeed(force);if(!root.isConnected)return;renderInbox();renderLinks();note.textContent='Game list synced '+new Date(feed.updatedAt).toLocaleString()+'.';}catch(error){note.textContent=error.message;}};
+  const load=async(force=false)=>{note.textContent=force?'Importing latest FACEIT games… This can take up to 90 seconds.':'Loading games from today and yesterday…';try{feed=await (force?refreshFaceitFeed():loadFaceitFeed());if(!root.isConnected)return;renderInbox();renderLinks();note.textContent='Game list synced '+new Date(feed.updatedAt).toLocaleString()+'.';}catch(error){note.textContent=error.message;}};
   inboxBody.append(button('Load available games',()=>load()));managerBody.append(button('Load player name links',()=>load()));if(playerContainer)queueMicrotask(()=>{if(root.isConnected)void load();});
   inbox.addEventListener('toggle',()=>{importCentreState.inbox=inbox.open;if(inbox.open&&!feed)void load();});manager.addEventListener('toggle',()=>{importCentreState.links=manager.open;if(manager.open&&!feed)void load();});
-  function renderInbox(){inboxBody.replaceChildren(button('Refresh games',()=>load(true)));const games=feed.games||[],pending=games.filter(g=>!importedGameUsage(data,g.id).length);inboxBody.append(element('p','rules',pending.length+' new games · '+(games.length-pending.length)+' already imported'));
+  function renderInbox(){inboxBody.replaceChildren(button('Refresh games',()=>load(true)));const games=recentFaceitGames(feed.games||[]),pending=games.filter(g=>!importedGameUsage(data,g.id).length);inboxBody.append(element('p','rules',pending.length+' new games from today and yesterday (UK time) · '+(games.length-pending.length)+' already imported'));
     for(const game of games){const used=importedGameUsage(data,game.id),card=element('details','import-game'),body=element('div'),suggestions=suggestImportFixtures(data,game,resolve);card.append(element('summary','',game.map+' · '+game.teams.map(t=>t.players.map(p=>p.name).join(', ')).join(' vs ')+' · '+game.teams.map(t=>t.score).join('–')+' · '+new Date(game.finishedAt*1000).toLocaleString()+(used.length?' · Already imported: '+used.map(u=>u.label).join(', '):suggestions.length===1?' · Suggested '+suggestions[0].toUpperCase():suggestions.length>1?' · Multiple possible fixtures':' · Link players to suggest a fixture')));
       if(!used.length){const label=element('label','','Choose fixture'),pick=element('select'),preview=element('div');pick.append(element('option','','Select fixture'));pick.firstChild.value='';for(const fixture of resolve(data).matches.filter(m=>!m.skipped && m.ids.every(Boolean))){const o=element('option','',fixture.id.toUpperCase()+' · '+fixture.ids.map(id=>data.teams.find(t=>t.id===id).players.map(p=>p.name).join(', ')).join(' vs ')+(fixture.result?' · Replace saved result':''));o.value=fixture.id;pick.append(o);}label.append(pick);body.append(label,preview);pick.onchange=()=>{preview.replaceChildren();const fixture=resolve(data).matches.find(m=>m.id===pick.value);if(fixture)preview.append(createFixtureImporter({data,fixture,gameId:game.id,isBusy,isOrganiser,save:(result,aliases)=>saveImport(fixture.id,result,aliases)}));};if(suggestions.length===1)pick.value=suggestions[0];let opened=false;card.addEventListener('toggle',()=>{if(card.open&&!opened){opened=true;if(pick.value)pick.onchange();}});}
       card.append(body);inboxBody.append(card);
