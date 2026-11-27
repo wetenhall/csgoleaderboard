@@ -1006,13 +1006,19 @@ body:has(>.topbar~footer){
   background:linear-gradient(155deg,color-mix(in srgb,var(--team-colour) 11%,#21242d),#181c24 55%);
 }
 .fullscreen-fallback .draw-roster .draw-team>label:has(>input){font-size:0}
-.fullscreen-fallback .draw-team input{min-width:0;margin:0 0 8px;padding:5px 9px;font-size:14px}
+.fullscreen-fallback .draw-team input{
+  min-width:0;
+  margin:0 0 9px;
+  padding:7px 12px;
+  font-size:16px;
+  font-weight:700;
+}
 .fullscreen-fallback .draft-slot{
   min-height:0;
   margin:3px 0;
-  padding:5px 10px;
+  padding:6px 12px;
   gap:5px;
-  font-size:clamp(12px,1.8dvh,16px);
+  font-size:clamp(14px,1.85dvh,17px);
 }
 .fullscreen-fallback .slot-avatar{width:clamp(18px,3dvh,30px);height:clamp(18px,3dvh,30px);font-size:11px}
 .fullscreen-fallback .captain-case-panel{padding:var(--panel-block) var(--panel-inline)}
@@ -1034,10 +1040,9 @@ body:has(>.topbar~footer){
 .fullscreen-fallback .map-method-control select{margin-top:4px}
 .draw-stage.fullscreen-fallback.map-selection-stage .draw-roster .teams{grid-template-columns:repeat(2,minmax(0,1fr))}
 .fullscreen-fallback.map-selection-stage .draft-slot{
-  margin:2px 0 0;
-  padding:4px 10px;
-  font-size:12px;
-  line-height:1.2;
+  margin:3px 0 0;
+  padding:clamp(5px,.7dvh,8px) 12px;
+  line-height:1.25;
 }
 .fullscreen-fallback.map-selection-stage .slot-avatar{display:none}
 .fullscreen-fallback.map-selection-stage .draw-team :is(.team-state,.accent){display:none}
@@ -1110,8 +1115,8 @@ body:has(>.topbar~footer){
   .fullscreen-fallback .player-reveal .eyebrow{margin-bottom:2px}
   .fullscreen-fallback .draft-slot{
     margin:2px 0 0;
-    padding-block:3px;
-    font-size:12px;
+    padding-block:4px;
+    font-size:14px;
     line-height:1.2;
   }
   .fullscreen-fallback .slot-avatar{
@@ -1139,7 +1144,7 @@ body:has(>.topbar~footer){
   .fullscreen-fallback .map-veto-options .map-picker-card{min-height:36px}
 }
 @media(max-width:760px){
-  .draw-stage.fullscreen-fallback{--stage-gap:6px}
+  .draw-stage.fullscreen-fallback{--stage-gap:6px;--reel-width:85vw}
   .draw-stage.fullscreen-fallback .wheel-wrap{max-width:min(65vw,24dvh)}
   .fullscreen-fallback .draw-toolbar-actions{position:relative;width:auto;justify-content:flex-start}
   .fullscreen-fallback .draw-toolbar-actions .setup-music{position:static}
@@ -1188,9 +1193,8 @@ body:has(>.topbar~footer){
 }
 .fullscreen-fallback.map-selection-stage:has(>.wheel-panel[hidden]):has(>.map-draw-options[hidden]) .draft-slot{
   margin:4px 0 0;
-  padding:6px 10px;
+  padding:clamp(6px,.75dvh,9px) 12px;
   gap:7px;
-  font-size:clamp(12px,1.9dvh,16px);
 }
 .fullscreen-fallback.map-selection-stage:has(>.wheel-panel[hidden]):has(>.map-draw-options[hidden]) .slot-avatar{
   display:grid;
