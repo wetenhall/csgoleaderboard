@@ -585,6 +585,22 @@ body:has(:is(#tab-stats,#tab-history,#tab-team-setup,#tab-fixture-import,#tab-ma
 }
 #draw-panel>.setup-steps button span{border-radius:0;font-size:13px}
 #draw-panel>.setup-steps + p + p{color:var(--muted);margin:8px 0 0}
+.setup-music{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px 12px;
+  margin-bottom:12px;
+  padding:10px 14px;
+  border:1px solid var(--border);
+  background:#191d25;
+}
+.setup-music label{font-weight:700}
+.setup-music input[type=file]{flex:1 1 230px;min-width:0;width:auto;margin:0}
+.setup-music input[type=range]{flex:0 1 100px;min-width:64px;accent-color:var(--accent)}
+.setup-music button{margin:0}
+.setup-music [role=status]{flex:1 0 100%;margin:0}
+.setup-music [role=status]:empty{display:none}
 #panel-team-setup .setup-stage .setup-card,
 #fixture-import-centre>.import-centre,
 #player-links>.name-link-manager{

@@ -1,3 +1,50 @@
+function createSetupMusic(){
+  const audio=document.getElementById('setup-music-audio');
+  const file=document.getElementById('setup-music-file');
+  const volume=document.getElementById('setup-music-volume');
+  const status=document.getElementById('setup-music-status');
+  const toggle=document.getElementById('setup-music-toggle');
+  const drawToggle=document.getElementById('draw-music-toggle');
+  let source='';
+  function update(){
+    const label=audio.paused?'Play music':'Pause music';
+    toggle.textContent=drawToggle.textContent=label;
+    toggle.disabled=!source;
+    drawToggle.hidden=!source;
+  }
+  async function play(){
+    const selected=source;
+    try{
+      await audio.play();
+      if(selected===source)status.textContent='';
+    }catch(error){
+      if(selected===source && error.name!=='AbortError'){
+        status.textContent='Could not play this file. Try an MP3, Ogg, or WAV track.';
+      }
+    }
+    update();
+  }
+  toggle.onclick=drawToggle.onclick=()=>{
+    if(!source)return;
+    if(audio.paused)void play();else audio.pause();
+  };
+  audio.onplay=audio.onpause=update;
+  volume.oninput=()=>{audio.volume=Number(volume.value)/100;};
+  volume.oninput();
+  file.onchange=()=>{
+    const track=file.files[0];
+    if(!track)return;
+    audio.pause();
+    if(source)URL.revokeObjectURL(source);
+    source=URL.createObjectURL(track);
+    audio.src=source;
+    status.textContent='';
+    update();
+    void play();
+  };
+  return {pause:()=>audio.pause()};
+}
+
 function createSetupStages({isBusy,isLocked,validateGame,validateOptions,validatePlayers,preparePlayers,signature,summary,resetDraw}) {
   const $=id=>document.getElementById(id);
   let step=1,unlocked=1,confirmed=null;

@@ -1,7 +1,7 @@
 const fs=require('node:fs'),path=require('node:path'),{randomUUID}=require('node:crypto');
 const {Client,GatewayIntentBits,Events,PermissionFlagsBits,SlashCommandBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,StringSelectMenuBuilder,ModalBuilder,TextInputBuilder,TextInputStyle,EmbedBuilder,escapeMarkdown,MessageFlags}=require('discord.js');
 const {register,publishEvent,teamAnnouncements}=require('./core.cjs');
-const {renderTeamImages}=require('./team-image.cjs');
+const {renderTeamAnnouncementImages:renderTeamImages}=require('./team-image.cjs');
 const {syncFaceitGames}=require('./faceit.cjs');
 const {syncResultCards}=require('./results.cjs');
 const {createOperations}=require('./operations.cjs');
@@ -51,14 +51,14 @@ async function syncTeams(){
     const file=await response.json(),tournament=JSON.parse(Buffer.from(file.content,'base64').toString('utf8'));
     const event=data.events.find(event=>event.id===tournament.discordEventId && event.publishedAt && !event.cancelledAt);
     if(!event || !tournament.teams?.length)return;
-    const roster=teamAnnouncements(tournament,escapeMarkdown),signature='game-night-tools-v1:'+JSON.stringify([roster,tournament.serverAddress||'']);
+    const roster=teamAnnouncements(tournament,escapeMarkdown),signature='game-night-tools-v2:'+JSON.stringify([roster,tournament.serverAddress||'']);
     const map=tournament.format==='single'?tournament.matches?.[0]?.map:null;
     const descriptions=['Teams ready · '+tournament.teamSize+'v'+tournament.teamSize+(map?' · '+escapeMarkdown(map):'')];
     const channel=await client.channels.fetch(event.channelId),registration=await channel.messages.fetch(event.messageId);
     await syncResultCards({tournament,event,channel,registration,save});
     await operations.sync(tournament,event);
     if(event.teamSignature===signature)return;
-    const images=renderTeamImages(tournament);
+    const images=await renderTeamImages(tournament);
     event.teamMessageIds ||= [];
     for(let i=0;i<descriptions.length;i++){
       const payload={embeds:[new EmbedBuilder().setTitle((event.title+' · Teams').slice(0,256)).setColor(0xf5a623).setDescription(descriptions[i]).setURL(process.env.SITE_URL)],allowedMentions:{parse:[],repliedUser:false}};

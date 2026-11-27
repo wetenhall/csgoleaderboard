@@ -1246,6 +1246,7 @@ if (typeof document !== 'undefined') (() => {
   document.addEventListener('keydown',event=>{if(event.key==='Escape' && expandedDraw){event.preventDefault();setExpandedDraw(false);}});
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
   const tabs = Array.from(document.querySelectorAll('.page-tabs [role="tab"], .admin-tabs [role="tab"]'));
+  const setupMusic=createSetupMusic();
   function defaultTab(){return current.registrationEnabled!==false && !token ? $('tab-register') : $('tab-leaderboard');}
   let registrationSubmitting=false;
   $('registration-form').addEventListener('submit',async event=>{
@@ -1270,6 +1271,7 @@ if (typeof document !== 'undefined') (() => {
   });
   function selectTab(tab, focus = false, updateUrl = true) {
     if(!tab || tab.hidden)tab=defaultTab();
+    if(tab.id!=='tab-team-setup')setupMusic.pause();
     document.body.classList.toggle('viewing-match',tab.id==='tab-leaderboard');
     tabs.forEach(item => {
       const active = item === tab;
