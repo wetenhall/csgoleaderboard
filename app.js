@@ -382,7 +382,7 @@ if (typeof document !== 'undefined') setInterval(() => {
     const bounds = banner.getBoundingClientRect();
     if (bounds.height && bounds.bottom > 0 && bounds.top < window.innerHeight) rotateMapBanner(banner);
   }
-}, 10000);
+}, 5000);
 
 function setMapBackdrop(node, map) {
   const url = mapImageUrl(map);
