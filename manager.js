@@ -1070,6 +1070,7 @@ if (typeof document !== 'undefined') (() => {
     const root=$('manual-team-list'),size=Number($('team-size').value);root.replaceChildren();
     manualNames.forEach((name,i)=>{
       const card=element('div','draw-team'),label=element('label','','Team '+String(i+1).padStart(2,'0')+' name'),input=element('input');input.value=name;input.maxLength=60;input.oninput=()=>{manualNames[i]=input.value;invalidateManualTeams();};label.append(input);card.append(label);
+      card.style.setProperty('--team-colour',teamColours[i%teamColours.length]);
       for(let j=0;j<size;j++){const slot=i*size+j,label=element('label','','Team '+String(i+1).padStart(2,'0')+' · Player '+(j+1)),select=element('select'),blank=element('option','','Choose player');blank.value='';select.append(blank);selected.forEach(player=>{const option=element('option','',player.name);option.value=player.id;select.append(option);});select.value=manualAssignments[slot];select.onchange=()=>{manualAssignments[slot]=select.value;invalidateManualTeams();updateManualSlots();};label.append(select);card.append(label);}
       root.append(card);
     });updateManualSlots();

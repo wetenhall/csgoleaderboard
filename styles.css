@@ -622,6 +622,19 @@ body:has(:is(#tab-stats,#tab-history,#tab-team-setup,#tab-fixture-import,#tab-ma
 #panel-team-setup .setup-stage,
 #panel-team-setup .setup-maintenance{max-width:none}
 #panel-team-setup .setup-stage fieldset{background:#151820}
+#manual-team-list>.draw-team{
+  border:1px solid var(--border);
+  border-top:3px solid var(--team-colour);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--team-colour) 10%,#191d25),#191d25 36%);
+}
+#manual-team-list label{color:#d9dfe7}
+#manual-team-list label:first-child{color:var(--team-colour);font-weight:700}
+#manual-team-list :is(input:not([type=checkbox]),select){
+  background:#2a303b;
+  color:#f5f6f8;
+  border-color:#657280;
+}
+#manual-team-list :is(input,select):focus-visible{outline-color:var(--team-colour)}
 #fixture-import-centre .fixture-import-tabs,
 #player-links .player-link-tabs{
   margin:0 0 16px;
