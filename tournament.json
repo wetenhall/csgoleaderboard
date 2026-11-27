@@ -21,24 +21,24 @@
       "tag": "01",
       "players": [
         {
-          "id": "p4",
-          "name": "Dan"
-        },
-        {
           "id": "p8",
           "name": "finesse"
+        },
+        {
+          "id": "p9",
+          "name": "little german boy"
+        },
+        {
+          "id": "p4",
+          "name": "Dan"
         },
         {
           "id": "p3",
           "name": "cantlon"
         },
         {
-          "id": "p7",
-          "name": "Ramsten"
-        },
-        {
-          "id": "p2",
-          "name": "jpohan"
+          "id": "p10",
+          "name": "Aatori"
         }
       ]
     },
@@ -48,24 +48,24 @@
       "tag": "02",
       "players": [
         {
-          "id": "p9",
-          "name": "little german boy"
-        },
-        {
           "id": "p5",
           "name": "sAM]"
+        },
+        {
+          "id": "p6",
+          "name": "FAROESE BEAST"
+        },
+        {
+          "id": "p7",
+          "name": "Ramsten"
         },
         {
           "id": "p1",
           "name": "Mootmanden"
         },
         {
-          "id": "p10",
-          "name": "Aatori"
-        },
-        {
-          "id": "p6",
-          "name": "FAROESE BEAST"
+          "id": "p2",
+          "name": "jpohan"
         }
       ]
     }
@@ -85,7 +85,7 @@
       ],
       "result": null,
       "label": "Single Game · 5v5",
-      "map": "Cache"
+      "map": "Cobblestone"
     }
   ],
   "history": [],
@@ -100,7 +100,7 @@
   "qualifiersPerGroup": 2,
   "teamSize": 5,
   "mode": "squads",
-  "serverAddress": "345635464356",
+  "serverAddress": "",
   "gameProvider": "manual",
   "leetifyProfiles": {
     "cantlon": "https://leetify.com/app/profile/76561198169191946",
@@ -147,57 +147,7 @@
     "Italy",
     "Cobblestone"
   ],
-  "mapMethod": "veto",
-  "mapVeto": [
-    {
-      "teamId": "t1",
-      "map": "Dust2"
-    },
-    {
-      "teamId": "t2",
-      "map": "Inferno"
-    },
-    {
-      "teamId": "t1",
-      "map": "Vertigo"
-    },
-    {
-      "teamId": "t2",
-      "map": "Italy"
-    },
-    {
-      "teamId": "t1",
-      "map": "Office"
-    },
-    {
-      "teamId": "t2",
-      "map": "Anubis"
-    },
-    {
-      "teamId": "t1",
-      "map": "Mirage"
-    },
-    {
-      "teamId": "t2",
-      "map": "Cobblestone"
-    },
-    {
-      "teamId": "t1",
-      "map": "Overpass"
-    },
-    {
-      "teamId": "t2",
-      "map": "Ancient"
-    },
-    {
-      "teamId": "t1",
-      "map": "Nuke"
-    },
-    {
-      "teamId": "t2",
-      "map": "Train"
-    }
-  ],
-  "discordEventId": "7dcc8ee3-dbda-4aed-ba9d-a980e551cb5e",
-  "serverPassword": ""
+  "mapMethod": "wheel",
+  "mapVeto": [],
+  "discordEventId": "7dcc8ee3-dbda-4aed-ba9d-a980e551cb5e"
 }
