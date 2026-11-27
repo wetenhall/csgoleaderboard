@@ -480,6 +480,7 @@ function renderTournament(data) {
     const scoreboard=element('div','match-scoreboard');
     const scoreLabel=match.result?match.result.scores.join(' to '):'No score recorded';
     const score=element('div','match-broadcast-score',match.result?match.result.scores.join(' : '):'VS');
+    score.classList.toggle('match-pending-score',!match.result);
     score.setAttribute('aria-label',scoreLabel);
     const mapHeading=element('h3');
     mapHeading.append(mapImageUrl(match.map)?glitchLabel(match.map):match.map || 'Map pending');
@@ -495,10 +496,14 @@ function renderTournament(data) {
       scoreboard.append(side);
       if(i===0)scoreboard.append(score);
       const heading=element('div','single-squad-heading');
-      heading.append(element('h3','',team.name+' roster'));
-      card.append(heading,element('p','eyebrow',match.winner===id?'WINNERS':team.players.length+' PLAYER'+(team.players.length===1?'':'S')));
+      heading.append(element('h3','',team.name),element('span','eyebrow',match.winner===id?'Winners':team.players.length+' player'+(team.players.length===1?'':'s')));
+      card.append(heading);
       const roster=element('ol','single-squad-players');
-      team.players.forEach(player=>roster.append(element('li','',player.name+(team.captainId===player.id?' · Captain':''))));
+      team.players.forEach(player=>{
+        const row=element('li','',player.name);
+        if(team.captainId===player.id)row.append(element('small','roster-captain','Captain'));
+        roster.append(row);
+      });
       card.append(roster);squads.append(card);
     });
     bracketRoot.append(squads);

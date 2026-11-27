@@ -1407,3 +1407,30 @@ button.secondary:not(.danger, .map-veto-options button):enabled:focus-visible {
 @keyframes roster-handoff{
   from{background-position:100% center} to{background-position:0% center}
 }
+
+/* Published match broadcast and lineups */
+.match-broadcast.has-map-image{
+  background-image:linear-gradient(90deg,#0b1017bc,transparent 38% 62%,#0b1017bc),
+    linear-gradient(180deg,#11172255,transparent 38%,#10151c99),var(--map-image);
+  background-position:center,center,center 52%;
+}
+.match-broadcast h3{margin:clamp(24px,4vw,54px) 0;color:white;text-shadow:0 2px 5px #000,0 4px 24px #0009}
+.match-broadcast .match-scoreboard{background:#10151cce;border-color:#ffffff30;width:100%}
+.match-scoreboard-team strong::after{content:'';display:block;width:34px;height:3px;margin-top:6px;background:var(--accent)}
+.match-scoreboard-team:last-child strong::after{margin-left:auto;background:var(--blue)}
+.match-broadcast .match-pending-score{font-size:clamp(15px,2vw,23px);color:#cad1d6}
+.single-match-squads .single-squad{
+  --side-colour:var(--accent);
+  padding:0;background:#171c23;border-top:3px solid var(--side-colour);
+}
+.single-match-squads .single-squad:nth-child(2){--side-colour:var(--blue)}
+.single-squad-heading{
+  margin:0;padding:14px clamp(12px,2vw,24px);
+  background:linear-gradient(105deg,color-mix(in srgb,var(--side-colour) 13%,#191e26),#191e26 85%);
+}
+.single-squad-heading .eyebrow{margin:0;color:#c3cbd3;font-size:12px;white-space:nowrap}
+.single-squad-players{padding:0 clamp(12px,2vw,24px)}
+.single-squad-players li{gap:12px;padding:10px 0;border-color:#ffffff1c}
+.single-squad-players li:first-child{border:0}
+.single-squad-players li::before{content:none}
+.roster-captain{margin-left:auto;font:700 12px var(--mono);color:var(--side-colour)}
