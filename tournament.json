@@ -13,32 +13,33 @@
     "Part",
     "Sam"
   ],
-  "name": "custom 5v5",
+  "name": "5v5 v3",
   "teams": [
     {
       "id": "t1",
       "name": "Team 01",
       "tag": "01",
+      "captainId": "p1",
       "players": [
         {
-          "id": "p6",
-          "name": "FAROESE BEAST"
-        },
-        {
-          "id": "p5",
-          "name": "sAM]"
-        },
-        {
-          "id": "p4",
-          "name": "Dan"
-        },
-        {
-          "id": "p3",
+          "id": "p1",
           "name": "cantlon"
         },
         {
-          "id": "p2",
-          "name": "jpohan"
+          "id": "p7",
+          "name": "sAM dropped froppo"
+        },
+        {
+          "id": "p5",
+          "name": "dingy boater"
+        },
+        {
+          "id": "p8",
+          "name": "Sam is a bitch"
+        },
+        {
+          "id": "p10",
+          "name": "Aatori"
         }
       ]
     },
@@ -46,26 +47,27 @@
       "id": "t2",
       "name": "Team 02",
       "tag": "02",
+      "captainId": "p2",
       "players": [
         {
-          "id": "p8",
-          "name": "finesse"
-        },
-        {
-          "id": "p9",
-          "name": "little german boy"
-        },
-        {
-          "id": "p7",
+          "id": "p2",
           "name": "Ramsten"
         },
         {
-          "id": "p1",
+          "id": "p4",
+          "name": "jpohan"
+        },
+        {
+          "id": "p9",
+          "name": "Dan"
+        },
+        {
+          "id": "p3",
           "name": "Mootmanden"
         },
         {
-          "id": "p10",
-          "name": "Aatori"
+          "id": "p6",
+          "name": "finesse"
         }
       ]
     }
@@ -85,13 +87,13 @@
       ],
       "result": null,
       "label": "Single Game · 5v5",
-      "map": "Mirage"
+      "map": "Nuke"
     }
   ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
-    "banner": "custom 5v5",
+    "banner": "5v5 v3",
     "registrationTitle": "Register to play",
     "registrationDescription": "Enter your player name to register for the next 1v1 tournament.\n\nDate: Thursday 29th October \nTime: 7pm GMT"
   },
@@ -100,7 +102,7 @@
   "qualifiersPerGroup": 2,
   "teamSize": 5,
   "mode": "squads",
-  "serverAddress": "19212324342",
+  "serverAddress": "",
   "gameProvider": "manual",
   "leetifyProfiles": {
     "cantlon": "https://leetify.com/app/profile/76561198169191946",
@@ -137,63 +139,9 @@
     "Anubis",
     "Vertigo",
     "Cache",
-    "Train",
-    "Overpass",
-    "Office",
-    "Italy",
     "Cobblestone"
   ],
-  "mapMethod": "veto",
-  "mapVeto": [
-    {
-      "teamId": "t1",
-      "map": "Nuke"
-    },
-    {
-      "teamId": "t2",
-      "map": "Ancient"
-    },
-    {
-      "teamId": "t1",
-      "map": "Anubis"
-    },
-    {
-      "teamId": "t2",
-      "map": "Vertigo"
-    },
-    {
-      "teamId": "t1",
-      "map": "Cache"
-    },
-    {
-      "teamId": "t2",
-      "map": "Train"
-    },
-    {
-      "teamId": "t1",
-      "map": "Overpass"
-    },
-    {
-      "teamId": "t2",
-      "map": "Office"
-    },
-    {
-      "teamId": "t1",
-      "map": "Italy"
-    },
-    {
-      "teamId": "t2",
-      "map": "Inferno"
-    },
-    {
-      "teamId": "t1",
-      "map": "Cobblestone"
-    },
-    {
-      "teamId": "t2",
-      "map": "Dust2"
-    }
-  ],
-  "discordEventId": "7dcc8ee3-dbda-4aed-ba9d-a980e551cb5e",
-  "serverPassword": ""
+  "mapMethod": "wheel",
+  "mapVeto": [],
+  "discordEventId": "28c32de8-c79e-4fb2-90fe-6f8e843978d8"
 }
