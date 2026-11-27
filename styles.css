@@ -864,6 +864,8 @@ body:has(>.topbar~footer){
 }
 .draw-stage.fullscreen-fallback{
   --stage-gap:clamp(6px,1.15dvh,16px);
+  --panel-inline:clamp(12px,1.6vw,22px);
+  --panel-block:clamp(8px,1.15dvh,16px);
   padding:var(--stage-gap) max(clamp(10px,2.5vw,36px),calc((100% - 1220px)/2));
   gap:var(--stage-gap) clamp(10px,2vw,28px);
   align-content:start;
@@ -888,7 +890,7 @@ body:has(>.topbar~footer){
 .fullscreen-fallback .draw-animation-label select{min-width:0}
 .fullscreen-fallback .draw-action-bar{
   justify-content:center;
-  padding:8px 12px;
+  padding:var(--panel-block) var(--panel-inline);
   gap:6px;
   background:#171b23;
 }
@@ -903,7 +905,7 @@ body:has(>.topbar~footer){
 .fullscreen-fallback #publish-expanded{flex:none}
 .draw-stage.fullscreen-fallback :is(.wheel-panel,.captain-case-panel,.draw-roster){min-width:0}
 .draw-stage.fullscreen-fallback :is(.wheel-panel,.captain-case-panel,.draw-roster){align-self:center}
-.draw-stage.fullscreen-fallback .wheel-wrap{max-width:min(580px,43dvh)}
+.draw-stage.fullscreen-fallback .wheel-wrap{max-width:min(580px,39dvh)}
 .draw-stage.fullscreen-fallback .case-reel-wrap{
   width:min(100%,1100px,120dvh);
   margin:4px auto;
@@ -915,7 +917,7 @@ body:has(>.topbar~footer){
   margin-inline:auto;
 }
 .draw-stage.fullscreen-fallback #case-reel{width:100%;margin:0}
-.draw-stage.fullscreen-fallback .player-reveal{min-height:0;padding:6px 10px;margin-top:6px}
+.draw-stage.fullscreen-fallback .player-reveal{min-height:0;padding:var(--panel-block) var(--panel-inline);margin-top:6px}
 .fullscreen-fallback .reveal-avatar{width:38px;height:38px}
 .fullscreen-fallback .draw-progress{margin-top:8px;padding-block:12px 10px}
 .fullscreen-fallback .draw-progress progress{height:10px;margin-top:7px}
@@ -947,13 +949,13 @@ body:has(>.topbar~footer){
   width:100%;
   max-width:none;
   margin:0;
-  padding-inline:clamp(12px,2vw,22px);
+  padding-inline:var(--panel-inline);
   background:#1e2028;
   border-inline:1px solid var(--border);
   text-align:left;
 }
 .draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) .player-reveal{
-  padding-block:clamp(6px,1.1dvh,14px);
+  padding-block:var(--panel-block);
   border-bottom:0;
 }
 .draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) .draw-progress{
@@ -968,26 +970,26 @@ body:has(>.topbar~footer){
   grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));
   max-height:none;
   overflow:visible;
-  gap:6px;
+  gap:clamp(8px,1.2vw,16px);
   padding:0;
 }
-.fullscreen-fallback .draw-roster :is(.fixture-heading,p){margin:0 0 6px}
+.fullscreen-fallback .draw-roster :is(.fixture-heading,p){margin:0 0 var(--stage-gap)}
 .fullscreen-fallback .draw-roster p:empty{display:none}
 .fullscreen-fallback .draw-roster .draw-team{
   min-width:0;
-  padding:6px 8px;
+  padding:var(--panel-block) var(--panel-inline);
   background:linear-gradient(155deg,color-mix(in srgb,var(--team-colour) 11%,#21242d),#181c24 55%);
 }
-.fullscreen-fallback .draw-team input{min-width:0;margin:3px 0 5px;padding:4px 6px}
+.fullscreen-fallback .draw-team input{min-width:0;margin:4px 0 6px;padding:4px 8px}
 .fullscreen-fallback .draft-slot{
   min-height:0;
   margin:3px 0;
-  padding:3px 5px;
+  padding:3px 8px;
   gap:5px;
   font-size:clamp(12px,1.8dvh,16px);
 }
 .fullscreen-fallback .slot-avatar{width:clamp(18px,3dvh,30px);height:clamp(18px,3dvh,30px);font-size:11px}
-.fullscreen-fallback .captain-case-panel{padding:8px}
+.fullscreen-fallback .captain-case-panel{padding:var(--panel-block) var(--panel-inline)}
 .fullscreen-fallback .captain-case-panel h3{margin:0;font-size:22px}
 .fullscreen-fallback #captain-choices{gap:6px}
 .fullscreen-fallback #captain-choices label{flex-basis:120px;min-width:0}
@@ -999,11 +1001,11 @@ body:has(>.topbar~footer){
 
 .fullscreen-fallback.map-selection-stage>.captain-case-panel{display:none}
 .fullscreen-fallback.map-selection-stage>.map-method-control{
-  padding:6px 8px;
-  gap:6px;
+  padding:var(--panel-block) var(--panel-inline);
+  gap:var(--stage-gap) 12px;
 }
 .fullscreen-fallback .map-method-control label{min-width:min(100%,190px)}
-.fullscreen-fallback .map-method-control select{margin-top:2px}
+.fullscreen-fallback .map-method-control select{margin-top:4px}
 .draw-stage.fullscreen-fallback.map-selection-stage .draw-roster .teams{grid-template-columns:repeat(2,minmax(0,1fr))}
 .fullscreen-fallback.map-selection-stage .draft-slot{font-size:12px}
 .fullscreen-fallback.map-selection-stage .slot-avatar{display:none}
@@ -1011,14 +1013,14 @@ body:has(>.topbar~footer){
 .fullscreen-fallback .map-draw-options{margin:0}
 .fullscreen-fallback .veto-panel{padding:0}
 .fullscreen-fallback .veto-panel>h3,.fullscreen-fallback .veto-panel>p{margin:4px 0}
-.fullscreen-fallback .single-match-map{margin:0 0 6px;padding:6px}
+.fullscreen-fallback .single-match-map{margin:0 0 var(--stage-gap);padding:var(--panel-block) var(--panel-inline)}
 .fullscreen-fallback .single-match-map h3{margin:2px 0;font-size:clamp(20px,5dvh,52px)}
 .fullscreen-fallback .single-match-map .rules{margin:0}
-.fullscreen-fallback .map-options:has(.map-picker-card){gap:4px;margin:0}
+.fullscreen-fallback .map-options:has(.map-picker-card){gap:var(--stage-gap);margin:0}
 .fullscreen-fallback .map-veto-options:has(.map-picker-card){grid-template-columns:repeat(5,minmax(0,1fr))}
 .fullscreen-fallback .map-picker-card{min-height:clamp(40px,8dvh,100px);padding:4px 6px}
 .fullscreen-fallback .map-picker-name{font-size:clamp(12px,2dvh,19px)}
-.fullscreen-fallback .veto-reset-actions{margin:6px 0 0;padding:4px 0 0}
+.fullscreen-fallback .veto-reset-actions{margin:var(--stage-gap) 0 0;padding:var(--stage-gap) 0 0}
 .fullscreen-fallback.map-veto .draw-progress{display:none}
 .fullscreen-fallback.map-selection-stage .wheel-wrap{max-width:min(460px,34dvh)}
 .draw-stage.fullscreen-fallback.map-selection-stage #case-reel{
@@ -1071,8 +1073,8 @@ body:has(>.topbar~footer){
   .fullscreen-fallback .draw-roster p{font-size:12px;line-height:1.3}
   .fullscreen-fallback.map-selection-stage .map-method-control p{flex:0 1 auto}
   .fullscreen-fallback .map-method-control label{min-width:0}
-  .fullscreen-fallback .single-match-map h3{font-size:clamp(20px,4dvh,38px)}
-  .fullscreen-fallback .map-veto-options .map-picker-card{min-height:clamp(38px,6dvh,60px)}
+  .fullscreen-fallback .single-match-map h3{font-size:clamp(20px,3.5dvh,38px)}
+  .fullscreen-fallback .map-veto-options .map-picker-card{min-height:clamp(36px,5.1dvh,60px)}
 }
 @media(max-width:760px){
   .draw-stage.fullscreen-fallback{--stage-gap:6px}
@@ -1092,10 +1094,14 @@ body:has(>.topbar~footer){
   .fullscreen-fallback .wheel-panel #draw-announcement,
   .fullscreen-fallback .draw-roster p,
   .fullscreen-fallback .map-method-control p{font-size:12px;line-height:1.3}
-  .fullscreen-fallback .draw-roster .draw-team{padding:4px 6px}
-  .fullscreen-fallback.map-selection-stage .draft-slot{padding:2px 4px;margin:2px 0;line-height:1.2}
+  .fullscreen-fallback.map-selection-stage .draw-team{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:3px;
+  }
+  .fullscreen-fallback.map-selection-stage .draw-team>label{grid-column:1/-1}
+  .fullscreen-fallback.map-selection-stage .draft-slot{padding:2px 6px;margin:2px 0;line-height:1.2}
   .fullscreen-fallback.map-selection-stage{--map-reel-width:36dvh}
-  .fullscreen-fallback.map-selection-stage .player-reveal{padding:4px 8px}
   .fullscreen-fallback.map-selection-stage .draw-progress{line-height:1.2}
   .fullscreen-fallback .draw-publish-actions{font-size:12px}
   .fullscreen-fallback .captain-case-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -1117,12 +1123,11 @@ body:has(>.topbar~footer){
 /* Give the completed rosters room while the map method is being chosen. */
 .fullscreen-fallback.map-selection-stage:has(>.wheel-panel[hidden]):has(>.map-draw-options[hidden]) .draw-team{
   display:block;
-  padding:clamp(6px,1dvh,12px);
   border-top:2px solid var(--team-colour);
 }
 .fullscreen-fallback.map-selection-stage:has(>.wheel-panel[hidden]):has(>.map-draw-options[hidden]) .draft-slot{
   margin:4px 0 0;
-  padding:4px 6px;
+  padding:4px 8px;
   gap:7px;
   font-size:clamp(12px,1.9dvh,16px);
 }
