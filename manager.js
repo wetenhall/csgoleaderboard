@@ -369,7 +369,6 @@ if (typeof document !== 'undefined') (() => {
     $('captain-case-panel').hidden=!captains || !locked;
     const selectingMap=draw?.format==='single' && !remaining.length;
     document.querySelector('.wheel-panel').hidden=(captains && (!draw || draw.format!=='single')) || (selectingMap && (!draw.mapMethod || draw.mapMethod==='veto'));
-    document.querySelector('.spin-actions').hidden=document.querySelector('.wheel-panel').hidden;
     $('draw-animation').closest('label').hidden=selectingMap || (captains && !draw);
     $('draw-stage').classList.toggle('captain-style',captains);
     $('captain-choices').querySelectorAll('select,button').forEach(input=>{input.disabled=busy || spinning || !!captainDraft || !token;});
@@ -428,6 +427,9 @@ if (typeof document !== 'undefined') (() => {
     $('refresh-data').disabled = busy;
     $('clear-tournament').disabled = busy || spinning || !token;
     const mapPending=draw?.format==='single' && !remaining.length && !drawnMap;
+    const spinActions=document.querySelector('.spin-actions');
+    spinActions.hidden=document.querySelector('.wheel-panel').hidden || (!remaining.length && !mapPending);
+    $('skip-animation').textContent=mapPending?'Skip map animation':'Skip animation & assign teams';
     $('spin').textContent=mapPending?'Spin for map':'Spin for next player';
     $('wheel').setAttribute('aria-label',mapPending?'Map selection wheel':'Player selection wheel');
     $('spin').disabled = (captains && (!draw || remaining.length>0)) || busy || spinning || (!remaining.length && !mapPending) || (mapPending && (!selectedMaps().length || !draw.mapMethod || draw.mapMethod==='veto'));
@@ -436,7 +438,11 @@ if (typeof document !== 'undefined') (() => {
     const publishReason=drawPublishReason(draw,{busy,spinning,connected:!!token,drawnMap,format:$('tournament-format').value,groups:Number($('group-count').value),qualifiers:Number($('qualifiers-per-group').value),teamSize:Number($('team-size').value),maps:selectedMaps()});
     $('publish-draw').disabled=!!publishReason;$('publish-expanded').disabled=!!publishReason;
     $('publish-draw').hidden=!locked || !manual || draw?.format==='single';$('publish-status').hidden=$('publish-draw').hidden;
-    for(const id of ['publish-status','publish-expanded-status']){$(id).textContent=publishReason || 'Teams are ready to publish.';}
+    const publishActions=$('publish-expanded').parentElement;
+    publishActions.hidden=!draw;
+    publishActions.parentElement.hidden=publishActions.hidden && spinActions.hidden;
+    $('publish-status').textContent=publishReason || 'Teams are ready to publish.';
+    $('publish-expanded-status').textContent=spinning ? '' : mapPending && !busy && draw.mapMethod ? '' : publishReason;
     document.querySelectorAll('.result-form button, .tie-form button, #fixture-platform select').forEach(b => { b.disabled = busy || !token; });
     document.querySelectorAll('.fixture-import,#fixture-platform,#import-centre').forEach(el=>el.hidden=!token);featureUI?.controls();gameNightUI?.controls();setupUI?.render();queueAutoSpin();
   }
