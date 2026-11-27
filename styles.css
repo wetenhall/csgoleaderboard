@@ -309,7 +309,34 @@ body.waiting-screen-open{overflow:hidden}
 .waiting-screen::backdrop{background:#101216}
 .waiting-content{width:min(1200px,100%)}
 .waiting-kicker{font:700 clamp(10px,1vw,15px) var(--mono);letter-spacing:.23em;color:#aab0b8;line-height:1.8}
-.waiting-kicker span{color:var(--accent);margin:0 12px}
+.waiting-slash{color:var(--accent);margin:0 12px}
+.waiting-label,.waiting-caption-text,.waiting-tournament-name{position:relative}
+.waiting-label{display:inline-block}
+.waiting-glitch-slice{display:none}
+@media (prefers-reduced-motion:no-preference) and (forced-colors:none) {
+  .waiting-screen[open] .waiting-glitch-slice{
+    display:block;
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    user-select:none;
+    opacity:0;
+    color:#ffd18a;
+    text-shadow:-2px 0 #60cee7;
+    animation:waiting-signal-tear 10s steps(1,end) infinite;
+    animation-delay:var(--tear-delay, .7s);
+  }
+  .waiting-label:last-child{--tear-delay:.86s}
+  .waiting-tournament-name{--tear-delay:2.8s}
+  .waiting-caption-text{--tear-delay:5s}
+}
+@keyframes waiting-signal-tear{
+  0%{opacity:1;clip-path:inset(20% 0 52%);transform:translateX(4px)}
+  .9%{opacity:1;clip-path:inset(58% 0 17%);transform:translateX(-3px)}
+  1.8%{opacity:0}
+  2.6%{opacity:.85;clip-path:inset(34% 0 48%);transform:translateX(2px)}
+  3.5%,100%{opacity:0;transform:none}
+}
 .waiting-tournament-name{font:700 clamp(18px,2.4vw,36px) var(--heading,var(--mono));text-transform:uppercase;letter-spacing:.08em;margin:30px 0}
 .waiting-divider{width:80px;height:5px;background:var(--accent);margin-bottom:32px}
 .waiting-screen #waiting-heading{font-family:var(--heading,var(--mono));font-size:clamp(36px,6.8vw,108px);font-weight:800;line-height:1.08;letter-spacing:-.025em;text-transform:uppercase;margin:0;max-width:1150px}

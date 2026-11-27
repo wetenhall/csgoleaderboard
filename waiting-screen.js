@@ -18,6 +18,14 @@ if (typeof document !== 'undefined') (() => {
     screen.showModal();
     document.body.classList.add('waiting-screen-open');
     document.getElementById('waiting-tournament-name').textContent=document.getElementById('brand-title')?.textContent || 'Friends Cup';
+    for(const label of screen.querySelectorAll('.waiting-label,.waiting-tournament-name,.waiting-caption-text')){
+      if(label.querySelector('.waiting-glitch-slice'))continue;
+      const slice=document.createElement('span');
+      slice.className='waiting-glitch-slice';
+      slice.setAttribute('aria-hidden','true');
+      slice.textContent=label.textContent;
+      label.append(slice);
+    }
     if(!document.fullscreenElement && screen.requestFullscreen){
       screen.requestFullscreen().then(()=>{ownsFullscreen=true;}).catch(()=>{});
     }
