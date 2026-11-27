@@ -21,24 +21,24 @@
       "tag": "01",
       "players": [
         {
-          "id": "p4",
-          "name": "Dan"
-        },
-        {
-          "id": "p6",
-          "name": "FAROESE BEAST"
-        },
-        {
           "id": "p7",
           "name": "Ramsten"
         },
         {
-          "id": "p1",
-          "name": "Mootmanden"
+          "id": "p2",
+          "name": "jpohan"
         },
         {
-          "id": "p10",
-          "name": "Aatori"
+          "id": "p3",
+          "name": "cantlon"
+        },
+        {
+          "id": "p8",
+          "name": "finesse"
+        },
+        {
+          "id": "p9",
+          "name": "little german boy"
         }
       ]
     },
@@ -48,24 +48,24 @@
       "tag": "02",
       "players": [
         {
-          "id": "p8",
-          "name": "finesse"
+          "id": "p1",
+          "name": "Mootmanden"
         },
         {
-          "id": "p9",
-          "name": "little german boy"
-        },
-        {
-          "id": "p3",
-          "name": "cantlon"
-        },
-        {
-          "id": "p2",
-          "name": "jpohan"
+          "id": "p10",
+          "name": "Aatori"
         },
         {
           "id": "p5",
           "name": "sAM]"
+        },
+        {
+          "id": "p4",
+          "name": "Dan"
+        },
+        {
+          "id": "p6",
+          "name": "FAROESE BEAST"
         }
       ]
     }
@@ -85,7 +85,7 @@
       ],
       "result": null,
       "label": "Single Game · 5v5",
-      "map": "Office"
+      "map": "Train"
     }
   ],
   "history": [],
@@ -147,7 +147,5 @@
     "Italy",
     "Cobblestone"
   ],
-  "mapMethod": "wheel",
-  "mapVeto": [],
   "discordEventId": "7dcc8ee3-dbda-4aed-ba9d-a980e551cb5e"
 }
