@@ -1,4 +1,5 @@
 const {startCaptainVote,castCaptainVote,captainRanking,closeCaptainVote,resolveCaptainTie,validVote}=require('./captain-vote.cjs');
+const {openMapVote,castMapVote,closeMapVote,mapVoteCounts,websiteMapVote}=require('./map-vote.cjs');
 const {ActionRowBuilder,ButtonBuilder,ButtonStyle,StringSelectMenuBuilder,ModalBuilder,TextInputBuilder,TextInputStyle,EmbedBuilder,MessageFlags,ChannelType,PermissionFlagsBits,escapeMarkdown}=require('discord.js');
 const {randomUUID,createHash}=require('node:crypto');
 const {joinWaitingList,substitutePlayer,upcomingFixtures,recapData,voicePlan}=require('./game-night.cjs');
@@ -45,6 +46,33 @@ function createOperations({client,data,save,admin,update,serial,refreshImports,e
   }
   async function cleanup(e){const guild=await client.guilds.fetch(env.DISCORD_GUILD_ID);let removed=0,occupied=0;e.voiceChannels ||= {};for(const [team,id] of Object.entries(e.voiceChannels)){const channel=await channelOrNull(guild,id);if(!channel){delete e.voiceChannels[team];save();continue;}if(channel.type!==ChannelType.GuildVoice || channel.parentId!==e.voiceCategory)continue;if(channel.members.size){occupied++;continue;}await channel.delete('Organiser requested game-night cleanup');delete e.voiceChannels[team];removed++;save();}if(e.voiceCategory && !Object.keys(e.voiceChannels).length){const category=await guild.channels.fetch(e.voiceCategory).catch(()=>null);if(category && category.type===ChannelType.GuildCategory && !category.children.cache.size){await category.delete('Organiser requested cleanup');delete e.voiceCategory;save();}}return removed+' empty team channels removed; '+occupied+' occupied channels kept.';}
   async function syncCard(e,key,payload){const signature=JSON.stringify(payload),old=e[key];if(old?.signature===signature)return;const channel=await client.channels.fetch(e.channelId),registration=await channel.messages.fetch(e.messageId);let message=old?.id?await channel.messages.fetch(old.id).catch(error=>{if(error.code!==10008)throw error;return null;}):null;if(message)await message.edit(payload);else message=await registration.reply({...payload,allowedMentions:{parse:[],repliedUser:false}});e[key]={id:message.id,signature};save();}
+  async function syncMapVote(e){
+    const vote=e.mapVote;
+    const snapshot=await read('discord-events.json');
+    const entry=snapshot.data.events.find(event=>event.id===e.id);
+    if(entry?.mapVoteRequest?.id!==vote.id)return;
+    if(!vote.result && (Date.now()>=vote.closesAt || vote.ballots.length===vote.voters.length)){closeMapVote(vote);save();}
+    const data=websiteMapVote(vote);
+    const counts=mapVoteCounts(vote),duel=vote.mode==='duel';
+    const summary=vote.result
+      ? (duel?'Selected map: **'+escapeMarkdown(vote.result.finalists[0])+'**'+(vote.result.coinFlip?' · Won the tie-break coin flip.':''):
+        vote.result.finalists.length?'Case reel: **'+vote.result.finalists.map(escapeMarkdown).join(', ')+'**':'No votes were submitted.')
+      : 'Choose one map to lock in your vote. Voting closes <t:'+Math.floor(vote.closesAt/1000)+':R>.';
+    const embed=new EmbedBuilder().setTitle(((duel?'Map Duel':'Player Vote')+' · '+e.title).slice(0,256)).setColor(0xff9b01)
+      .setDescription(summary+'\n\n'+vote.maps.map((map,i)=>escapeMarkdown(map)+(vote.result?' · '+counts[i]+' vote'+(counts[i]===1?'':'s'):'')).join('\n')+'\n\n'+vote.ballots.length+' / '+vote.voters.length+' players voted.');
+    const components=[];
+    if(!vote.result){
+      components.push(duel?row(...vote.maps.map((map,i)=>btn('mapcast',vote.id+':'+i,map,ButtonStyle.Primary))):
+        row(new StringSelectMenuBuilder().setCustomId('ops:mapcast:'+vote.id).setPlaceholder('Choose a map')
+          .addOptions(vote.maps.map((map,i)=>({label:map,value:String(i)})))));
+      components.push(row(btn('mapclose',vote.id,'Close voting')));
+    }
+    if(JSON.stringify(entry.mapVoteRequest)!==JSON.stringify(data)){
+      entry.mapVoteRequest=data;
+      await write({'discord-events.json':snapshot},'Sync Discord map vote');
+    }
+    await syncCard(e,'mapVoteCard',{embeds:[embed.toJSON()],components,allowedMentions:{parse:[]}});
+  }
   async function sync(tournament,e){
     status.lastSync=new Date().toISOString();
     if(tournament.serverAddress){
@@ -60,8 +88,10 @@ function createOperations({client,data,save,admin,update,serial,refreshImports,e
   async function handle(i){
     if(i.isChatInputCommand()&&i.commandName==='csadmin'){if(!admin(i))throw Error('Only organisers can open these controls.');const events=data.events.filter(e=>!e.cancelledAt).slice(-25).reverse();if(!events.length)throw Error('Create an event with /csgame first.');await i.reply({content:'Private organiser controls — select an event.',components:[row(new StringSelectMenuBuilder().setCustomId('ops:panel:select').setPlaceholder('Select event').addOptions(events.map(e=>({label:e.title.slice(0,100),value:e.id}))))],flags:MessageFlags.Ephemeral});return true;}
     if(!i.customId?.startsWith('ops:'))return false;
-    let [,action,id]=i.customId.split(':');if(action==='panel' && i.values?.length)id=i.values[0];const e=data.events.find(e=>e.id===id);if(!e)throw Error('Event unavailable.');
-    const publicActions=['wait','waitsubmit','leavewait','accept','withdrawrequest','ballot','castvote'];if(!publicActions.includes(action)&&!admin(i))throw Error('Only event organisers can use this control.');
+    let [,action,id]=i.customId.split(':');if(action==='panel' && i.values?.length)id=i.values[0];
+    const mapAction=action==='mapcast'||action==='mapclose';
+    const e=data.events.find(e=>mapAction?e.mapVote?.id===id:e.id===id);if(!e)throw Error(mapAction?'This map vote is no longer active.':'Event unavailable.');
+    const publicActions=['wait','waitsubmit','leavewait','accept','withdrawrequest','ballot','castvote','mapcast'];if(!publicActions.includes(action)&&!admin(i))throw Error('Only event organisers can use this control.');
     const editPanel=['panel','cancelevent','confirmcancel'].includes(action);
     if(e.cancelledAt){
       if(editPanel){await i.deferUpdate();try{await update(e);}catch{ return i.editReply({content:'Event is cancelled, but its registration card could not be updated. Check the bot’s channel permissions.',components:[]});}await i.editReply({content:'This event has already been cancelled. Registration and voting are closed. Create a replacement with /csgame.',components:[]});return true;}
@@ -71,6 +101,23 @@ function createOperations({client,data,save,admin,update,serial,refreshImports,e
     if(action==='wait'){await i.showModal(new ModalBuilder().setCustomId('ops:waitsubmit:'+id).setTitle('Join waiting list').addComponents(row(new TextInputBuilder().setCustomId('name').setLabel('Gaming name').setStyle(TextInputStyle.Short).setRequired(true).setMaxLength(40).setValue((e.waitingList?.find(p=>p.userId===i.user.id)?.name||i.member.displayName).slice(0,40)))));return true;}
     if(editPanel)await i.deferUpdate();else await i.deferReply({flags:MessageFlags.Ephemeral});await serial(async()=>{
       if(e.cancelledAt)throw Error('This event has been cancelled.');
+      if(mapAction){
+        const vote=e.mapVote;
+        if(vote.id!==id)throw Error('This map vote is no longer active.');
+        if(action==='mapcast'){
+          if(!e.players.some(player=>player.userId===i.user.id))throw Error('Only registered players can vote.');
+          const choice=i.values?.[0] ?? i.customId.split(':')[3];
+          if(typeof choice!=='string' || !/^\d+$/.test(choice))throw Error('Choose a map from the ballot.');
+          const index=Number(choice);
+          castMapVote(vote,i.user.id,index);save();
+          await i.editReply('Your vote for '+escapeMarkdown(vote.maps[index])+' is locked in.');
+        }else{
+          closeMapVote(vote);save();
+          await i.editReply('Map voting closed.');
+        }
+        try{await syncMapVote(e);}catch{console.error('Map vote sync failed. Will retry.');}
+        return;
+      }
       if(action==='cancelvote'){if(e.publishedAt){const file=await read('discord-events.json'),entry=file.data.events.find(x=>x.id===e.id);if(entry?.captains){delete entry.captains;await write({'discord-events.json':{sha:file.sha,data:file.data}},'Clear cancelled captain vote');}}if(e.captainCard){const channel=await client.channels.fetch(e.channelId);try{await channel.messages.delete(e.captainCard.id);}catch(error){if(error.code!==10008)throw error;}}delete e.captainVote;delete e.captainCard;save();return i.editReply('Captain vote cancelled. You can start a new vote.');}
       if(action==='startvote'){const candidate=structuredClone(e);startCaptainVote(candidate);if(e.publishedAt){const file=await read('discord-events.json'),entry=file.data.events.find(x=>x.id===e.id);if(entry?.captains){delete entry.captains;await write({'discord-events.json':{sha:file.sha,data:file.data}},'Start a fresh captain election');}}e.captainVote=candidate.captainVote;save();await refreshVote(e);return i.editReply('Captain vote opened beneath the registration event.');}
       if(action==='ballot'){const v=validVote(e);if(v.status!=='open')throw Error('Voting is closed.');if(!e.players.some(p=>p.userId===i.user.id))throw Error('Only registered players can vote.');return i.editReply({content:'Choose one captain. The two highest-voted players become captains. Page through the candidates if needed.',components:candidateMenu(e,'castvote',Number(i.customId.split(':')[3])||0)});}
@@ -86,6 +133,7 @@ function createOperations({client,data,save,admin,update,serial,refreshImports,e
         e.cancelledAt=new Date().toISOString();delete e.offer;delete e.captainVote;save();pending.delete(key);
         try{await update(e);}catch{ return i.editReply({content:'Event cancelled and removed from the event list, but the registration card could not update. Check the bot’s channel permissions, then use this panel again to retry.',components:[row(btn('panel',e.id,'Refresh cancelled event'))]});}
         if(e.captainCard){const channel=await client.channels.fetch(e.channelId);try{await channel.messages.edit(e.captainCard.id,{content:'Captain vote cancelled — event cancelled.',embeds:[],components:[]});}catch(error){if(error.code!==10008)throw error;}}
+        if(e.mapVoteCard){const channel=await client.channels.fetch(e.channelId);try{await channel.messages.edit(e.mapVoteCard.id,{content:'Map vote cancelled.',embeds:[],components:[]});}catch(error){if(error.code!==10008)throw error;}}
         return i.editReply({content:'Event cancelled. Create a new event with /csgame. Existing website teams and results have been kept.',components:[]});
       }
       if(action==='panel')return i.editReply(panel(e));
@@ -150,6 +198,14 @@ function createOperations({client,data,save,admin,update,serial,refreshImports,e
     const file=await read('discord-events.json');
     for(const entry of file.data.events){
       const r=entry.captainVoteRequest,e=data.events.find(e=>e.id===entry.id && e.publishedAt && !e.cancelledAt);
+      if(e && entry.mapVoteRequest){
+        try{
+          if(e.mapVote?.id!==entry.mapVoteRequest.id && !entry.mapVoteRequest.result){
+            e.mapVote=openMapVote(entry.mapVoteRequest,e.players);save();
+          }
+          if(e.mapVote?.id===entry.mapVoteRequest.id)await syncMapVote(e);
+        }catch{console.error('Map vote sync failed. Will retry.');}
+      }
       if(!e || typeof r?.id!=='string' || e.handledCaptainVoteRequest===r.id || !Array.isArray(r.players) || JSON.stringify(r.players)!==JSON.stringify(e.players.map(p=>p.name)))continue;
       if(e.captainVote?.status!=='open' || e.captainVote.roster!==JSON.stringify(e.players.map(p=>[p.userId,p.name])))startCaptainVote(e);
       await refreshVote(e);e.handledCaptainVoteRequest=r.id;save();

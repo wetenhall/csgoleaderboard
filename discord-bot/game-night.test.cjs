@@ -41,3 +41,49 @@ test('website captain vote requests start only on request and are processed once
 test('event cancellation requires organiser confirmation and removes only its published roster',async()=>{const {createOperations}=require('./operations.cjs'),e=event();e.title='Cup';let reply,updated=0,writes=0;let feed={version:1,events:[{id:e.id,players:['A']},{id:'other',players:['Other']}]};const ops=createOperations({client:{},data:{events:[e]},save(){},admin:i=>i.user.id==='admin',update:async()=>updated++,serial:fn=>fn(),env:{GITHUB_REPOSITORY:'owner/repo',GITHUB_BRANCH:'main'},request:async(url,o)=>{assert.match(url,/discord-events.json/);if(o.method==='PUT'){writes++;feed=JSON.parse(Buffer.from(JSON.parse(o.body).content,'base64'));return {ok:true,status:200,json:async()=>({})};}return {ok:true,status:200,json:async()=>({sha:'latest',content:Buffer.from(JSON.stringify(feed)).toString('base64')})};}}),i={isChatInputCommand:()=>false,user:{id:'admin'},deferReply:async()=>{},deferUpdate:async()=>{},editReply:async p=>{reply=p;}};await assert.rejects(ops.handle({...i,user:{id:'visitor'},customId:'ops:cancelevent:event'}),/Only event organisers/);await ops.handle({...i,customId:'ops:cancelevent:event'});assert.equal(writes,0);assert.equal(e.cancelledAt,undefined);const id=reply.components[0].toJSON().components[0].custom_id;await assert.rejects(ops.handle({...i,user:{id:'visitor'},customId:id}),/Only event organisers/);await ops.handle({...i,customId:id});assert.equal(writes,1);assert.deepEqual(feed.events.map(e=>e.id),['other']);assert.ok(e.cancelledAt);assert.equal(updated,1);await assert.rejects(ops.handle({...i,customId:'ops:wait:event'}),/cancelled/);});
 
 test('cancel controls edit the existing private panel and stale buttons clear themselves',async()=>{const {createOperations}=require('./operations.cjs'),e=event();e.title='Cup';delete e.publishedAt;let updates=0,deferred=0,replies=0,payload,cardUpdates=0;const ops=createOperations({client:{},data:{events:[e]},save(){},admin:()=>true,update:async()=>cardUpdates++,serial:fn=>fn()}),i={isChatInputCommand:()=>false,user:{id:'admin'},deferUpdate:async()=>deferred++,deferReply:async()=>replies++,editReply:async p=>{payload=p;}};await ops.handle({...i,customId:'ops:panel:event'});assert.equal(payload.components.length,5);await ops.handle({...i,customId:'ops:cancelevent:event'});const confirm=payload.components[0].toJSON().components[0].custom_id;await ops.handle({...i,customId:confirm});assert.ok(e.cancelledAt);assert.deepEqual(payload.components,[]);await ops.handle({...i,customId:confirm});assert.match(payload.content,/already been cancelled/);assert.deepEqual(payload.components,[]);assert.equal(deferred,4);assert.equal(replies,0);assert.equal(cardUpdates,2);});
+
+test('Discord map ballots lock in one click and publish only voter progress before closing',async()=>{
+  const {createOperations}=require('./operations.cjs');
+  const e={id:'event-map',title:'Friday',channelId:'channel',messageId:'registration',publishedAt:'now',players:[{userId:'111',name:'Ash'},{userId:'222',name:'Blake'}]};
+  const id='8fe02672-bbe8-41de-b98d-b271cb20dafd';
+  let published={events:[{id:e.id,mapVoteRequest:{id,mode:'duel',maps:['Nuke','Mirage']}}]},payload,edits=0,replies=0;
+  const request=async(url,options)=>{
+    if(options.method==='PUT'){
+      published=JSON.parse(Buffer.from(JSON.parse(options.body).content,'base64').toString('utf8'));
+      return {ok:true,json:async()=>({})};
+    }
+    return {ok:true,json:async()=>({sha:'sha',content:Buffer.from(JSON.stringify(published)).toString('base64')})};
+  };
+  const message={id:'vote-card',edit:async next=>{edits++;payload=next;}};
+  const registration={reply:async next=>{replies++;payload=next;return message;}};
+  const channel={messages:{fetch:async key=>key===e.messageId?registration:message}};
+  const ops=createOperations({client:{channels:{fetch:async()=>channel}},data:{events:[e]},save(){},admin:()=>false,serial:fn=>fn(),request,env:{GITHUB_REPOSITORY:'owner/repo',GITHUB_BRANCH:'main'}});
+  await ops.syncCaptainRequests();
+  assert.deepEqual(payload.components[0].toJSON().components.map(button=>button.label),['Nuke','Mirage']);
+  const cast=(userId,index)=>ops.handle({isChatInputCommand:()=>false,customId:'ops:mapcast:'+id+':'+index,user:{id:userId},deferReply:async()=>{},editReply:async()=>{}});
+  await assert.rejects(cast('999',0),/registered/);
+  await cast('111',0);
+  assert.deepEqual(published.events[0].mapVoteRequest.submitted,['Ash']);
+  assert.equal(published.events[0].mapVoteRequest.result,undefined);
+  assert.equal(JSON.stringify(published).includes('"111"'),false);
+  await assert.rejects(cast('111',1),/already locked/);
+  await cast('222',1);
+  const result=published.events[0].mapVoteRequest.result;
+  assert.deepEqual(result.counts,[1,1]);
+  assert.equal(result.coinFlip,true);
+  assert.deepEqual(payload.components,[]);
+  assert.equal(replies,1);
+  assert.equal(edits,2);
+});
+
+test('Player Vote selects up to three voted maps and keeps a closed result stable',()=>{
+  const {openMapVote,castMapVote,closeMapVote}=require('./map-vote.cjs');
+  const request={id:'a9cdbef8-f555-41b7-8d16-ccb952b0c567',mode:'player-vote',maps:['Nuke','Mirage','Ancient','Inferno','Train']};
+  const players=Array.from({length:8},(_,i)=>({userId:String(i),name:'Player '+i}));
+  const vote=openMapVote(request,players,0);
+  [0,0,0,1,1,2,2,4].forEach((index,i)=>castMapVote(vote,String(i),index,1));
+  assert.deepEqual(closeMapVote(vote,()=>.5).finalists,['Nuke','Mirage','Ancient']);
+  assert.equal(closeMapVote(vote,()=>.1),vote.result);
+  assert.throws(()=>castMapVote(vote,'1',2,2),/closed/);
+  assert.deepEqual(closeMapVote(openMapVote(request,players,0)).finalists,[]);
+});

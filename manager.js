@@ -363,12 +363,13 @@ if (typeof document !== 'undefined') (() => {
     $('player-pool-heading').textContent=loadedDiscordEvent?'Event players':'Player pool';
     $('setup-next-3').textContent='Continue';
     $('player-pool-help').textContent=loadedDiscordEvent?'Select who is playing below, then confirm your players.':'Choose who is playing this time. Add saved players above or enter names below, then load the pool and select your players.';
-    $('skip-animation').disabled=busy || spinning || skippingAnimation || !token || (!remaining.length && !(draw?.format==='single' && !drawnMap && draw.mapMethod && draw.mapMethod!=='veto' && selectedMaps().length)) || (remaining.length>0 && ['manual','captains'].includes($('team-creation').value));
+    const mapCandidates=gameNightUI?.mapCandidates() || [];
+    $('skip-animation').disabled=busy || spinning || skippingAnimation || !token || (!remaining.length && !(draw?.format==='single' && !drawnMap && mapCandidates.length)) || (remaining.length>0 && ['manual','captains'].includes($('team-creation').value));
     const manual=$('team-creation').value==='manual';
     const captains=$('team-creation').value==='captains';
     $('captain-case-panel').hidden=!captains || !locked;
     const selectingMap=draw?.format==='single' && !remaining.length;
-    document.querySelector('.wheel-panel').hidden=(captains && (!draw || draw.format!=='single')) || (selectingMap && (!draw.mapMethod || draw.mapMethod==='veto'));
+    document.querySelector('.wheel-panel').hidden=(captains && (!draw || draw.format!=='single')) || (selectingMap && !mapCandidates.length);
     $('draw-animation').closest('label').hidden=selectingMap || (captains && !draw);
     $('draw-stage').classList.toggle('captain-style',captains);
     $('captain-choices').querySelectorAll('select,button').forEach(input=>{input.disabled=busy || spinning || !!captainDraft || !token;});
@@ -432,9 +433,9 @@ if (typeof document !== 'undefined') (() => {
     const spinActions=document.querySelector('.spin-actions');
     spinActions.hidden=document.querySelector('.wheel-panel').hidden || (!remaining.length && !mapPending);
     $('skip-animation').textContent=mapPending?'Skip map animation':'Skip animation & assign teams';
-    $('spin').textContent=mapPending?'Spin for map':'Spin for next player';
-    $('wheel').setAttribute('aria-label',mapPending?'Map selection wheel':'Player selection wheel');
-    $('spin').disabled = (captains && (!draw || remaining.length>0)) || busy || spinning || (!remaining.length && !mapPending) || (mapPending && (!selectedMaps().length || !draw.mapMethod || draw.mapMethod==='veto'));
+    $('spin').textContent=mapPending?(draw.mapMethod==='player-vote'?'Open finalist reel':'Spin for map'):'Spin for next player';
+    $('wheel').setAttribute('aria-label',selectingMap?'Map selection wheel':'Player selection wheel');
+    $('spin').disabled = (captains && (!draw || remaining.length>0)) || busy || spinning || (!remaining.length && !mapPending) || (mapPending && !mapCandidates.length);
     $('disconnect').disabled = busy;
     $('remember-token').disabled = busy;
     const publishReason=drawPublishReason(draw,{busy,spinning,connected:!!token,drawnMap,format:$('tournament-format').value,groups:Number($('group-count').value),qualifiers:Number($('qualifiers-per-group').value),teamSize:Number($('team-size').value),maps:selectedMaps()});
@@ -1184,7 +1185,7 @@ if (typeof document !== 'undefined') (() => {
     stopAutoSpin();skippingAnimation=true;controls();
     try{
       while(remaining.length && token && !busy)await $('spin').onclick();
-      if(draw?.format==='single' && !drawnMap && draw.mapMethod!=='veto' && selectedMaps().length && token && !busy)await spinMap();
+      if(draw?.format==='single' && !drawnMap && token && !busy && gameNightUI?.mapCandidates().length)await spinMap();
     }
     catch(error){announce(error.message);}
     finally{skippingAnimation=false;controls();}
@@ -1231,8 +1232,9 @@ if (typeof document !== 'undefined') (() => {
     } finally {spinning=false;$('reset-draw').disabled=false;controls();}
   };
   async function spinMap(){
-    if(busy || spinning || !draw || drawnMap || !draw.mapMethod || draw.mapMethod==='veto' || !selectedMaps().length)return;
-    const names=selectedMaps().map(name=>({name})),index=randomIndex(names.length),target=2880+360-(index+.5)*360/names.length;
+    const maps=gameNightUI?.mapCandidates() || [];
+    if(busy || spinning || !draw || drawnMap || !maps.length)return;
+    const names=maps.map(name=>({name})),index=randomIndex(names.length),target=2880+360-(index+.5)*360/names.length;
     spinning=true;controls();$('reset-draw').disabled=true;
     try{
       await prepareSound();$('reveal-label').textContent='MAP DRAW IN PROGRESS';$('reveal-name').textContent='Selecting a map…';
@@ -1248,7 +1250,7 @@ if (typeof document !== 'undefined') (() => {
       const next = makeTournament(selected,draw.teamSize,current,order,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value),$('tournament-format').value);
       next.teams=structuredClone(draw.teams);if(draw.mapMethod)next.mapMethod=draw.mapMethod;if(draw.mapVeto)next.mapVeto=structuredClone(draw.mapVeto); draw=next;
       setMapBackdrop($('player-reveal'),draw.format==='single' ? drawnMap : undefined);
-      if(draw.format==='single'){if(drawnMap)draw.matches[0].map=drawnMap;else delete draw.matches[0].map;paintWheel(selectedMaps().map(name=>({name})),0,-1,true);$('reveal-label').textContent=drawnMap?'SELECTED MAP':'MAP DRAW';$('reveal-name').textContent=drawnMap || 'Spin to choose your map';$('reveal-avatar').textContent='MAP';}
+      if(draw.format==='single'){if(drawnMap)draw.matches[0].map=drawnMap;else delete draw.matches[0].map;paintWheel((gameNightUI?.mapCandidates() || []).map(name=>({name})),0,-1,true);$('reveal-label').textContent=drawnMap?'SELECTED MAP':'MAP DRAW';$('reveal-name').textContent=drawnMap || 'Spin to choose your map';$('reveal-avatar').textContent='MAP';}
       $('format-preview').textContent = draw.groups.length ? draw.groups.map(g=>'Group '+g.id+': '+g.teams.length+' teams').join(' · ') + ' · Top '+draw.qualifiersPerGroup+' advance from each group.' + (draw.groups.length === 3 ? ' Byes fill the knockout bracket automatically.' : '') : (draw.format==='single'?'Single Game · Two squads of five · ':draw.format==='double'?'Double elimination · Best-of-three grand final · ':'Straight knockout · ')+draw.matches.length+' game'+(draw.matches.length === 1 ? '' : 's')+(draw.format==='single'?' · Ready for your custom game.':' · Byes advance automatically.');
       showDrawTeams();
       $('draw-fixtures').replaceChildren(element('h3','fixture-heading',draw.teamSize===1?'Fixtures · choose maps in server':'Fixture map preview'));
@@ -1358,7 +1360,7 @@ if (typeof document !== 'undefined') (() => {
     $('pool-input').value=mergePlayerNames($('pool-input').value,names);
     $('load-pool').click();
   },save:publish,resetDraw:resetDrawState,notify:say,goToFixtures:()=>selectTab($('tab-fixtures'),true)});
-  gameNightUI=createGameNightTools({saveServer:async address=>{if(locked || spinning)throw Error('Finish or reset the current draw before updating the match server.');const next=structuredClone(current);Object.assign(next,parseServerConnection(address));await publish(next,'Update published match server');},getData:()=>current,getDraft:()=>draw,isOrganiser:()=>!!token,isBusy:()=>busy || spinning,refreshDraft:configureDraw,getMaps:selectedMaps,setMapMethod:method=>{if(!draw || busy || spinning)return;drawnMap=null;draw.mapVeto=[];if(method)draw.mapMethod=method;else delete draw.mapMethod;if(method==='wheel' || method==='case'){$('draw-animation').value=method;$('draw-animation').onchange();}configureDraw();controls();},setMap:map=>{drawnMap=map;configureDraw();controls();},notify:say,beginRematch:()=>{
+  gameNightUI=createGameNightTools({saveServer:async address=>{if(locked || spinning)throw Error('Finish or reset the current draw before updating the match server.');const next=structuredClone(current);Object.assign(next,parseServerConnection(address));await publish(next,'Update published match server');},getData:()=>current,getDraft:()=>draw,isOrganiser:()=>!!token,isBusy:()=>busy || spinning,refreshDraft:configureDraw,getMaps:selectedMaps,getVoteEvent:()=>loadedDiscordEvent?.id || (rematchSource?current.discordEventId:null),startMapVote:(id,method,maps)=>requestDiscordMapVote(discordEventConfig(),id,method,maps),readMapVote:async id=>(await readPublishedDiscordEvents(discordEventConfig())).data.events.find(event=>event.id===id)?.mapVoteRequest,setMapMethod:method=>{if(!draw || busy || spinning)return;drawnMap=null;draw.mapVeto=[];if(method)draw.mapMethod=method;else delete draw.mapMethod;if(['wheel','case','player-vote'].includes(method)){$('draw-animation').value=method==='player-vote'?'case':method;$('draw-animation').onchange();}configureDraw();controls();},setMap:map=>{drawnMap=map;configureDraw();controls();},notify:say,beginRematch:()=>{
     if(!token || busy || spinning || current.format!=='single')return;
     if((draw || remaining.length) && !confirm('Replace the unpublished draw with a rematch?'))return;
     const source=structuredClone(current);discordEventUI?.resetChoice();loadedDiscordEvent=null;resetDrawState();rematchSource=JSON.stringify(current);

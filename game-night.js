@@ -202,16 +202,108 @@ function renderRosterReveal(root,mode,players,commit){
   setup();
 }
 
-function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,setMap,getMaps,setMapMethod,beginRematch,notify}) {
+function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,setMap,getMaps,setMapMethod,beginRematch,notify,getVoteEvent,startMapVote,readMapVote}) {
   const $=id=>document.getElementById(id);
   const draftRoot=element('section','map-draw-options'),methodRoot=element('div','map-method-control'),publicRoot=element('section','match-tools');
   let pendingMethod='',serverEditorOpen=false;
+  let voteContext='',vote=null,voteTimer=null,voteError='',fetchingVote=false,voteEpoch=0;
   methodRoot.hidden=true;$('draw-stage').querySelector('.draw-roster').after(methodRoot);
   draftRoot.hidden=true;draftRoot.id='map-draw-options';publicRoot.id='match-tools';methodRoot.after(draftRoot);$('panel-leaderboard').append(publicRoot);
   const makeButton=(label,action)=>{const b=element('button','secondary',label);b.type='button';b.onclick=async()=>{try{await action();}catch(e){notify(e.message);}};return b;};
   async function copy(text){try{await navigator.clipboard.writeText(text);notify('Copied to clipboard.');}catch{const dialog=element('dialog','options-dialog'),field=element('textarea');field.value=text;field.rows=12;field.readOnly=true;dialog.append(element('h2','','Copy match details'),field,makeButton('Close',()=>{dialog.close();dialog.remove();}));document.body.append(dialog);dialog.showModal();field.select();}}
-  function controls(){$('panel-leaderboard').querySelectorAll('[data-server-toggle]').forEach(button=>{button.hidden=!isOrganiser();button.disabled=isBusy();button.setAttribute('aria-expanded',String(serverEditorOpen && isOrganiser()));});publicRoot.querySelectorAll('[data-server-editor]').forEach(form=>{form.hidden=!isOrganiser() || !serverEditorOpen;form.querySelectorAll('input,button').forEach(el=>el.disabled=isBusy());});publicRoot.hidden=![...publicRoot.children].some(child=>!child.hidden);[draftRoot,methodRoot].forEach(root=>root.querySelectorAll('input,select,button').forEach(el=>el.disabled=isBusy() || !isOrganiser()));const confirm=$('confirm-map-method');if(confirm)confirm.disabled=isBusy() || !isOrganiser() || !$('map-selection-method').value || !!getDraft()?.mapMethod;$('panel-leaderboard').querySelectorAll('[data-rematch]').forEach(el=>{el.hidden=!isOrganiser();el.disabled=isBusy();});}
+  function controls(){$('panel-leaderboard').querySelectorAll('[data-server-toggle]').forEach(button=>{button.hidden=!isOrganiser();button.disabled=isBusy();button.setAttribute('aria-expanded',String(serverEditorOpen && isOrganiser()));});publicRoot.querySelectorAll('[data-server-editor]').forEach(form=>{form.hidden=!isOrganiser() || !serverEditorOpen;form.querySelectorAll('input,button').forEach(el=>el.disabled=isBusy());});publicRoot.hidden=![...publicRoot.children].some(child=>!child.hidden);[draftRoot,methodRoot].forEach(root=>root.querySelectorAll('input,select,button').forEach(el=>el.disabled=isBusy() || !isOrganiser() || (el.hasAttribute('data-map-vote-action') && fetchingVote)));const confirm=$('confirm-map-method');if(confirm)confirm.disabled=isBusy() || !isOrganiser() || !$('map-selection-method').value || !!getDraft()?.mapMethod;$('panel-leaderboard').querySelectorAll('[data-rematch]').forEach(el=>{el.hidden=!isOrganiser();el.disabled=isBusy();});}
+  function voteKey(){
+    const method=getDraft()?.mapMethod,eventId=getVoteEvent?.();
+    return eventId && ['duel','player-vote'].includes(method)?eventId+':'+method:'';
+  }
+  function mapCandidates(){
+    const method=getDraft()?.mapMethod;
+    if(method==='player-vote')return voteKey()===voteContext?(vote?.result?.finalists || []):[];
+    return ['wheel','case'].includes(method)?getMaps():[];
+  }
+  async function updateVote(create=false,interactive=false){
+    const key=voteKey();
+    if(!key || key!==voteContext || fetchingVote || !isOrganiser())return;
+    const eventId=getVoteEvent(),previous=vote,epoch=voteEpoch;
+    if(!create && !previous)return;
+    clearTimeout(voteTimer);
+    fetchingVote=true;
+    if(interactive)controls();
+    let refresh=false;
+    try{
+      const next=create?await startMapVote(eventId,getDraft().mapMethod,getMaps()):await readMapVote(eventId);
+      if(epoch!==voteEpoch || key!==voteKey() || !isOrganiser())return;
+      if(!next || !create && next.id!==previous.id)throw Error('This Discord map vote is no longer active.');
+      vote=next;
+      refresh=Boolean(voteError) || JSON.stringify(previous)!==JSON.stringify(next);
+      voteError='';
+      if(next.result && !previous?.result){
+        setMap(next.mode==='duel'?next.result.finalists[0]:null);
+        refresh=false;
+      }
+    }catch(error){
+      if(epoch!==voteEpoch || key!==voteKey())return;
+      refresh=voteError!==error.message;
+      voteError=error.message;
+    }finally{
+      if(epoch===voteEpoch){
+        fetchingVote=false;
+        if(refresh)renderDraft();
+        else controls();
+        if(vote && !vote.result && isOrganiser())voteTimer=setTimeout(()=>void updateVote(),5000);
+      }
+    }
+  }
+  function renderMapVote(section,method){
+    const duel=method==='duel';
+    section.append(element('h3','',duel?'Map Duel':'Player Vote'));
+    if(!vote){
+      section.append(element('p','rules',duel?'Two maps drawn from your pool go to Discord. The winning map is selected automatically.':'Players vote on your map pool in Discord. Up to three voted maps go into the case reel.'));
+    }else{
+      const submitted=vote.submitted || [];
+      const status=element('p','rules',vote.result?'Voting closed':vote.closesAt?'Voting open in Discord':'Waiting for the Discord bot to post the vote');
+      status.setAttribute('role','status');section.append(status);
+      const voters=element('div','map-vote-voters');
+      voters.append(element('strong','','Players voted · '+submitted.length));
+      if(submitted.length){
+        const list=element('ul');
+        submitted.forEach(name=>list.append(element('li','',name)));
+        voters.append(list);
+      }
+      section.append(voters);
+      const choices=vote.result?vote.result.finalists:duel?vote.maps:[];
+      if(choices.length){
+        const cards=element('div','map-options map-vote-cards');
+        choices.forEach(map=>{
+          const card=element('div','map-picker-card');
+          setMapBackdrop(card,map);
+          card.append(element('span','map-picker-name',map));
+          if(vote.result){
+            const count=vote.result.counts[vote.maps.indexOf(map)];
+            card.append(element('span','map-veto-card-action',count+' vote'+(count===1?'':'s')));
+          }
+          cards.append(card);
+        });
+        section.append(cards);
+      }
+      if(duel && vote.result?.coinFlip)section.append(element('p','rules','A coin flip broke the tie.'));
+      if(vote.result && !choices.length)section.append(element('p','rules','No maps received votes. Start a new vote or choose another method.'));
+    }
+    if(voteError){const error=element('p','rules',voteError);error.setAttribute('role','alert');section.append(error);}
+    if(!vote || !vote.result || !vote.result.finalists.length){
+      const button=vote && !vote.result?makeButton('Refresh votes',()=>updateVote(false,true)):
+        makeButton('Start Discord vote',()=>updateVote(true,true));
+      button.dataset.mapVoteAction='';
+      section.append(button);
+    }
+  }
   function renderDraft(){
+    const key=voteKey();
+    if(key!==voteContext){
+      clearTimeout(voteTimer);
+      voteEpoch++;
+      voteContext=key;vote=null;voteError='';fetchingVote=false;
+    }
     const wasHidden=methodRoot.hidden;
     draftRoot.replaceChildren();methodRoot.replaceChildren();const draft=getDraft();methodRoot.hidden=!draft || draft.format!=='single';draftRoot.hidden=true;
     $('draw-stage').classList.toggle('map-selection-stage',!methodRoot.hidden);
@@ -221,14 +313,26 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
     if(draft.format==='single'){
       const maps=getMaps(),section=element('section','veto-panel'),methodLabel=element('label','','Map selection method'),method=element('select');
       method.id='map-selection-method';
-      for(const [value,label] of [['','Select a map selection method'],['wheel','Spinning wheel'],['case','Case-opening reel'],['veto','Teams ban maps']]){const option=element('option','',label);option.value=value;method.append(option);}
+      for(const [value,label] of [['','Select a map selection method'],['wheel','Spinning wheel'],['case','Case-opening reel'],['veto','Teams ban maps'],['duel','Map Duel · Discord'],['player-vote','Player Vote · Discord']]){
+        const discord=['duel','player-vote'].includes(value);
+        const option=element('option','',discord && !getVoteEvent?.()?label+' (Discord event required)':label);option.value=value;
+        option.disabled=discord && (!getVoteEvent?.() || maps.length<2);
+        method.append(option);
+      }
       method.value=draft.mapMethod || pendingMethod;
       method.onchange=()=>{pendingMethod=method.value;setMapMethod(null);};
       methodLabel.append(method);methodRoot.append(methodLabel);
       const confirm=makeButton(draft.mapMethod?'Method confirmed':'Confirm map selection',()=>{if(!method.value || isBusy() || !isOrganiser())return;pendingMethod=method.value;setMapMethod(method.value);});
       confirm.id='confirm-map-method';methodRoot.append(confirm);
       const note=element('p','rules',draft.mapMethod?'Choose another method to change how the map is selected.':'Select a method and confirm to reveal its controls.');methodRoot.append(note);
-      if(!draft.mapMethod){controls();confirm.disabled=isBusy() || !isOrganiser() || !method.value;if(wasHidden)methodRoot.scrollIntoView({block:'center',behavior:'smooth'});return;}
+      if(!draft.mapMethod){
+        controls();
+        confirm.disabled=isBusy() || !isOrganiser() || !method.value;
+        if(wasHidden && !$('draw-stage').classList.contains('fullscreen-fallback')){
+          methodRoot.scrollIntoView({block:'center',behavior:'smooth'});
+        }
+        return;
+      }
       confirm.disabled=true;
       if(method.value==='veto'){
         const bans=draft.mapVeto || [],left=maps.filter(map=>!bans.some(b=>b.map===map)),team=draft.teams[bans.length%2];
@@ -267,8 +371,18 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
         }
         if(left.length===1 && draft.matches[0].map!==left[0])section.append(makeButton('Confirm '+left[0],()=>setMap(left[0])));
         const resetRow=element('div','veto-reset-actions'),reset=makeButton('Restart veto',()=>{draft.mapVeto=[];setMap(null);});
+        if(bans.length)resetRow.append(makeButton('Undo last ban',()=>{
+          if(isBusy() || !isOrganiser())return;
+          const restored=bans[bans.length-1].map;
+          draft.mapVeto=bans.slice(0,-1);
+          setMap(null);
+          const buttons=[...draftRoot.querySelectorAll('.map-veto-options button')];
+          buttons.find(button=>button.getAttribute('aria-label')==='Ban '+restored)?.focus();
+        }));
         reset.classList.add('danger');resetRow.append(reset);section.append(resetRow);
-      }draftRoot.hidden=draft.mapMethod!=='veto';draftRoot.append(section);
+      }
+      else if(key)renderMapVote(section,draft.mapMethod);
+      draftRoot.hidden=draft.mapMethod!=='veto' && !key;draftRoot.append(section);
     }
     controls();
   }
@@ -301,5 +415,5 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
       for(const entry of [...(completed?[{title:'Current match',tournament:data}]:[]),...past]){const state=resolveTournament(entry.tournament),match=state.matches[0],card=element('article','recent-match');card.append(element('strong','',match.map || 'Custom match'),element('p','',match.ids.map(id=>state.teams.get(id).name).join(' vs ')+' · '+match.result.scores.join(' – ')),element('p','rules','Winner: '+(state.teams.get(match.winner)?.name || 'Draw')),element('small','',entry.title));list.append(card);}publicRoot.append(list);
     }publicRoot.hidden=!publicRoot.children.length;controls();
   }
-  return {render,renderDraft,controls};
+  return {render,renderDraft,controls,mapCandidates};
 }

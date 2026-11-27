@@ -251,7 +251,7 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .draw-stage.map-selection-stage .draw-roster .teams{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-height:none}
 @media(max-width:650px){.draw-stage.map-selection-stage .draw-roster .teams{grid-template-columns:1fr}}
 
-.veto-reset-actions{display:flex;justify-content:flex-end;margin-top:22px;padding-top:16px;border-top:1px solid var(--border)}.veto-reset-actions button{margin:0}
+.veto-reset-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:22px;padding-top:16px;border-top:1px solid var(--border)}.veto-reset-actions button{margin:0}
 
 
 .group-team-players{display:block;margin-top:5px;font-size:12px;font-weight:400;line-height:1.5;color:var(--muted);white-space:normal;overflow-wrap:anywhere}.group-panel .scoreboard-identity .team-name{min-width:0}
@@ -562,6 +562,12 @@ body:has(#tab-fixtures[aria-selected=true]) :is(.intro,.overview){display:none}
 .map-veto-options button.map-picker-card:not(:disabled):hover{border-color:var(--accent)}
 .map-veto-options .map-veto-banned{opacity:.65;cursor:default}
 .map-veto-banned .map-veto-card-action{border-color:var(--border);color:var(--muted)}
+.map-vote-voters{margin:12px 0;color:var(--muted)}
+.map-vote-voters ul{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:8px 0 0}
+.map-vote-voters li{padding:4px 8px;border:1px solid var(--border);background:#202630;color:var(--text);overflow-wrap:anywhere}
+.map-options.map-vote-cards{grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr))}
+.map-options.map-vote-cards:has(>.map-picker-card:nth-child(2):last-child){grid-template-columns:repeat(2,minmax(0,1fr))}
+.map-vote-cards .map-picker-card{justify-content:space-between;cursor:default}
 @media(max-width:600px){.map-options:has(.map-picker-card){grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 /* Player comparison and archive cards. */
