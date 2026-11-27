@@ -859,23 +859,21 @@ body:has(>.topbar~footer){
   grid-template-rows:none;
 }
 #draw-stage.fullscreen-fallback>:not(.draw-stage-toolbar){
-  width:min(100%,var(--stage-content-width,1100px));
+  width:min(100%,1100px);
   margin-inline:auto;
-}
-#draw-stage.fullscreen-fallback:not(.map-selection-stage):has(.wheel-panel:not([hidden]) .case-reel-wrap:not([hidden])){
-  --stage-content-width:var(--reel-width,min(1100px,120dvh));
 }
 .draw-stage.fullscreen-fallback{
   --stage-gap:clamp(6px,1.15dvh,16px);
   padding:var(--stage-gap) max(clamp(10px,2.5vw,36px),calc((100% - 1220px)/2));
   gap:var(--stage-gap) clamp(10px,2vw,28px);
-  align-content:safe center;
+  align-content:start;
   background:radial-gradient(ellipse at 50% 38%,#30271d,#15171e 57%,#101218 85%);
 }
 .fullscreen-fallback .draw-stage-toolbar{
-  position:static;
+  position:sticky;
+  top:0;
   padding:0 0 var(--stage-gap);
-  background:transparent;
+  background:#111318;
 }
 .fullscreen-fallback .draw-stage-toolbar>span{
   color:#ffb553;
@@ -911,17 +909,32 @@ body:has(>.topbar~footer){
 .draw-stage.fullscreen-fallback #case-reel{width:100%;margin:0}
 .draw-stage.fullscreen-fallback .player-reveal{min-height:0;padding:6px 10px;margin-top:6px}
 .fullscreen-fallback .reveal-avatar{width:38px;height:38px}
-.fullscreen-fallback .draw-progress{margin-top:6px}
-.fullscreen-fallback .draw-progress progress{margin-top:4px}
-.draw-stage.fullscreen-fallback #draw-announcement{margin:5px 0 0}
+.fullscreen-fallback .draw-progress{margin-top:6px;padding-block:8px 10px}
+.fullscreen-fallback .draw-progress progress{height:10px;margin-top:7px}
+.draw-stage.fullscreen-fallback #draw-announcement:not([data-draw-error]){
+  position:absolute;
+  width:1px;
+  height:1px;
+  margin:0;
+  padding:0;
+  border:0;
+  overflow:hidden;
+  clip-path:inset(50%);
+}
 .draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])){
   display:block;
 }
 .draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) .case-reel-wrap{
   width:100%;
+  max-width:none;
   margin:0 0 var(--stage-gap);
+  background:#0f131a;
 }
-.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) :is(.player-reveal,.draw-progress,#draw-announcement){
+.draw-stage.fullscreen-fallback #case-reel{
+  width:min(100%,var(--reel-width,1100px));
+  margin-inline:auto;
+}
+.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) :is(.player-reveal,.draw-progress,#draw-announcement[data-draw-error]){
   width:100%;
   max-width:none;
   margin:0;
@@ -934,8 +947,11 @@ body:has(>.topbar~footer){
   padding-block:clamp(6px,1.1dvh,14px);
   border-bottom:0;
 }
-.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) .draw-progress{padding-block:3px}
-.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) #draw-announcement{
+.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) .draw-progress{
+  padding-block:8px 12px;
+  border-bottom:1px solid var(--border);
+}
+.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) #draw-announcement[data-draw-error]{
   padding-block:4px 8px;
   border-bottom:1px solid var(--border);
 }
@@ -1004,7 +1020,6 @@ body:has(>.topbar~footer){
   width:min(100%,var(--map-reel-width,72dvh));
   margin-inline:auto;
 }
-.fullscreen-fallback.map-selection-stage .case-reel-wrap{background:#0f131a}
 
 @media(min-width:761px){
   .fullscreen-fallback.map-selection-stage .draw-team{
@@ -1092,4 +1107,22 @@ body:has(>.topbar~footer){
   }
   .fullscreen-fallback .map-veto-options .map-picker-name{font-size:12px}
   .fullscreen-fallback .map-veto-card-action{padding:2px;font-size:10px}
+}
+
+/* Give the completed rosters room while the map method is being chosen. */
+.fullscreen-fallback.map-selection-stage:has(>.wheel-panel[hidden]):has(>.map-draw-options[hidden]) .draw-team{
+  display:block;
+  padding:clamp(6px,1dvh,12px);
+  border-top:2px solid var(--team-colour);
+}
+.fullscreen-fallback.map-selection-stage:has(>.wheel-panel[hidden]):has(>.map-draw-options[hidden]) .draft-slot{
+  margin:4px 0 0;
+  padding:4px 6px;
+  gap:7px;
+  font-size:clamp(12px,1.9dvh,16px);
+}
+.fullscreen-fallback.map-selection-stage:has(>.wheel-panel[hidden]):has(>.map-draw-options[hidden]) .slot-avatar{
+  display:grid;
+  width:clamp(18px,3dvh,28px);
+  height:clamp(18px,3dvh,28px);
 }
