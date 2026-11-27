@@ -326,8 +326,19 @@ if (typeof module !== 'undefined') module.exports = { bestOfThreeFinal, undoResu
 if (typeof document !== 'undefined') (() => {
   const $ = id => document.getElementById(id);
   const repository=repositorySettings(document.querySelector('meta[name=dashboard-repository]')?.content,document.querySelector('meta[name=dashboard-branch]')?.content,location.hostname,location.pathname);
+  const localPreview=['localhost','127.0.0.1','[::1]'].includes(location.hostname);
+  const previewKey='friends-cup.local-tournament';
+  const isOrganiser=()=>localPreview || Boolean(token);
   const api=repository?.api;
   let current = structuredClone(TOURNAMENT), token = '', fileSha = '', busy = false;
+  function loadPreview(){
+    const saved=localStorage.getItem(previewKey);
+    return saved?validateData(JSON.parse(saved),resolveTournament):structuredClone(TOURNAMENT);
+  }
+  if(localPreview){
+    try { current=loadPreview(); } catch { /* Start with the bundled tournament. */ }
+    $('game-source').querySelector('option[value="discord"]').disabled=true;
+  }
   $('game-provider').value=current.gameProvider || 'manual';
   let setupUI=null,featureUI=null,gameNightUI=null,discordEventUI=null,loadedDiscordEvent=null,customPlayerNames='',rematchSource=null;
   let skippingAnimation=false;
@@ -351,8 +362,8 @@ if (typeof document !== 'undefined') (() => {
   };
   function queueAutoSpin(delay=2000){
     clearTimeout(autoSpinTimer);autoSpinTimer=null;
-    if(!$('auto-spin').checked || !token || $('spin').disabled)return;
-    autoSpinTimer=setTimeout(()=>{autoSpinTimer=null;if($('auto-spin').checked && token && !$('spin').disabled)$('spin').click();},delay);
+    if(!$('auto-spin').checked || !isOrganiser() || $('spin').disabled)return;
+    autoSpinTimer=setTimeout(()=>{autoSpinTimer=null;if($('auto-spin').checked && isOrganiser() && !$('spin').disabled)$('spin').click();},delay);
   }
   function stopAutoSpin(){clearTimeout(autoSpinTimer);autoSpinTimer=null;$('auto-spin').checked=false;}
   $('auto-spin').onchange=()=>queueAutoSpin(0);
@@ -369,7 +380,7 @@ if (typeof document !== 'undefined') (() => {
     $('setup-next-3').textContent='Continue';
     $('player-pool-help').textContent=loadedDiscordEvent?'Select who is playing below, then confirm your players.':'Choose who is playing this time. Add saved players above or enter names below, then load the pool and select your players.';
     const mapCandidates=gameNightUI?.mapCandidates() || [];
-    $('skip-animation').disabled=busy || spinning || skippingAnimation || !token || (!remaining.length && !(draw?.format==='single' && !drawnMap && mapCandidates.length)) || (remaining.length>0 && ['manual','captains'].includes($('team-creation').value));
+    $('skip-animation').disabled=busy || spinning || skippingAnimation || !isOrganiser() || (!remaining.length && !(draw?.format==='single' && !drawnMap && mapCandidates.length)) || (remaining.length>0 && ['manual','captains'].includes($('team-creation').value));
     const manual=$('team-creation').value==='manual';
     const captains=$('team-creation').value==='captains';
     $('captain-case-panel').hidden=!captains || !locked;
@@ -380,27 +391,27 @@ if (typeof document !== 'undefined') (() => {
     document.querySelector('.wheel-panel').hidden=(captains && (!draw || draw.format!=='single')) || (selectingMap && !mapSelected && !mapCandidates.length);
     $('draw-animation').closest('label').hidden=selectingMap || (captains && !draw);
     $('draw-stage').classList.toggle('captain-style',captains);
-    $('captain-choices').querySelectorAll('select,button').forEach(input=>{input.disabled=busy || spinning || !!captainDraft || !token;});
-    $('captain-case-grid').querySelectorAll('button').forEach((button,i)=>{button.disabled=busy || spinning || !token || !!captainDraft?.cases[i].opened;});
+    $('captain-choices').querySelectorAll('select,button').forEach(input=>{input.disabled=busy || spinning || !!captainDraft || !isOrganiser();});
+    $('captain-case-grid').querySelectorAll('button').forEach((button,i)=>{button.disabled=busy || spinning || !isOrganiser() || !!captainDraft?.cases[i].opened;});
     $('team-creation').disabled=busy || locked;
     $('start-draw').hidden=locked;
     $('reset-draw').hidden=!locked;
     $('start-draw').textContent='Start team creation';
     $('manual-teams').hidden=!manual || !locked || !manualAssignments.length;
-    $('manual-team-list').querySelectorAll('input,select').forEach(input=>{input.disabled=busy || !token;});
-    $('use-manual-teams').disabled=busy || !token || manualAssignments.some(id=>!id) || !manualAssignments.length || new Set(manualAssignments).size!==manualAssignments.length;
+    $('manual-team-list').querySelectorAll('input,select').forEach(input=>{input.disabled=busy || !isOrganiser();});
+    $('use-manual-teams').disabled=busy || !isOrganiser() || manualAssignments.some(id=>!id) || !manualAssignments.length || new Set(manualAssignments).size!==manualAssignments.length;
     const planning=locked && !!rosterPlan && !draw;
     $('roster-reveal').hidden=!planning;
     $('draw-stage').hidden=!locked || planning || (manual && (!draw || draw.format!=='single'));
     $('draw-panel').classList.toggle('live-draw',locked && !$('draw-stage').hidden);
     $('reset-edit-draw').disabled=busy || spinning || skippingAnimation;
     $('undo-player-pick').hidden=!locked || !lastPick || !!draw?.mapMethod;
-    $('undo-player-pick').disabled=!token || busy || spinning || skippingAnimation;
+    $('undo-player-pick').disabled=!isOrganiser() || busy || spinning || skippingAnimation;
     $('back-live-draw').disabled=$('reset-edit-draw').disabled;
     $('draw-stage').classList.toggle('manual-map',manual);
     document.querySelector('.draw-roster').hidden=manual && !selectingMap;
     $('draft-swap-help').hidden=!selectingMap;
-    const canSwap=selectingMap && !!token && !busy && !spinning && !skippingAnimation;
+    const canSwap=selectingMap && isOrganiser() && !busy && !spinning && !skippingAnimation;
     $('draw-teams').querySelectorAll('.draft-swap-player').forEach(button=>{
       button.disabled=!canSwap;
       button.draggable=canSwap;
@@ -409,22 +420,22 @@ if (typeof document !== 'undefined') (() => {
     $('case-reel').setAttribute('aria-label',draw?.format==='single' && !remaining.length?'Map selection case reel':'Player selection case reel');
     $('open-options').hidden = false;
     $('open-options').disabled = busy;
-    $('save-options').disabled = busy || !token;
-    $('options-form').hidden = !token;
-    document.querySelector('.token-help').hidden = !!token;
-    $('tab-team-setup').hidden = !token;
-    $('tab-manage-players').hidden = !token;
-    $('tab-fixture-import').hidden = !token;
-    $('admin-menu').hidden = !token;
+    $('save-options').disabled = busy || !isOrganiser();
+    $('options-form').hidden = !isOrganiser();
+    document.querySelector('.token-help').hidden = isOrganiser();
+    $('tab-team-setup').hidden = !isOrganiser();
+    $('tab-manage-players').hidden = !isOrganiser();
+    $('tab-fixture-import').hidden = !isOrganiser();
+    $('admin-menu').hidden = !isOrganiser();
     const matchLink=new URLSearchParams(location.search);const viewingMatch=matchLink.get('connect')==='1' && matchLink.get('event')===current.discordEventId;
-    const hideTournament=current.registrationEnabled!==false && !token && !viewingMatch;
+    const hideTournament=current.registrationEnabled!==false && !isOrganiser() && !viewingMatch;
     ['leaderboard','fixtures','stats','history'].forEach(name=>{$('tab-'+name).hidden=hideTournament;});
     document.querySelector('.overview').hidden=hideTournament;
     const active=tabs.find(tab=>tab.getAttribute('aria-selected')==='true');
     if(active?.hidden && active!==$('tab-team-setup'))selectTab(defaultTab(),false,false);
-    if (!token && $('tab-team-setup').getAttribute('aria-selected') === 'true') selectTab(defaultTab());
-    $('connected-setup').hidden = !token;
-    $('team-setup-locked').hidden = !!token;
+    if (!isOrganiser() && $('tab-team-setup').getAttribute('aria-selected') === 'true') selectTab(defaultTab());
+    $('connected-setup').hidden = !isOrganiser();
+    $('team-setup-locked').hidden = isOrganiser();
     $('qualifiers-per-group').disabled = busy || spinning || (locked && !draw) || Number($('group-count').value)===0;
     $('tournament-format').disabled=busy || locked;
     $('group-count').closest('label').hidden=$('tournament-format').value!=='groups';
@@ -436,9 +447,9 @@ if (typeof document !== 'undefined') (() => {
     $('group-count').disabled = busy || spinning || (!!captainDraft && !draw) || (locked && Number($('team-size').value)===1);
     $('map-options').querySelectorAll('input').forEach(input=>{input.disabled=busy || spinning || (!!captainDraft && !draw);});
     $('disconnect').hidden = !token;
-    $('connect-form').querySelector('button').disabled = busy || !!token || !repository;
+    $('connect-form').querySelector('button').disabled = busy || isOrganiser() || !repository;
     $('refresh-data').disabled = busy;
-    $('clear-tournament').disabled = busy || spinning || !token;
+    $('clear-tournament').disabled = busy || spinning || !isOrganiser();
     const mapPending=draw?.format==='single' && !remaining.length && !drawnMap;
     const spinActions=document.querySelector('.spin-actions');
     spinActions.hidden=document.querySelector('.wheel-panel').hidden || (!remaining.length && !mapPending);
@@ -448,7 +459,7 @@ if (typeof document !== 'undefined') (() => {
     $('spin').disabled = (captains && (!draw || remaining.length>0)) || busy || spinning || (!remaining.length && !mapPending) || (mapPending && !mapCandidates.length);
     $('disconnect').disabled = busy;
     $('remember-token').disabled = busy;
-    const publishReason=drawPublishReason(draw,{busy,spinning,connected:!!token,drawnMap,format:$('tournament-format').value,groups:Number($('group-count').value),qualifiers:Number($('qualifiers-per-group').value),teamSize:Number($('team-size').value),maps:selectedMaps()});
+    const publishReason=drawPublishReason(draw,{busy,spinning,connected:isOrganiser(),drawnMap,format:$('tournament-format').value,groups:Number($('group-count').value),qualifiers:Number($('qualifiers-per-group').value),teamSize:Number($('team-size').value),maps:selectedMaps()});
     $('publish-draw').disabled=!!publishReason;$('publish-expanded').disabled=!!publishReason;
     $('publish-draw').hidden=!locked || !manual || draw?.format==='single';$('publish-status').hidden=$('publish-draw').hidden;
     const publishActions=$('publish-expanded').parentElement;
@@ -456,8 +467,8 @@ if (typeof document !== 'undefined') (() => {
     publishActions.title=publishReason;
     $('publish-status').textContent=publishReason || 'Teams are ready to publish.';
     $('publish-expanded-status').textContent=spinning ? '' : mapPending && !busy && draw.mapMethod ? '' : publishReason;
-    document.querySelectorAll('.result-form button, .tie-form button, #fixture-platform select').forEach(b => { b.disabled = busy || !token; });
-    document.querySelectorAll('.fixture-import,#fixture-platform,#import-centre').forEach(el=>el.hidden=!token);featureUI?.controls();gameNightUI?.controls();setupUI?.render();queueAutoSpin();
+    document.querySelectorAll('.result-form button, .tie-form button, #fixture-platform select').forEach(b => { b.disabled = busy || !isOrganiser(); });
+    document.querySelectorAll('.fixture-import,#fixture-platform,#import-centre').forEach(el=>el.hidden=!isOrganiser());featureUI?.controls();gameNightUI?.controls();setupUI?.render();queueAutoSpin();
   }
   async function request(method, body, credential = token) {
     if(!repository)throw Error('Repository not configured. Deploy with the included GitHub Actions workflow, or set GITHUB_REPOSITORY and GITHUB_REF_NAME when building.');
@@ -472,11 +483,18 @@ if (typeof document !== 'undefined') (() => {
   const decode = content => new TextDecoder().decode(Uint8Array.from(atob(content.replace(/\s/g,'')),c=>c.charCodeAt(0)));
   const encode = data => btoa(Array.from(new TextEncoder().encode(JSON.stringify(data,null,2)+'\n'),b=>String.fromCharCode(b)).join(''));
   async function publish(next, message) {
-    if (!token || busy) throw Error('Connect as organiser before publishing.');
+    if (!isOrganiser() || busy) throw Error('Connect as organiser before publishing.');
     if(next.activeMatchId){const active=resolveTournament(next).matches.find(m=>m.id===next.activeMatchId);if(!active || active.result || active.skipped || !active.ids.every(Boolean))delete next.activeMatchId;}
     validateData(next, resolveTournament);
-    busy = true; controls(); say('Saving to GitHub…');
+    busy = true; controls(); say(localPreview?'Saving to this browser…':'Saving to GitHub…');
     try {
+      if(localPreview){
+        localStorage.setItem(previewKey,JSON.stringify(next));
+        current=next;
+        renderAll();
+        say('Preview saved in this browser.');
+        return;
+      }
       const saved = await request('PUT',{message,content:encode(next),sha:fileSha,branch:repository.branch});
       fileSha = saved.content.sha; current = next; renderAll();
       document.querySelector('main').classList.remove('result-saved');void document.querySelector('main').offsetWidth;document.querySelector('main').classList.add('result-saved');
@@ -510,9 +528,10 @@ if (typeof document !== 'undefined') (() => {
     if (busy || !confirm('Reload saved data? Any unsaved score entries will be discarded. The wheel draw is kept.')) return;
     busy = true; controls();
     try {
-      if (token) { const file = await request('GET'); current = validateData(JSON.parse(decode(file.content)),resolveTournament); fileSha = file.sha; }
+      if(localPreview)current=loadPreview();
+      else if (token) { const file = await request('GET'); current = validateData(JSON.parse(decode(file.content)),resolveTournament); fileSha = file.sha; }
       else { const response = await fetch(`tournament.json?v=${Date.now()}`,{cache:'no-store'}); if (!response.ok) throw Error('Could not reload the tournament.'); current = validateData(await response.json(),resolveTournament); }
-      renderAll(); say(token ? 'Latest repository data loaded.' : 'Latest deployed tournament loaded.');
+      renderAll(); say(localPreview?'Local preview loaded.':token ? 'Latest repository data loaded.' : 'Latest deployed tournament loaded.');
     } catch(error) { say(error.message); } finally { busy = false; controls(); }
   };
   function renderAll() {
@@ -545,7 +564,7 @@ if (typeof document !== 'undefined') (() => {
     $('option-registration').checked=current.registrationEnabled!==false;
     $('options-status').textContent=$('connection-status').textContent;
     $('options-dialog').showModal();
-    (token?$('option-brand'):$('github-token')).focus();
+    (isOrganiser()?$('option-brand'):$('github-token')).focus();
   };
   $('close-options').onclick=()=>$('options-dialog').close();
   $('options-dialog').addEventListener('click',event=>{
@@ -553,7 +572,7 @@ if (typeof document !== 'undefined') (() => {
     if(event.target===$('options-dialog') && (event.clientX<bounds.left || event.clientX>bounds.right || event.clientY<bounds.top || event.clientY>bounds.bottom))$('options-dialog').close();
   });
   $('options-form').onsubmit=async event=>{
-    event.preventDefault();if(busy || !token)return;
+    event.preventDefault();if(busy || !isOrganiser())return;
     try {
       const next=updateHeaders(current,$('option-brand').value,$('option-banner').value);
       next.headers.registrationTitle=$('option-registration-title').value.trim() || 'Register to play';
@@ -575,7 +594,7 @@ if (typeof document !== 'undefined') (() => {
     $('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);resetReveal();selectionCount();setupUI?.reset();controls();
   }
   $('clear-tournament').onclick = async () => {
-    if (busy || spinning || !token) return;
+    if (busy || spinning || !isOrganiser()) return;
     if (!confirm('Clear the current tournament for everyone without archiving it? This removes its teams, results and stats, and discards this tab’s unfinished draw. Previously archived cups are kept. Use Archive & start new tournament to preserve a completed cup.')) return;
     try {
       await publish(emptyTournament(current),'Clear tournament ready for a new draw');
@@ -589,19 +608,20 @@ if (typeof document !== 'undefined') (() => {
     input.type='number'; input.min='0'; input.max=String(max); input.step='1'; input.value=value ?? ''; input.inputMode='numeric'; wrap.append(input); return {wrap,input};
   }
   async function saveImportedFixture(id,result,aliases){
-    if(busy || !token)throw Error('Connect as organiser before importing.');
+    if(busy || !isOrganiser())throw Error('Connect as organiser before importing.');
     const live=resolveTournament(current).matches.find(m=>m.id===id);if(!live || JSON.stringify(live.ids)!==JSON.stringify(result.teams))throw Error('Fixture teams changed. Reload the fixture.');
     if(importedGameUsage(current,result.importSource.id).some(use=>use.archived || use.fixtureId!==id))throw Error('This game is already imported elsewhere.');
     if(live.result && !confirm('Replace the saved result and player stats with this imported game?'))return;
     const {next,cleared}=applyResult(current,id,result,resolveTournament);if(result.importSource.provider==='faceit')next.importAliases={...current.importAliases,faceit:aliases};
     if(cleared.length && !confirm('Importing this result clears changed playoff results: '+cleared.join(', ')+'. Continue?'))return;
     await publish(next,'Import '+(result.importSource.provider==='leetify'?'Leetify':'FACEIT')+' result for '+id);
+    broadcastResult(next,id);
   }
   function renderSchedule() {
     document.getElementById('fixture-platform')?.remove();document.getElementById('import-centre')?.remove();$('player-links').replaceChildren();
-    if(token){const centre=createImportCentre({dedicated:true,playerContainer:$('player-links'),data:structuredClone(current),resolve:resolveTournament,isBusy:()=>busy,isOrganiser:()=>!!token,saveImport:saveImportedFixture,saveProfiles:async profiles=>{const next=structuredClone(current);next.leetifyProfiles=profiles;await publish(next,'Update Leetify player profile links');},saveAliases:async aliases=>{const next=structuredClone(current);next.importAliases={...current.importAliases,faceit:aliases};await publish(next,'Update FACEIT player name links');},undo:async()=>{await publish(undoResultChange(current,resolveTournament),'Undo last result change');}});centre.id='import-centre';$('fixture-import-centre').replaceChildren(centre);}
+    if(isOrganiser()){const centre=createImportCentre({dedicated:true,playerContainer:$('player-links'),data:structuredClone(current),resolve:resolveTournament,isBusy:()=>busy,isOrganiser:()=>isOrganiser(),saveImport:saveImportedFixture,saveProfiles:async profiles=>{const next=structuredClone(current);next.leetifyProfiles=profiles;await publish(next,'Update Leetify player profile links');},saveAliases:async aliases=>{const next=structuredClone(current);next.importAliases={...current.importAliases,faceit:aliases};await publish(next,'Update FACEIT player name links');},undo:async()=>{await publish(undoResultChange(current,resolveTournament),'Undo last result change');}});centre.id='import-centre';$('fixture-import-centre').replaceChildren(centre);}
 
-    if(token){const label=element('label','fixture-platform','Game platform'),select=element('select');label.id='fixture-platform';for(const [value,text] of [['manual','Other · Manual results'],['faceit','FACEIT · Pull up gang queue']]){const o=element('option','',text);o.value=value;select.append(o);}select.value=current.gameProvider || 'manual';select.disabled=busy;select.onchange=async()=>{try{const next=structuredClone(current);next.gameProvider=select.value;await publish(next,'Update fixture game platform');}catch(error){say(error.message);select.value=current.gameProvider || 'manual';}};label.append(select);$('schedule').after(label);}
+    if(isOrganiser()){const label=element('label','fixture-platform','Game platform'),select=element('select');label.id='fixture-platform';for(const [value,text] of [['manual','Other · Manual results'],['faceit','FACEIT · Pull up gang queue']]){const o=element('option','',text);o.value=value;select.append(o);}select.value=current.gameProvider || 'manual';select.disabled=busy;select.onchange=async()=>{try{const next=structuredClone(current);next.gameProvider=select.value;await publish(next,'Update fixture game platform');}catch(error){say(error.message);select.value=current.gameProvider || 'manual';}};label.append(select);$('schedule').after(label);}
 
     const schedule=$('schedule');
     schedule.replaceChildren();
@@ -654,7 +674,7 @@ if (typeof document !== 'undefined') (() => {
       });
       summary.append(meta,versus);
       if(match.seriesGame)summary.append(element('span','fixture-edit-hint','Grand final · Game '+match.seriesGame+' · Best of three · First to two wins'));
-      summary.append(element('span','fixture-edit-hint',!ready?'Waiting for qualification':token?(current.teamSize===1?(match.result?'Edit score · stats calculated automatically':'Enter score · stats calculated automatically'):(match.result?'Edit score & player stats':'Enter score & player stats')):'View match details'));
+      summary.append(element('span','fixture-edit-hint',!ready?'Waiting for qualification':isOrganiser()?(current.teamSize===1?(match.result?'Edit score · stats calculated automatically':'Enter score · stats calculated automatically'):(match.result?'Edit score & player stats':'Enter score & player stats')):'View match details'));
       if(match.result?.tiebreakWinner)summary.append(element('span','fixture-decision','Tiebreak winner: '+teamDisplayLabel(state.teams.get(match.result.tiebreakWinner))));
       else if(match.result && match.result.scores[0]===match.result.scores[1])summary.append(element('span','fixture-decision','DRAW'));
       details.append(summary);
@@ -705,9 +725,9 @@ if (typeof document !== 'undefined') (() => {
       if(inputs.length)form.append(stats);
       const note = element('p','form-note'); note.setAttribute('role','status');
       const update = element('button','', match.result?'Save corrected result':'Save match result'); update.type='submit';
-      const actions=element('div','result-actions');actions.append(update,element('p','entry-help',token?'Saves the score and any entered stats, then updates standings and knockout places.':'Open Organiser settings to enter and save results.'));form.append(actions,note);
+      const actions=element('div','result-actions');actions.append(update,element('p','entry-help',isOrganiser()?'Saves the score and any entered stats, then updates standings and knockout places.':'Open Organiser settings to enter and save results.'));form.append(actions,note);
       form.onsubmit = async event => {
-        event.preventDefault(); if (!token || busy) return;
+        event.preventDefault(); if (!isOrganiser() || busy) return;
         try {
           const players = {};
           for (const {id,fields} of inputs) {
@@ -724,9 +744,10 @@ if (typeof document !== 'undefined') (() => {
           const {next,cleared} = applyResult(current,match.id,result,resolveTournament);
           if (cleared.length && !confirm(`This changes playoff participants and clears results and player stats for ${cleared.join(', ')}. Publish this correction?`)) return;
           await publish(next,`Update ${match.id.toUpperCase()} result and player stats`);
+          broadcastResult(next,match.id);
         } catch(error) {note.textContent=error.message;}
       };
-      if(token && current.gameProvider==='faceit')body.append(createFixtureImporter({data:structuredClone(current),fixture:match,isBusy:()=>busy,isOrganiser:()=>!!token,save:(result,aliases)=>saveImportedFixture(match.id,result,aliases)}));
+      if(isOrganiser() && current.gameProvider==='faceit')body.append(createFixtureImporter({data:structuredClone(current),fixture:match,isBusy:()=>busy,isOrganiser:()=>isOrganiser(),save:(result,aliases)=>saveImportedFixture(match.id,result,aliases)}));
       if(match.result?.importSource?.provider==='leetify' && /^[a-f0-9-]{36}$/i.test(match.result.importSource.matchId)){const source=element('a','leetify-source','View on Leetify');source.href='https://leetify.com/app/match-details/'+match.result.importSource.matchId;source.target='_blank';source.rel='noopener noreferrer';const attribution=element('a','leetify-attribution'),badge=element('img');attribution.href='https://leetify.com/';badge.src='assets/images/leetify-data-badge.png';badge.alt='Data Provided by Leetify';attribution.append(badge);body.append(source,attribution);}
       body.append(form); details.append(body); container.append(details);
     });
@@ -779,7 +800,7 @@ if (typeof document !== 'undefined') (() => {
       const note=element('p','form-note');note.setAttribute('role','status');
       form.append(list,preview,element('p','entry-help','Only tied positions can change. Recorded match scores, wins and round difference stay unchanged.'),button,note);
       form.onsubmit=async e=>{
-        e.preventDefault();if(!token || busy)return;
+        e.preventDefault();if(!isOrganiser() || busy)return;
         try{
           const positions=ranks();
           if(positions.includes(0) || new Set(positions).size!==group.rows.length)throw Error('Choose a different finishing position for each highlighted player or team.');
@@ -1144,7 +1165,7 @@ if (typeof document !== 'undefined') (() => {
     });updateManualSlots();
   }
   $('use-manual-teams').onclick=()=>{
-    if(busy || !token || $('team-creation').value!=='manual')return;
+    if(busy || !isOrganiser() || $('team-creation').value!=='manual')return;
     try{
       const size=Number($('team-size').value),rosters=manualRosters(selected,manualAssignments,size);
       if(manualNames.some(name=>!name.trim()))throw Error('Give every team a name.');
@@ -1158,7 +1179,7 @@ if (typeof document !== 'undefined') (() => {
     const elected=loadedDiscordEvent?.captains?.map(name=>remaining.find(p=>p.name.normalize('NFKC').toLowerCase()===name.normalize('NFKC').toLowerCase()));
     if(elected?.length===2 && elected.every(Boolean) && elected[0].id!==elected[1].id){picks.forEach((select,i)=>select.value=elected[i].id);$('captain-case-status').textContent='Captains voted in Discord: '+elected.map(p=>p.name).join(' and ')+'. Review the selections, then start the captain draft.';}
     const start=element('button','','Start captain draft');start.type='button';start.onclick=()=>{
-      if(busy || spinning || !token)return;
+      if(busy || spinning || !isOrganiser())return;
       try{const ids=picks.map(select=>select.value),size=Number($('team-size').value);
         makeTournament(remaining,size,current,undefined,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value),$('tournament-format').value);
         captainDraft=createCaptainCases(remaining,size,ids,shuffle(remaining.filter(p=>!ids.includes(p.id)).map(p=>p.id)));
@@ -1166,7 +1187,7 @@ if (typeof document !== 'undefined') (() => {
       }catch(error){$('captain-case-status').textContent=error.message;}
     };const actions=element('div','tournament-actions');
     if(loadedDiscordEvent){const vote=element('button','secondary','Start Discord vote');vote.type='button';vote.id='start-discord-captain-vote';vote.onclick=async()=>{
-      if(busy || spinning || !token)return;
+      if(busy || spinning || !isOrganiser())return;
       vote.disabled=true;start.disabled=true;
       try{await requestDiscordCaptainVote(discordEventConfig(),loadedDiscordEvent.id);$('captain-case-status').textContent='Vote requested. The bot will open it in Discord on its next check (within 30 seconds while online). Close the vote in Discord organiser controls, then refresh the event here to load the captains.';}
       catch(error){vote.disabled=false;$('captain-case-status').textContent=error.message;}
@@ -1181,7 +1202,7 @@ if (typeof document !== 'undefined') (() => {
       const button=element('button','captain-case'+(item.opened?' case-opened':'')),art=element('img','captain-case-art');button.type='button';art.src='assets/images/csgo-chroma-2-case.png';art.alt='';art.width=256;art.height=198;art.draggable=false;art.setAttribute('aria-hidden','true');button.append(art,element('span','case-number','CASE '+String(i+1).padStart(2,'0')));
       if(item.opened){button.append(element('strong','',item.player.name),element('small','',captainDraft.teams.find(team=>team.id===item.teamId).name));}else button.setAttribute('aria-label','Open case '+(i+1));
       button.onclick=async()=>{
-        if(!token || busy || spinning || captainDraft.cases[i].opened)return;
+        if(!isOrganiser() || busy || spinning || captainDraft.cases[i].opened)return;
         spinning=true;stopAutoSpin();controls();$('reset-draw').disabled=true;button.classList.add('case-opening');$('captain-case-status').textContent='Opening case '+(i+1)+' for '+captain.name+'…';
         try{await prepareSound();playTone(440,.15);if(!matchMedia('(prefers-reduced-motion: reduce)').matches)await new Promise(resolve=>setTimeout(resolve,900));
           lastPick={remaining:[...remaining],captainDraft};
@@ -1208,7 +1229,7 @@ if (typeof document !== 'undefined') (() => {
       stopAutoSpin();
       rosterPlan={ratings:null,pairs:[]};
       renderRosterReveal($('roster-reveal'),mode,remaining,(rosters,ratings,pairs)=>{
-        if(!locked || busy || !token)return;
+        if(!locked || busy || !isOrganiser())return;
         const next=makeTournament(remaining,size,current,undefined,0,selectedMaps(),Number($('qualifiers-per-group').value),'single');
         next.teams.forEach((team,i)=>{team.players=rosters[i];});
         rosterPlan={ratings,pairs:structuredClone(pairs)};
@@ -1227,7 +1248,7 @@ if (typeof document !== 'undefined') (() => {
     if(mode==='random')await $('skip-animation').onclick();
   };
   $('undo-player-pick').onclick=()=>{
-    if(!lastPick || !locked || !token || busy || spinning || skippingAnimation || draw?.mapMethod)return;
+    if(!lastPick || !locked || !isOrganiser() || busy || spinning || skippingAnimation || draw?.mapMethod)return;
     stopAutoSpin();
     const player=selected.pop();
     remaining=lastPick.remaining;
@@ -1248,8 +1269,8 @@ if (typeof document !== 'undefined') (() => {
     if($('skip-animation').disabled)return;
     stopAutoSpin();skippingAnimation=true;controls();
     try{
-      while(remaining.length && token && !busy)await $('spin').onclick();
-      if(draw?.format==='single' && !drawnMap && token && !busy && gameNightUI?.mapCandidates().length)await spinMap();
+      while(remaining.length && isOrganiser() && !busy)await $('spin').onclick();
+      if(draw?.format==='single' && !drawnMap && isOrganiser() && !busy && gameNightUI?.mapCandidates().length)await spinMap();
     }
     catch(error){announce(error.message,true);}
     finally{skippingAnimation=false;controls();}
@@ -1396,7 +1417,7 @@ if (typeof document !== 'undefined') (() => {
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
   const tabs = Array.from(document.querySelectorAll('.page-tabs [role="tab"], .admin-tabs [role="tab"]'));
   const setupMusic=createSetupMusic();
-  function defaultTab(){return current.registrationEnabled!==false && !token ? $('tab-register') : $('tab-leaderboard');}
+  function defaultTab(){return current.registrationEnabled!==false && !isOrganiser() ? $('tab-register') : $('tab-leaderboard');}
   let registrationSubmitting=false;
   $('registration-form').addEventListener('submit',async event=>{
     event.preventDefault();
@@ -1427,7 +1448,7 @@ if (typeof document !== 'undefined') (() => {
       item.setAttribute('aria-selected', String(active)); item.tabIndex = active ? 0 : -1;
       $(item.getAttribute('aria-controls')).hidden = !active;
     });
-    setupMusic.setActive(tab.id==='tab-team-setup' && !!token);
+    setupMusic.setActive(tab.id==='tab-team-setup' && isOrganiser());
     for(const menu of document.querySelectorAll('.page-tabs,.admin-tabs')){const items=tabs.filter(item=>item.parentElement===menu && !item.hidden);if(items.length && !items.some(item=>item.tabIndex===0))items[0].tabIndex=0;}
     if (updateUrl) history.replaceState(null,'','#'+tab.id.slice(4));
     if (focus) tab.focus();
@@ -1448,10 +1469,10 @@ if (typeof document !== 'undefined') (() => {
   const discordEventConfig=()=>({api:repository.api.replace(/tournament\.json$/,'discord-events.json'),branch:repository.branch,token});
   faceitRefreshConfig=discordEventConfig;
   discordEventUI=createDiscordEventLoader({readEvents:async()=>token?(await readPublishedDiscordEvents(discordEventConfig())).data:null,clearEvents:async()=>{
-    if(!token || !repository || locked || busy || spinning)throw Error('Connect as organiser and finish or reset the draw before clearing events.');
+    if(!isOrganiser() || !repository || locked || busy || spinning)throw Error('Connect as organiser and finish or reset the draw before clearing events.');
     busy=true;controls();try{await clearPublishedDiscordEvents(discordEventConfig());}finally{busy=false;controls();}
-  },canLoad:()=>!!token && !locked && !busy && !spinning,load:event=>{
-    if(locked || busy || spinning || !token)return false;
+  },canLoad:()=>isOrganiser() && !locked && !busy && !spinning,load:event=>{
+    if(locked || busy || spinning || !isOrganiser())return false;
     if(!loadedDiscordEvent)customPlayerNames=$('pool-input').value;
     loadedDiscordEvent=event;
     $('pool-input').value=event?event.players.join('\n'):customPlayerNames;
@@ -1459,13 +1480,13 @@ if (typeof document !== 'undefined') (() => {
     if($('pool-input').value.trim())loadPlayerPool();else selectionCount();
     controls();return true;
   },notify:say});
-  featureUI=createTournamentExtras({getData:()=>current,isOrganiser:()=>!!token,isBusy:()=>busy || spinning,isPoolLocked:()=>locked,addNames:names=>{
+  featureUI=createTournamentExtras({getData:()=>current,isOrganiser:()=>isOrganiser(),isBusy:()=>busy || spinning,isPoolLocked:()=>locked,addNames:names=>{
     if(locked || busy)return;
     $('pool-input').value=mergePlayerNames($('pool-input').value,names);
     $('load-pool').click();
   },save:publish,resetDraw:resetDrawState,notify:say,goToFixtures:()=>selectTab($('tab-fixtures'),true)});
-  gameNightUI=createGameNightTools({saveServer:async address=>{if(locked || spinning)throw Error('Finish or reset the current draw before updating the match server.');const next=structuredClone(current);Object.assign(next,parseServerConnection(address));await publish(next,'Update published match server');},getData:()=>current,getDraft:()=>draw,isOrganiser:()=>!!token,isBusy:()=>busy || spinning,refreshDraft:configureDraw,getMaps:selectedMaps,getVoteEvent:()=>loadedDiscordEvent?.id || (rematchSource?current.discordEventId:null),startMapVote:(id,method,maps)=>requestDiscordMapVote(discordEventConfig(),id,method,maps),readMapVote:async id=>(await readPublishedDiscordEvents(discordEventConfig())).data.events.find(event=>event.id===id)?.mapVoteRequest,setMapMethod:method=>{if(!draw || busy || spinning)return;drawnMap=null;draw.mapVeto=[];if(method)draw.mapMethod=method;else delete draw.mapMethod;if(['wheel','case','player-vote'].includes(method)){$('draw-animation').value=method==='player-vote'?'case':method;$('draw-animation').onchange();}configureDraw();controls();},setMap:map=>{drawnMap=map;configureDraw();controls();},notify:say,beginRematch:()=>{
-    if(!token || busy || spinning || current.format!=='single')return;
+  gameNightUI=createGameNightTools({saveServer:async address=>{if(locked || spinning)throw Error('Finish or reset the current draw before updating the match server.');const next=structuredClone(current);Object.assign(next,parseServerConnection(address));await publish(next,'Update published match server');},getData:()=>current,getDraft:()=>draw,isOrganiser:()=>isOrganiser(),isBusy:()=>busy || spinning,refreshDraft:configureDraw,getMaps:selectedMaps,getVoteEvent:()=>loadedDiscordEvent?.id || (rematchSource?current.discordEventId:null),startMapVote:(id,method,maps)=>requestDiscordMapVote(discordEventConfig(),id,method,maps),readMapVote:async id=>(await readPublishedDiscordEvents(discordEventConfig())).data.events.find(event=>event.id===id)?.mapVoteRequest,setMapMethod:method=>{if(!draw || busy || spinning)return;drawnMap=null;draw.mapVeto=[];if(method)draw.mapMethod=method;else delete draw.mapMethod;if(['wheel','case','player-vote'].includes(method)){$('draw-animation').value=method==='player-vote'?'case':method;$('draw-animation').onchange();}configureDraw();controls();},setMap:map=>{drawnMap=map;configureDraw();controls();},notify:say,beginRematch:()=>{
+    if(!isOrganiser() || busy || spinning || current.format!=='single')return;
     if((draw || remaining.length) && !confirm('Replace the unpublished draw with a rematch?'))return;
     const source=structuredClone(current);discordEventUI?.resetChoice();loadedDiscordEvent=null;resetDrawState();rematchSource=JSON.stringify(current);
     $('team-creation').value=$('draw-animation').value;$('team-size').value=String(source.teamSize);$('tournament-format').value='single';$('group-count').value='0';renderMapOptions();
@@ -1491,13 +1512,13 @@ if (typeof document !== 'undefined') (() => {
   function viewerStatus(message){$('viewer-update').textContent=message;}
   async function checkViewerUpdates() {
     if(viewerChecking || document.hidden)return;
-    if(token || busy || spinning || locked || draw || $('options-dialog').open || $('archive-dialog').open){viewerStatus('Automatic updates paused while organising or editing. Reload saved data when ready.');return;}
+    if(isOrganiser() || busy || spinning || locked || draw || $('options-dialog').open || $('archive-dialog').open){viewerStatus('Automatic updates paused while organising or editing. Reload saved data when ready.');return;}
     viewerChecking=true;
     try{
       const response=await fetch('tournament.json?v='+Date.now(),{cache:'no-store'});if(!response.ok)throw Error();
       const next=validateData(await response.json(),resolveTournament);
       // Do not overwrite a connection or edits begun while the request was pending.
-      if(token || busy || spinning || locked || draw || $('options-dialog').open)return;
+      if(isOrganiser() || busy || spinning || locked || draw || $('options-dialog').open)return;
       const changed=JSON.stringify(next)!==JSON.stringify(current);
       if(changed){current=next;renderAll();}
       lastViewerCheck=new Date();viewerStatus((changed?'Results updated · ':'Last checked · ')+lastViewerCheck.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' · Checks every 30 seconds');
@@ -1508,6 +1529,10 @@ if (typeof document !== 'undefined') (() => {
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)void checkViewerUpdates();});
   renderMapOptions();paintWheel([]);renderAll();
   selectLinkedTab();
+  if(localPreview){
+    say('Local organiser preview · Games save in this browser.');
+    return;
+  }
   if(!repository)say('Read-only preview. Deploy with GitHub Actions to enable organiser connection for your repository.');
   let rememberedToken = '';
   try { rememberedToken = localStorage.getItem(tokenStorageKey) || ''; } catch { /* Storage may be disabled by browser settings. */ }

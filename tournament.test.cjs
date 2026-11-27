@@ -105,7 +105,7 @@ test('skip finishes required 5v5 map selection and leaves veto decisions intact'
   for(const veto of [false,true]){
     let mapSelections=0;
     const nodes={'skip-animation':{disabled:false},spin:{onclick:async()=>context.remaining.pop()}};
-    const context={$:id=>nodes[id],remaining:[1,2],token:'test',busy:false,skippingAnimation:false,draw:{format:'single',mapMethod:veto?'veto':'wheel'},drawnMap:null,gameNightUI:{mapCandidates:()=>veto?[]:['Nuke']},stopAutoSpin(){},controls(){},announce(){},spinMap:async()=>{assert.equal(context.skippingAnimation,true);mapSelections++;context.drawnMap='Nuke';}};
+    const context={$:id=>nodes[id],remaining:[1,2],isOrganiser:()=>true,busy:false,skippingAnimation:false,draw:{format:'single',mapMethod:veto?'veto':'wheel'},drawnMap:null,gameNightUI:{mapCandidates:()=>veto?[]:['Nuke']},stopAutoSpin(){},controls(){},announce(){},spinMap:async()=>{assert.equal(context.skippingAnimation,true);mapSelections++;context.drawnMap='Nuke';}};
     vm.runInNewContext(handler,context);await nodes['skip-animation'].onclick();
     assert.equal(context.remaining.length,0);assert.equal(mapSelections,veto?0:1);assert.equal(context.skippingAnimation,false);
   }

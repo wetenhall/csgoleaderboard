@@ -351,6 +351,13 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
       confirm.disabled=true;
       if(method.value==='veto'){
         const bans=draft.mapVeto || [],left=maps.filter(map=>!bans.some(b=>b.map===map)),team=draft.teams[bans.length%2];
+        const history=bans.map(ban=>(draft.teams.find(t=>t.id===ban.teamId)?.name || 'Team')+' bans '+ban.map);
+        if(history.length){
+          const row=element('ol','broadcast-history');
+          row.setAttribute('aria-label','Map bans in order');
+          history.forEach(line=>row.append(element('li','',line)));
+          section.append(row);
+        }
         if(left.length===1){
           const hero=element('div','single-match-map');
           setMapBackdrop(hero,left[0]);
@@ -373,6 +380,7 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
                 renderDraft();
                 draftRoot.querySelector('.map-veto-options button:not(:disabled)')?.focus({preventScroll:true});
               }
+              broadcastBan(team.name+' bans '+map);
             });
             if(!banned){
               card.classList.add('map-picker-card');
