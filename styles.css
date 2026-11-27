@@ -406,6 +406,7 @@ body.waiting-screen-open{overflow:hidden}
 .match-broadcast-status[data-status=playing-now]{border-color:#649b81;color:#a2e5c0}
 .match-broadcast-status[data-status=final]{border-color:#6d7783;color:#e3e8f0}
 .match-broadcast h3{margin:10px 0 18px;text-shadow:0 3px 20px #150b02}
+.single-squads{--match-panel:#11151ce8}
 .match-scoreboard{
   display:grid;
   grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
@@ -413,7 +414,7 @@ body.waiting-screen-open{overflow:hidden}
   max-width:900px;
   margin-inline:auto;
   border:1px solid #56606b;
-  background:#11151ce8;
+  background:var(--match-panel);
 }
 .match-scoreboard-team{
   display:flex;
@@ -728,7 +729,7 @@ body:has(:is(#tab-stats,#tab-history,#tab-team-setup,#tab-fixture-import,#tab-ma
   .fixture-feature .fixture-score{min-width:42px}
   .fixture-feature .fixture-topline{gap:6px}
 }
-.single-match-squads .single-squad{border-top-color:var(--accent)}
+.single-match-squads .single-squad{border-top-color:var(--accent);background:var(--match-panel)}
 .single-match-squads .single-squad:nth-child(2){border-top-color:var(--blue)}
 .single-squad-heading h3{font-size:clamp(22px,3vw,28px)}
 .single-squad-players li{font-size:clamp(17px,2.2vw,21px);padding:9px 0}
