@@ -13,7 +13,7 @@
     "Part",
     "Sam"
   ],
-  "name": "5v5 v3",
+  "name": "custom 5v5",
   "teams": [
     {
       "id": "t1",
@@ -22,23 +22,23 @@
       "players": [
         {
           "id": "p8",
-          "name": "Sam is a bitch"
-        },
-        {
-          "id": "p2",
-          "name": "Ramsten"
+          "name": "finesse"
         },
         {
           "id": "p1",
-          "name": "cantlon"
+          "name": "Mootmanden"
         },
         {
-          "id": "p7",
-          "name": "sAM dropped froppo"
+          "id": "p5",
+          "name": "sAM]"
         },
         {
-          "id": "p6",
-          "name": "finesse"
+          "id": "p10",
+          "name": "Aatori"
+        },
+        {
+          "id": "p2",
+          "name": "jpohan"
         }
       ]
     },
@@ -48,24 +48,24 @@
       "tag": "02",
       "players": [
         {
-          "id": "p10",
-          "name": "Aatori"
+          "id": "p6",
+          "name": "FAROESE BEAST"
         },
         {
           "id": "p3",
-          "name": "Mootmanden"
+          "name": "cantlon"
         },
         {
-          "id": "p4",
-          "name": "jpohan"
+          "id": "p7",
+          "name": "Ramsten"
         },
         {
           "id": "p9",
-          "name": "Dan"
+          "name": "little german boy"
         },
         {
-          "id": "p5",
-          "name": "dingy boater"
+          "id": "p4",
+          "name": "Dan"
         }
       ]
     }
@@ -85,13 +85,13 @@
       ],
       "result": null,
       "label": "Single Game · 5v5",
-      "map": "Nuke"
+      "map": "Cache"
     }
   ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
-    "banner": "5v5 v3",
+    "banner": "custom 5v5",
     "registrationTitle": "Register to play",
     "registrationDescription": "Enter your player name to register for the next 1v1 tournament.\n\nDate: Thursday 29th October \nTime: 7pm GMT"
   },
@@ -137,21 +137,25 @@
     "Anubis",
     "Vertigo",
     "Cache",
+    "Train",
+    "Overpass",
+    "Office",
+    "Italy",
     "Cobblestone"
   ],
   "mapMethod": "veto",
   "mapVeto": [
     {
       "teamId": "t1",
-      "map": "Mirage"
+      "map": "Office"
     },
     {
       "teamId": "t2",
-      "map": "Dust2"
+      "map": "Italy"
     },
     {
       "teamId": "t1",
-      "map": "Cache"
+      "map": "Overpass"
     },
     {
       "teamId": "t2",
@@ -159,20 +163,36 @@
     },
     {
       "teamId": "t1",
-      "map": "Cobblestone"
+      "map": "Ancient"
     },
     {
       "teamId": "t2",
-      "map": "Anubis"
+      "map": "Nuke"
     },
     {
       "teamId": "t1",
-      "map": "Inferno"
+      "map": "Anubis"
     },
     {
       "teamId": "t2",
-      "map": "Ancient"
+      "map": "Inferno"
+    },
+    {
+      "teamId": "t1",
+      "map": "Dust2"
+    },
+    {
+      "teamId": "t2",
+      "map": "Mirage"
+    },
+    {
+      "teamId": "t1",
+      "map": "Train"
+    },
+    {
+      "teamId": "t2",
+      "map": "Cobblestone"
     }
   ],
-  "discordEventId": "28c32de8-c79e-4fb2-90fe-6f8e843978d8"
+  "discordEventId": "7dcc8ee3-dbda-4aed-ba9d-a980e551cb5e"
 }
