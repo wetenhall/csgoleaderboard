@@ -81,8 +81,9 @@ function createDiscordEventLoader({canLoad,load,notify,readEvents,clearEvents}) 
   const select=document.getElementById('discord-event'),refresh=document.getElementById('refresh-discord-events'),status=document.getElementById('discord-event-status');
   const source=document.getElementById('game-source'),choice=document.getElementById('discord-event-choice');
   const clear=document.getElementById('clear-discord-events');
-  let events=[],fetching=false,request=0;
+  let events=[],fetching=false,request=0,sourceChosen=false;
   function render(){
+    if(!sourceChosen && canLoad())source.value=events.length?'discord':'custom';
     const event=source.value==='discord'?events.find(e=>e.id===select.value):null;
     choice.hidden=refresh.hidden=source.value!=='discord';source.disabled=!canLoad();
     select.disabled=fetching || !canLoad();refresh.disabled=fetching || !canLoad();
@@ -102,7 +103,7 @@ function createDiscordEventLoader({canLoad,load,notify,readEvents,clearEvents}) 
     }catch(error){if(id!==request)return;fetching=false;render();status.textContent=error.message;}
   }
   select.onchange=()=>{if(!canLoad() || source.value!=='discord')return;const event=events.find(e=>e.id===select.value) || null;if(load(event)===false)return;render();if(event)notify('Loaded '+event.players.length+' players from '+event.title+'. Choose your format and create teams as usual.');};refresh.onclick=reload;
-  source.onchange=()=>{if(!canLoad())return;load(source.value==='discord'?(events.find(e=>e.id===select.value) || null):null);render();};
+  source.onchange=()=>{if(!canLoad())return;sourceChosen=true;load(source.value==='discord'?(events.find(e=>e.id===select.value) || null):null);render();};
   if(clear)clear.onclick=async()=>{
     if(!canLoad() || fetching || !clearEvents || !events.length)return;
     if(!confirm('Delete all published Discord events from the website and their bot messages in Discord? Discord cleanup runs when the bot is online. Current tournament results will remain.'))return;
@@ -110,6 +111,6 @@ function createDiscordEventLoader({canLoad,load,notify,readEvents,clearEvents}) 
     try{await clearEvents();++request;events=[];select.replaceChildren(new Option('Select a Discord event',''));source.value='custom';load(null);fetching=false;render();notify('Discord events cleared. Discord messages will be deleted on the bot’s next sync while online. The public site updates after deployment.');}
     catch(error){fetching=false;render();status.textContent=error.message;}
   };
-  reload();return {render,getSelectedEvent:()=>source.value==='discord'?(events.find(event=>event.id===select.value) || null):null,resetChoice:()=>{source.value='custom';select.value='';render();}};
+  reload();return {render,getSelectedEvent:()=>source.value==='discord'?(events.find(event=>event.id===select.value) || null):null,resetChoice:()=>{sourceChosen=true;source.value='custom';select.value='';render();}};
 }
 if(typeof module!=='undefined')module.exports={validateDiscordEvents,validateMapVoteRequest,readPublishedDiscordEvents,clearPublishedDiscordEvents,requestDiscordCaptainVote,requestDiscordMapVote};

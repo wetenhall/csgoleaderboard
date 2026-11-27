@@ -337,7 +337,6 @@ if (typeof document !== 'undefined') (() => {
   }
   if(localPreview){
     try { current=loadPreview(); } catch { /* Start with the bundled tournament. */ }
-    $('game-source').querySelector('option[value="discord"]').disabled=true;
   }
   $('game-provider').value=current.gameProvider || 'manual';
   let setupUI=null,featureUI=null,gameNightUI=null,discordEventUI=null,loadedDiscordEvent=null,customPlayerNames='',rematchSource=null;

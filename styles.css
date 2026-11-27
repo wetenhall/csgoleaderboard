@@ -443,7 +443,7 @@ body.waiting-screen-open{overflow:hidden}
   from { opacity: .65; box-shadow: 0 0 4px #f5a62340; }
   to { opacity: 1; box-shadow: 0 0 14px #f5a62399; }
 }
-#open-waiting-screen{margin-inline: auto 0;font-size:12px;white-space:nowrap}
+#open-waiting-screen{display:grid;place-items:center;width:44px;height:44px;padding:0;margin-inline:auto 0;flex:none}
 @media(max-width:600px){.waiting-kicker{letter-spacing:.1em}.waiting-caption{margin-top:24px}.waiting-tournament-name{margin:20px 0}.header-actions{flex-wrap:wrap;justify-content:flex-end}}
 
 .draw-roster .draft-swap-player{width:100%;text-align:left;font:inherit;letter-spacing:normal;text-transform:none;cursor:grab}

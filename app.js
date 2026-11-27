@@ -376,7 +376,7 @@ function rotateMapBanner(node) {
   image.src = original.replace('_1_png.png', suffix + '_png.png');
 }
 
-setInterval(() => {
+if (typeof document !== 'undefined') setInterval(() => {
   if (document.hidden || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   for (const banner of document.querySelectorAll('[data-banner-art]')) {
     const bounds = banner.getBoundingClientRect();
