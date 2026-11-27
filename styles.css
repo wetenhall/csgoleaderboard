@@ -647,9 +647,13 @@ body:has(:is(#tab-stats,#tab-history,#tab-team-setup,#tab-fixture-import,#tab-ma
   margin:0;
 }
 .draw-toolbar-actions .setup-music-icon{
-  width:36px;
-  height:36px;
-  min-height:36px;
+  width:34px;
+  height:34px;
+  min-height:34px;
+}
+.draw-toolbar-actions .setup-music-icon svg{
+  width:20px;
+  height:20px;
 }
 .draw-toolbar-actions .setup-music-panel{
   inset:calc(100% + 8px) 0 auto auto;
@@ -890,7 +894,7 @@ body:has(>.topbar~footer){
   font-weight:700;
 }
 .fullscreen-fallback :is(.draw-toolbar-actions,.spin-actions){gap:6px}
-.fullscreen-fallback :is(.draw-stage-toolbar,.draw-action-bar,.map-method-control) :is(button,select,.auto-spin-toggle){
+.fullscreen-fallback :is(.draw-stage-toolbar,.draw-action-bar,.map-method-control) :is(button,select,.auto-spin-toggle):where(:not(.setup-music-icon)){
   min-height:34px;
   padding:5px 9px;
   font-size:13px;
@@ -1051,6 +1055,35 @@ body:has(>.topbar~footer){
 .fullscreen-fallback.map-veto .draw-progress{display:none}
 .fullscreen-fallback.map-selection-stage .wheel-wrap{max-width:min(460px,34dvh)}
 .map-selection-stage .wheel-panel:has(.case-reel-wrap[hidden]) .draw-progress{display:none}
+#draw-stage.map-result-selected .wheel-panel{display:block}
+#draw-stage.map-result-selected :is(.wheel-wrap,.case-reel-wrap,.draw-progress,.reveal-avatar),
+.map-result-selected.map-veto .map-draw-options .single-match-map{display:none}
+#draw-stage.map-result-selected .player-reveal{
+  display:flex;
+  justify-content:center;
+  min-height:clamp(148px,28dvh,340px);
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:16px;
+  background-color:#1b1c20;
+  text-align:center;
+}
+.map-result-selected .player-reveal.has-map-image{
+  background-image:linear-gradient(180deg,#15171bc9,#32231365 40%,#101318e8),var(--map-image);
+  background-position:center,center 52%;
+}
+.map-result-selected .player-reveal strong{
+  color:var(--accent);
+  font-size:clamp(36px,7dvh,88px);
+  line-height:1.05;
+  text-transform:uppercase;
+  text-shadow:0 3px 16px #000b;
+}
+.map-result-selected .map-vote-cards .map-picker-card{
+  min-height:0;
+  background-image:none;
+}
 .draw-stage.fullscreen-fallback.map-selection-stage .wheel-panel:has(.wheel-wrap:not([hidden]) ~ .player-reveal[hidden]) .wheel-wrap{
   max-width:min(600px,44dvh);
 }
