@@ -1271,13 +1271,13 @@ if (typeof document !== 'undefined') (() => {
   });
   function selectTab(tab, focus = false, updateUrl = true) {
     if(!tab || tab.hidden)tab=defaultTab();
-    if(tab.id!=='tab-team-setup')setupMusic.pause();
     document.body.classList.toggle('viewing-match',tab.id==='tab-leaderboard');
     tabs.forEach(item => {
       const active = item === tab;
       item.setAttribute('aria-selected', String(active)); item.tabIndex = active ? 0 : -1;
       $(item.getAttribute('aria-controls')).hidden = !active;
     });
+    setupMusic.setActive(tab.id==='tab-team-setup' && !!token);
     for(const menu of document.querySelectorAll('.page-tabs,.admin-tabs')){const items=tabs.filter(item=>item.parentElement===menu && !item.hidden);if(items.length && !items.some(item=>item.tabIndex===0))items[0].tabIndex=0;}
     if (updateUrl) history.replaceState(null,'','#'+tab.id.slice(4));
     if (focus) tab.focus();
