@@ -909,7 +909,7 @@ body:has(>.topbar~footer){
 .draw-stage.fullscreen-fallback #case-reel{width:100%;margin:0}
 .draw-stage.fullscreen-fallback .player-reveal{min-height:0;padding:6px 10px;margin-top:6px}
 .fullscreen-fallback .reveal-avatar{width:38px;height:38px}
-.fullscreen-fallback .draw-progress{margin-top:6px;padding-block:8px 10px}
+.fullscreen-fallback .draw-progress{margin-top:8px;padding-block:12px 10px}
 .fullscreen-fallback .draw-progress progress{height:10px;margin-top:7px}
 .draw-stage #draw-announcement:not([data-draw-error]){
   position:absolute;
@@ -949,7 +949,7 @@ body:has(>.topbar~footer){
   border-bottom:0;
 }
 .draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) .draw-progress{
-  padding-block:8px 12px;
+  padding-block:14px 12px;
   border-bottom:1px solid var(--border);
 }
 .draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) #draw-announcement[data-draw-error]{
