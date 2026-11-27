@@ -1441,3 +1441,10 @@ button.secondary:not(.danger, .map-veto-options button):enabled:focus-visible {
 .match-scoreboard-team strong::after,.match-scoreboard-team:last-child strong::after{background:var(--side-colour)}
 .published-faction-logo{width:clamp(28px,4vw,50px);aspect-ratio:1;object-fit:contain;flex:none}
 .single-squad-heading .published-faction-logo{width:clamp(26px,3vw,36px)}
+
+.draw-team .draft-faction-heading{
+  display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:10px;
+}
+.draft-faction-heading .published-faction-logo{grid-area:2 / 1;width:clamp(26px,3.5dvh,34px)}
+.draft-faction-heading input{grid-area:2 / 2;min-width:0}
+.draft-team-caption{grid-column:1 / -1}

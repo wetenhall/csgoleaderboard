@@ -190,6 +190,13 @@ function renderPlayerComparison(root,rows,columns,{title,empty}){
   update();
 }
 
+function factionLogo(index,action='Join'){
+  const logo=element('img','published-faction-logo');
+  logo.src='assets/images/faction-'+(index===0?'t':'ct')+'.png';
+  logo.alt=action+' '+(index===0?'Terrorists (T)':'Counter-Terrorists (CT)');
+  logo.title=logo.alt;
+  return logo;
+}
 function teamEmblem(team, symbol) {
   const numberLabel=team.tag || team.id.replace(/[^0-9]/g,'').padStart(2,'0');
   const badge=element('span','team-emblem',symbol ? '' : numberLabel);
@@ -363,8 +370,15 @@ async function downloadMatchImage(data) {
     }
   }
   text('SELECTED MAP / CUSTOM '+data.teamSize+'V'+data.teamSize,800,90,22,'#ff9b01',1400,'center');text((match.map || 'Map pending').toUpperCase(),800,205,100,'#ff9b01',1400,'center');
-  match.ids.forEach((id,i)=>{const team=state.teams.get(id),x=30+i*785,color=i===0?'#70b4cd':'#ff9b01';ctx.fillStyle='#23272f';ctx.fillRect(x,290,755,570);ctx.strokeStyle='#424b55';ctx.strokeRect(x,290,755,570);ctx.fillStyle=color;ctx.fillRect(x,290,755,4);
-    text(team.name,x+30,365,42,'#f4f4f4',570);text(match.result?String(match.result.scores[i]):'—',x+715,365,42,'#ff9b01',100,'right');text(match.winner===id?'WINNERS':team.players.length+' PLAYER'+(team.players.length===1?'':'S'),x+30,410,20,'#ff9b01');
+  const logos=await Promise.all(['t','ct'].map(async side=>{
+    const image=new Image();
+    image.src='assets/images/faction-'+side+'.png';
+    await image.decode();
+    return image;
+  }));
+  match.ids.forEach((id,i)=>{const team=state.teams.get(id),x=30+i*785,color=i===0?'#f2c451':'#78bde8';ctx.fillStyle='#23272f';ctx.fillRect(x,290,755,570);ctx.strokeStyle='#424b55';ctx.strokeRect(x,290,755,570);ctx.fillStyle=color;ctx.fillRect(x,290,755,4);
+    ctx.drawImage(logos[i],x+28,316,72,72);
+    text(team.name,x+116,365,42,'#f4f4f4',490);text(match.result?String(match.result.scores[i]):'—',x+715,365,42,'#ff9b01',100,'right');text(match.winner===id?'WINNERS':team.players.length+' PLAYER'+(team.players.length===1?'':'S'),x+30,410,20,'#ff9b01');
     team.players.forEach((player,j)=>{const y=445+j*76;ctx.strokeStyle='#424b55';ctx.beginPath();ctx.moveTo(x+30,y);ctx.lineTo(x+725,y);ctx.stroke();text(String(j+1).padStart(2,'0'),x+30,y+48,18,'#b8bcbf',35);text(player.name+(team.captainId===player.id?' (C)':''),x+80,y+48,34,'#f4f4f4',640);});
   });
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('Could not create match image.');
@@ -492,11 +506,7 @@ function renderTournament(data) {
       const side=element('div','match-scoreboard-team'+(match.winner===id?' is-winner':''));
       const name=element('strong');
       name.append(glitchLabel(team.name));
-      const faction=i===0?'Terrorists (T)':'Counter-Terrorists (CT)';
-      const logo=element('img','published-faction-logo');
-      logo.src='assets/images/faction-'+(i===0?'t':'ct')+'.png';
-      logo.alt=(match.result?'Started as ':'Join ')+faction;
-      logo.title=logo.alt;
+      const logo=factionLogo(i,match.result?'Started as':'Join');
       side.append(logo,name);
       scoreboard.append(side);
       if(i===0)scoreboard.append(score);

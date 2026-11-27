@@ -25,40 +25,20 @@ async function renderTeamAnnouncementImages(data,request=fetch){
   return renderTeamImages(data,backdrop);
 }
 
-function drawShield(ctx,x,y,colour,symbol){
-  ctx.save();
-  ctx.translate(x,y);
-  ctx.fillStyle=colour;
-  ctx.beginPath();
-  [[5,0],[45,0],[50,8],[45,42],[25,54],[5,42],[0,8]].forEach(([a,b],index)=>{
-    if(index===0)ctx.moveTo(a,b);else ctx.lineTo(a,b);
-  });
-  ctx.closePath();ctx.fill();
-  ctx.fillStyle='#141920';
-  ctx.translate(25,24);
-  ctx.beginPath();
-  if(symbol==='star'){
-    for(let i=0;i<10;i++){
-      const angle=-Math.PI/2+i*Math.PI/5,radius=i%2?6:15;
-      const a=Math.cos(angle)*radius,b=Math.sin(angle)*radius;
-      if(i===0)ctx.moveTo(a,b);else ctx.lineTo(a,b);
-    }
-  }else{
-    [[-17,-10],[-6,-4],[0,-10],[6,-4],[17,-10],[12,1],[7,4],[5,10],[0,14],[-5,10],[-7,4],[-12,1]].forEach(([a,b],index)=>{
-      if(index===0)ctx.moveTo(a,b);else ctx.lineTo(a,b);
-    });
-  }
-  ctx.closePath();ctx.fill();ctx.restore();
-}
-
-function renderTeamImages(data,backdrop=null){
-  const {createCanvas,GlobalFonts}=require('@napi-rs/canvas');
+async function renderTeamImages(data,backdrop=null){
+  const {createCanvas,GlobalFonts,loadImage}=require('@napi-rs/canvas');
   if(!fontLoaded){
     GlobalFonts.registerFromPath(path.join(__dirname,'../assets/fonts/Rajdhani-Bold.ttf'),'Rajdhani');
     fontLoaded=true;
   }
-  const images=[],teams=data.teams || [];
+  const images=[];
+  let teams=data.teams || [];
   const single=data.format==='single' && teams.length===2;
+  const logos=single?await Promise.all(['t','ct'].map(side=>loadImage(path.join(__dirname,'../assets/images/faction-'+side+'.png')))):null;
+  if(single && data.matches?.[0]?.sources){
+    const ordered=data.matches[0].sources.map(source=>teams.find(team=>team.id===source.team));
+    if(ordered.length===2 && ordered.every(Boolean))teams=ordered;
+  }
   const map=single?data.matches?.[0]?.map:null;
   const title=data.headers?.banner || data.name || 'Teams';
   const format=data.teamSize+'V'+data.teamSize;
@@ -99,8 +79,8 @@ function renderTeamImages(data,backdrop=null){
       ctx.fillStyle=accent;ctx.fillRect(115,195,4,78);
       ctx.fillStyle=blue;ctx.fillRect(1481,195,4,78);
       ctx.strokeStyle=border;ctx.beginPath();ctx.moveTo(738,195);ctx.lineTo(738,273);ctx.moveTo(862,195);ctx.lineTo(862,273);ctx.stroke();
-      drawShield(ctx,139,207,accent,'star');
-      drawShield(ctx,1411,207,blue,'wings');
+      ctx.drawImage(logos[0],134,203,62,62);
+      ctx.drawImage(logos[1],1404,203,62,62);
       text(teams[0].name,207,250,42,'#f4f4f4',506);
       text('VS',800,249,38,'#f8ecce',108,'center');
       text(teams[1].name,1393,250,42,'#f4f4f4',506,'right');
@@ -115,8 +95,10 @@ function renderTeamImages(data,backdrop=null){
       ctx.fillStyle='#22262e';ctx.fillRect(x,y,760,cardHeight);
       ctx.strokeStyle='#424b55';ctx.strokeRect(x,y,760,cardHeight);
       ctx.fillStyle=colour;ctx.fillRect(x,y,760,3);
-      text(team.name+(single?' roster':''),x+26,y+47,39,'#f4f4f4',708);
-      text(players.length+' PLAYER'+(players.length===1?'':'S'),x+26,y+79,21,colour);
+      const headingX=single?94:26;
+      if(single)ctx.drawImage(logos[i],x+22,y+20,60,60);
+      text(team.name+(single?' roster':''),x+headingX,y+47,39,'#f4f4f4',734-headingX);
+      text(players.length+' PLAYER'+(players.length===1?'':'S'),x+headingX,y+79,21,colour);
       players.forEach((player,j)=>{
         const line=y+99+j*70;
         ctx.strokeStyle='#424b55';ctx.beginPath();ctx.moveTo(x+26,line);ctx.lineTo(x+734,line);ctx.stroke();

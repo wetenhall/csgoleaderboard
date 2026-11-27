@@ -46,8 +46,20 @@ function createSetupMusic(){
     }
   }
   audio.onplay=audio.onpause=syncPlayback;
-  volume.oninput=()=>{audio.volume=Number(volume.value)/100;syncPlayback();};
-  volume.oninput();
+  const volumeKey='friends-cup.music-volume';
+  try {
+    const saved=localStorage.getItem(volumeKey);
+    if(saved!==null && /^(?:100|[1-9]?\d)$/.test(saved))volume.value=saved;
+  } catch { /* Storage may be unavailable. */ }
+  function applyVolume(){
+    audio.volume=Number(volume.value)/100;
+    syncPlayback();
+  }
+  applyVolume();
+  volume.oninput=()=>{
+    applyVolume();
+    try { localStorage.setItem(volumeKey,volume.value); } catch { /* Keep the current session volume. */ }
+  };
   toggle.onclick=()=>{
     manuallyPaused=!audio.paused;
     if(manuallyPaused)audio.pause();
