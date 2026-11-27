@@ -1,8 +1,41 @@
 {
   "version": 1,
   "hubId": "72f315f4-d4a0-4fe4-b520-b5076e6d9627",
-  "updatedAt": "2026-11-27T17:44:15.949Z",
+  "updatedAt": "2026-11-27T17:49:16.180Z",
   "games": [
+    {
+      "id": "1-433bc3c0-f752-42df-ba17-e388ec90e956:0",
+      "matchId": "1-433bc3c0-f752-42df-ba17-e388ec90e956",
+      "provider": "faceit",
+      "map": "aim_map_faceit",
+      "finishedAt": 1795801744,
+      "teams": [
+        {
+          "name": "Team",
+          "score": 14,
+          "players": [
+            {
+              "name": "ABigClock",
+              "kills": 14,
+              "deaths": 16,
+              "assists": 0
+            }
+          ]
+        },
+        {
+          "name": "Team",
+          "score": 16,
+          "players": [
+            {
+              "name": "Froppo",
+              "kills": 16,
+              "deaths": 14,
+              "assists": 0
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": "1-a312ac1c-47bd-4bdd-8189-9203272fb6fe:0",
       "matchId": "1-a312ac1c-47bd-4bdd-8189-9203272fb6fe",
