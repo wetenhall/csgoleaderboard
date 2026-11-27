@@ -313,11 +313,74 @@ body.waiting-screen-open{overflow:hidden}
 .waiting-tournament-name{font:700 clamp(18px,2.4vw,36px) var(--heading,var(--mono));text-transform:uppercase;letter-spacing:.08em;margin:30px 0}
 .waiting-divider{width:80px;height:5px;background:var(--accent);margin-bottom:32px}
 .waiting-screen #waiting-heading{font-family:var(--heading,var(--mono));font-size:clamp(36px,6.8vw,108px);font-weight:800;line-height:1.08;letter-spacing:-.025em;text-transform:uppercase;margin:0;max-width:1150px}
-.waiting-screen #waiting-heading span{color:var(--accent)}
+.waiting-line{display:block;position:relative;width:fit-content;max-width:100%}
+.waiting-words{display:block}
+.waiting-period{color:var(--accent)}
+@media (prefers-reduced-motion: no-preference) {
+  .waiting-screen[open] .waiting-line { --intro-delay: 140ms; overflow: hidden; }
+  .waiting-screen[open] .waiting-line + .waiting-line { --intro-delay: 390ms; }
+  .waiting-screen[open] .waiting-line::after {
+    content: '';
+    position: absolute;
+    inset: 0 -8%;
+    pointer-events: none;
+    background: linear-gradient(110deg, var(--accent) 0 89%, #ffd071 89% 92%, transparent 92% 94%, var(--accent) 94% 97%, transparent 97%);
+    animation: waiting-title-wipe 10s cubic-bezier(.65,0,.25,1) var(--intro-delay) infinite both;
+  }
+  .waiting-screen[open] .waiting-words {
+    animation: waiting-title-lock 10s ease-out var(--intro-delay) infinite both;
+  }
+}
+@keyframes waiting-title-wipe {
+  0% { transform: translateX(-102%) skewX(-9deg); }
+  4.5% { transform: translateX(0) skewX(-9deg); }
+  9.5%, 100% { transform: translateX(102%) skewX(-9deg); }
+}
+@keyframes waiting-title-lock {
+  0%, 4% { opacity: 0; transform: translateX(-.24em) skewX(-7deg); }
+  5% { opacity: 1; color: var(--accent); }
+  9.5%, 100% { opacity: 1; transform: none; color: inherit; }
+}
 .waiting-caption{display:flex;align-items:center;gap:12px;color:#b6bbc1;font-size:clamp(14px,1.5vw,21px);margin-top:36px}
 .waiting-dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 20px #f5a62366}
 .waiting-screen .waiting-close{position:absolute;right:clamp(12px,3vw,24px);bottom:clamp(12px,3vw,24px);margin:0;background:#1b2530;color:#f4f4f3}
 .waiting-screen .waiting-close:hover{border-color:var(--accent)}
+@media (prefers-reduced-motion: no-preference) {
+  .waiting-screen[open] {
+    isolation: isolate;
+    background: #101216;
+  }
+  .waiting-screen[open]::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 80% 65%, #f5a62317, transparent 55%),
+      linear-gradient(110deg, #0d0f12f2, #0d0f12d4),
+      url('assets/images/counter-strike-background.jpg') center/cover;
+    animation: waiting-camera 14s ease-in-out infinite alternate;
+  }
+  .waiting-screen[open] .waiting-divider {
+    transform-origin: left;
+    animation: waiting-divider-intro 680ms cubic-bezier(.2,.7,.3,1) both;
+  }
+  .waiting-screen[open] .waiting-dot {
+    animation: waiting-pulse 3s ease-in-out infinite alternate;
+  }
+}
+@keyframes waiting-camera {
+  from { transform: scale(1.04) translate(-1.4%, -.6%); }
+  to { transform: scale(1.18) translate(1.4%, .6%); }
+}
+@keyframes waiting-divider-intro {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes waiting-pulse {
+  from { opacity: .65; box-shadow: 0 0 4px #f5a62340; }
+  to { opacity: 1; box-shadow: 0 0 14px #f5a62399; }
+}
 #open-waiting-screen{margin-inline: auto 0;font-size:12px;white-space:nowrap}
 @media(max-width:600px){.waiting-kicker{letter-spacing:.1em}.waiting-caption{margin-top:24px}.waiting-tournament-name{margin:20px 0}.header-actions{flex-wrap:wrap;justify-content:flex-end}}
 

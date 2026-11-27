@@ -887,7 +887,10 @@ if (typeof document !== 'undefined') (() => {
   document.addEventListener('click',event=>{
     const control=event.target.closest('button[role="tab"],.setup-navigation>button,.draw-toolbar-actions>button');
     if(!event.isTrusted || !control || control.disabled || !soundEnabled)return;
-    menuTap ||= new Audio('assets/audio/menu-tap.wav');
+    if (!menuTap) {
+      menuTap = new Audio('assets/audio/menu-tap.wav');
+      menuTap.volume = 0.45;
+    }
     menuTap.currentTime=0;
     menuTap.play().catch(()=>{}); // Navigation still works when playback is blocked.
   });
