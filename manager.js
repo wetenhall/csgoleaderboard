@@ -1180,12 +1180,6 @@ if (typeof document !== 'undefined') (() => {
   document.addEventListener('keydown',event=>{if(event.key==='Escape' && expandedDraw){event.preventDefault();setExpandedDraw(false);}});
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
   const tabs = Array.from(document.querySelectorAll('.page-tabs [role="tab"], .admin-tabs [role="tab"]'));
-  const organiserMenu=$('organiser-menu');
-  organiserMenu.addEventListener('keydown',event=>{
-    if(event.key!=='Escape' || !organiserMenu.open)return;
-    organiserMenu.open=false;
-    organiserMenu.querySelector('summary').focus();
-  });
   function defaultTab(){return current.registrationEnabled!==false && !token ? $('tab-register') : $('tab-leaderboard');}
   let registrationSubmitting=false;
   $('registration-form').addEventListener('submit',async event=>{
@@ -1210,9 +1204,6 @@ if (typeof document !== 'undefined') (() => {
   });
   function selectTab(tab, focus = false, updateUrl = true) {
     if(!tab || tab.hidden)tab=defaultTab();
-    const adminTab=organiserMenu.contains(tab);
-    organiserMenu.classList.toggle('is-active',adminTab);
-    if(!adminTab)organiserMenu.open=false;
     document.body.classList.toggle('viewing-match',tab.id==='tab-leaderboard');
     tabs.forEach(item => {
       const active = item === tab;
@@ -1229,13 +1220,7 @@ if (typeof document !== 'undefined') (() => {
   }
   window.addEventListener('hashchange',selectLinkedTab);
   tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      selectTab(tab);
-      if(organiserMenu.contains(tab)){
-        organiserMenu.open=false;
-        $(tab.getAttribute('aria-controls')).focus();
-      }
-    });
+    tab.addEventListener('click', () => selectTab(tab));
     tab.addEventListener('keydown', event => {
       const visibleTabs = tabs.filter(item => !item.hidden && item.parentElement===tab.parentElement), index = visibleTabs.indexOf(tab);
       const target = event.key === 'ArrowRight' ? (index+1)%visibleTabs.length : event.key === 'ArrowLeft' ? (index+visibleTabs.length-1)%visibleTabs.length : event.key === 'Home' ? 0 : event.key === 'End' ? visibleTabs.length-1 : null;
