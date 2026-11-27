@@ -13,7 +13,7 @@
     "Part",
     "Sam"
   ],
-  "name": "custom 5v5",
+  "name": "5v5 gaming",
   "teams": [
     {
       "id": "t1",
@@ -21,23 +21,23 @@
       "tag": "01",
       "players": [
         {
-          "id": "p2",
-          "name": "jpohan"
-        },
-        {
-          "id": "p3",
+          "id": "p1",
           "name": "cantlon"
         },
         {
-          "id": "p1",
-          "name": "Mootmanden"
-        },
-        {
-          "id": "p10",
+          "id": "p6",
           "name": "Aatori"
         },
         {
           "id": "p8",
+          "name": "sAM"
+        },
+        {
+          "id": "p4",
+          "name": "LilRibe"
+        },
+        {
+          "id": "p3",
           "name": "finesse"
         }
       ]
@@ -49,23 +49,23 @@
       "players": [
         {
           "id": "p7",
-          "name": "Ramsten"
+          "name": "alcoholic coach"
         },
         {
-          "id": "p6",
-          "name": "FAROESE BEAST"
+          "id": "p10",
+          "name": "astrooooooo"
         },
         {
           "id": "p9",
-          "name": "little german boy"
-        },
-        {
-          "id": "p4",
-          "name": "Dan"
+          "name": "Grayzee"
         },
         {
           "id": "p5",
-          "name": "sAM]"
+          "name": "</theFOUR>"
+        },
+        {
+          "id": "p2",
+          "name": "Mootmanden"
         }
       ]
     }
@@ -85,13 +85,13 @@
       ],
       "result": null,
       "label": "Single Game · 5v5",
-      "map": "Nuke"
+      "map": "Cache"
     }
   ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
-    "banner": "custom 5v5",
+    "banner": "5v5 gaming",
     "registrationTitle": "Register to play",
     "registrationDescription": "Enter your player name to register for the next 1v1 tournament.\n\nDate: Thursday 29th October \nTime: 7pm GMT"
   },
@@ -140,12 +140,9 @@
     "Ancient",
     "Anubis",
     "Vertigo",
-    "Cache",
-    "Train",
-    "Overpass",
-    "Office",
-    "Italy",
-    "Cobblestone"
+    "Cache"
   ],
-  "discordEventId": "7dcc8ee3-dbda-4aed-ba9d-a980e551cb5e"
+  "mapMethod": "wheel",
+  "mapVeto": [],
+  "discordEventId": "acaea97d-4280-461b-8f87-2ec6a4b47c79"
 }
