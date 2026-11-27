@@ -1432,8 +1432,10 @@ if (typeof document !== 'undefined') (() => {
   const tabs = Array.from(document.querySelectorAll('.page-tabs [role="tab"], .admin-tabs [role="tab"]'));
   const setupMusic=createSetupMusic();
   function positionSetupMusic(){
-    const anchor=expandedDraw?fullscreenButton:
-      $('setup-stage-1').hidden?$('setup-music-audio'):$('setup-next-1');
+    const stage=document.querySelector('.setup-stage:not([hidden])');
+    const inDraw=expandedDraw || (stage?.id==='setup-stage-4' && $('draw-panel').classList.contains('live-draw'));
+    const anchor=inDraw?fullscreenButton:stage?.querySelector(':scope > .setup-navigation > button');
+    if(!anchor)return;
     setupMusic.moveControls(anchor);
   }
   function defaultTab(){return current.registrationEnabled!==false && !isOrganiser() ? $('tab-register') : $('tab-leaderboard');}
