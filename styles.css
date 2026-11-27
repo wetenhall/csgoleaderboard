@@ -1510,17 +1510,25 @@ button.secondary:not(.danger, .map-veto-options button):enabled:focus-visible {
   overflow: clip;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .map-banner-fading::after {
+  [data-banner-art]::before,
+  [data-banner-art]::after {
     content: '';
     position: absolute;
     inset: -8px;
     z-index: -1;
     pointer-events: none;
-    background-image: var(--next-banner-layers);
+    background-image: inherit;
     background-position: inherit;
     background-size: cover;
-    transform: translate3d(calc(var(--backdrop-x, 0px) * .5), calc(var(--backdrop-y, 0px) * .5), 0);
-    animation: banner-art-arrive 2s ease-in-out both;
+    translate: calc(var(--backdrop-x, 0px) * .5) calc(var(--backdrop-y, 0px) * .5);
+    animation: waiting-camera 14s ease-in-out infinite alternate;
+  }
+  [data-banner-art]::after {
+    opacity: 0;
+    background-image: var(--next-banner-layers, none);
+  }
+  [data-banner-art].map-banner-fading::after {
+    animation: waiting-camera 14s ease-in-out infinite alternate, banner-art-arrive 2s ease-in-out both;
   }
 }
 @keyframes banner-art-arrive {
