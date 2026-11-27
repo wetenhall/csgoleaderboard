@@ -272,6 +272,7 @@ async function downloadMatchImage(data) {
 }
 
 function renderTournament(data) {
+  document.body.classList.toggle('has-match-broadcast',data.format==='single' && data.teamSize>=2 && data.teams.length>0);
   document.getElementById('bracket-heading').textContent=data.format==='single'?'Custom match':'Playoffs';
   document.getElementById('bracket-heading').nextElementSibling.textContent=data.format==='single'?'TWO SQUADS / ONE GAME':'WIN AND ADVANCE';
   const qualifiers = data.qualifiersPerGroup ?? 2;
@@ -359,8 +360,8 @@ function renderTournament(data) {
   }
   const singleSquads=data.format==='single' && data.teamSize>=2;
   const leaderboardTab=document.getElementById('tab-leaderboard');
-  leaderboardTab.textContent=singleSquads?'Match':'Leader board';
-  leaderboardTab.setAttribute('aria-label',singleSquads?'Match':'Leader board');
+  leaderboardTab.textContent=singleSquads?'Match':'Tournament';
+  leaderboardTab.setAttribute('aria-label',leaderboardTab.textContent);
   document.getElementById('teams').closest('section').hidden=singleSquads;
   document.getElementById('team-awards-heading').closest('section').hidden=singleSquads;
   document.getElementById('champion').closest('section').hidden=singleSquads;
@@ -369,15 +370,28 @@ function renderTournament(data) {
   bracketRoot.classList.toggle('single-squads',singleSquads);
   bracketRoot.classList.toggle('double-bracket',data.format==='double');
   if(singleSquads){
-    const match=matches[0],hero=element('div','single-match-map');
+    const match=matches[0],hero=element('div','single-match-map match-broadcast');
+    const status=match.result?'Final':data.activeMatchId===match.id?'Playing now':'Upcoming';
     setMapBackdrop(hero,match.map);
-    hero.append(element('span','eyebrow','SELECTED MAP / CUSTOM '+data.teamSize+'V'+data.teamSize),element('h3','',match.map || 'Map pending'));
+    const meta=element('div','match-broadcast-meta');
+    const statusBadge=element('span','match-broadcast-status',status);
+    statusBadge.dataset.status=status.toLowerCase().replaceAll(' ','-');
+    meta.append(element('span','eyebrow','Custom '+data.teamSize+'v'+data.teamSize),statusBadge);
+    const scoreboard=element('div','match-scoreboard');
+    const scoreLabel=match.result?match.result.scores.join(' to '):'No score recorded';
+    const score=element('div','match-broadcast-score',match.result?match.result.scores.join(' : '):'VS');
+    score.setAttribute('aria-label',scoreLabel);
+    hero.append(meta,element('h3','',match.map || 'Map pending'),scoreboard,element('div','match-broadcast-connect'));
     bracketRoot.append(hero);
     const squads=element('div','single-match-squads');
     match.ids.forEach((id,i)=>{
       const team=teams.get(id),card=element('article','single-squad'+(match.winner===id?' is-winner':''));
+      const side=element('div','match-scoreboard-team'+(match.winner===id?' is-winner':''));
+      side.append(teamEmblem(team,i===0?'t':'ct'),element('strong','',team.name));
+      scoreboard.append(side);
+      if(i===0)scoreboard.append(score);
       const heading=element('div','single-squad-heading');
-      heading.append(teamEmblem(team,i===0?'t':'ct'),element('h3','',team.name),element('strong','single-squad-score',match.result?String(match.result.scores[i]):'—'));
+      heading.append(element('h3','',team.name+' roster'));
       card.append(heading,element('p','eyebrow',match.winner===id?'WINNERS':team.players.length+' PLAYER'+(team.players.length===1?'':'S')));
       const roster=element('ol','single-squad-players');
       team.players.forEach(player=>roster.append(element('li','',player.name+(team.captainId===player.id?' · Captain':''))));

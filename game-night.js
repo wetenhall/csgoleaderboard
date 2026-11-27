@@ -134,7 +134,7 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
     publicRoot.replaceChildren();document.querySelector('[data-match-connect]')?.remove();let connectButton=null;const data=getData(),actions=element('div','game-actions');
     if(data.teams.length)actions.append(makeButton('Copy match details for Discord',()=>copy(discordMatchText(getData(),resolveTournament))));
     if(data.serverAddress){
-      const connection=parseServerConnection(serverConnectionCommand(data)),connect=element('a','connect-launch match-connect','Connect to server');connect.dataset.matchConnect='';connectButton=connect;
+      const connection=parseServerConnection(serverConnectionCommand(data)),connect=element('a','connect-launch match-connect','Connect to match');connect.dataset.matchConnect='';connectButton=connect;
       connect.href='steam://connect/'+connection.serverAddress+(connection.serverPassword?'/'+encodeURIComponent(connection.serverPassword):'');
       actions.append(makeButton('Copy server connection',()=>copy(serverConnectionCommand(getData()))));
     }
@@ -142,7 +142,7 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
     const matchActions=document.querySelector('.match-published-actions');
     if(matchActions){actions.classList.add('match-extra-actions');matchActions.querySelector('.match-extra-actions')?.remove();matchActions.append(actions);}
     else publicRoot.append(actions);
-    if(connectButton){if(matchActions)matchActions.before(connectButton);else publicRoot.prepend(connectButton);}
+    if(connectButton)(document.querySelector('.match-broadcast-connect') || publicRoot).prepend(connectButton);
     if(data.format==='single' && data.teams.length){
       const form=element('form','setup-card');form.dataset.serverEditor='';form.id='match-server-editor';
       const toggle=makeButton('Add server',()=>{serverEditorOpen=!serverEditorOpen;controls();if(serverEditorOpen)form.querySelector('input').focus();});toggle.dataset.serverToggle='';toggle.setAttribute('aria-controls',form.id);toggle.classList.remove('secondary');actions.append(toggle);

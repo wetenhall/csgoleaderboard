@@ -307,13 +307,7 @@ body.waiting-screen-open{overflow:hidden}
 .draw-roster .draft-swap-player[aria-pressed=true],.draw-roster .draft-swap-player.swap-drop-target{border-color:var(--accent);background:#ff9b011a}
 .draft-swap-status:empty{margin:0}
 
-.has-map-image{
-  background-image:linear-gradient(105deg,#1d160bdf,#24190baa,#1d160bdf),var(--map-image);
-  background-position:center;
-  background-size:cover;
-}
-
-.single-squad-heading .team-emblem{
+.match-scoreboard-team .team-emblem{
   display:inline-grid;
   color:#111820;
 }
@@ -337,6 +331,164 @@ body.waiting-screen-open{overflow:hidden}
   clip-path:polygon(0 7%,33% 28%,50% 9%,67% 28%,100% 7%,90% 39%,73% 47%,88% 47%,76% 68%,66% 68%,62% 84%,50% 100%,38% 84%,34% 68%,24% 68%,12% 47%,27% 47%,10% 39%);
 }
 @media(max-width:600px){
-  .single-squad-heading .team-emblem{width:28px;height:32px}
   .squad-emblem-icon{transform:scale(.75)}
+}
+
+.has-map-image{
+  background-image:linear-gradient(105deg,#1d160bdf,#24190baa,#1d160bdf),var(--map-image);
+  background-position:center;
+  background-size:cover;
+}
+
+/* Event navigation and the single-match broadcast. */
+.event-navigation{
+  display:flex;
+  align-items:stretch;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:24px;
+  border-bottom:1px solid var(--border);
+}
+.event-navigation>.page-tabs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px;
+  margin:0;
+  border:0;
+  background:none;
+}
+.event-navigation>.page-tabs button{padding:12px 18px;flex:0 0 auto}
+.event-navigation .page-tabs button::before{content:none}
+.organiser-menu{position:relative;flex:none}
+.organiser-menu>summary{
+  cursor:pointer;
+  list-style:none;
+  padding:12px 14px;
+  border:1px solid var(--border);
+  background:#191d25;
+  color:var(--text);
+  font:700 13px/1.2 var(--mono);
+}
+.organiser-menu>summary::-webkit-details-marker{display:none}
+.organiser-menu>summary::after{content:'▾';margin-left:9px;color:var(--accent)}
+.organiser-menu:is([open],.is-active)>summary{border-color:var(--accent)}
+.organiser-menu-panel{
+  position:absolute;
+  right:0;
+  top:calc(100% + 6px);
+  z-index:5;
+  width:min(220px,80vw);
+  padding:8px;
+  border:1px solid var(--border);
+  background:#191d25;
+  box-shadow:0 12px 24px #0008;
+}
+.organiser-menu .admin-tabs{display:grid;grid-template-columns:1fr;border:0;background:none}
+.organiser-menu .admin-tabs button,.organiser-menu .organiser-settings{
+  width:100%;
+  min-height:42px;
+  margin:0;
+  padding:9px 12px;
+  text-align:left;
+}
+.organiser-menu .organiser-settings{font-size:13px}
+.has-match-broadcast.viewing-match .intro{
+  margin:0 0 18px;
+  padding:0;
+  background:none;
+  color:var(--text);
+}
+.has-match-broadcast.viewing-match .intro h1{font-size:clamp(26px,4.4vw,44px);color:var(--text)}
+.has-match-broadcast.viewing-match .intro h1 span{color:var(--accent)}
+.has-match-broadcast.viewing-match .intro :is(.eyebrow,.subtitle,.broadcast-state),
+.has-match-broadcast.viewing-match .overview,
+.has-match-broadcast.viewing-match .section-heading:has(>#bracket-heading){display:none}
+.match-broadcast{
+  padding:clamp(16px,3vw,36px);
+  margin-bottom:18px;
+  background-color:#1b1c20;
+  border-top-width:3px;
+}
+.match-broadcast.has-map-image{
+  background-image:linear-gradient(180deg,#15171bd9 0%,#412b0d50 30%,#211a13a6 52%,#101318f5 88%),var(--map-image);
+  background-position:center,center 52%;
+}
+.match-broadcast-meta{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.match-broadcast-meta .eyebrow,.match-broadcast-status{
+  margin:0;
+  font:700 12px/1.25 var(--mono);
+  text-transform:uppercase;
+  letter-spacing:.09em;
+}
+.match-broadcast-status{padding:6px 10px;border:1px solid #aa813a;background:#171619;color:#ffd28a}
+.match-broadcast-status[data-status=playing-now]{border-color:#649b81;color:#a2e5c0}
+.match-broadcast-status[data-status=final]{border-color:#6d7783;color:#e3e8f0}
+.match-broadcast h3{margin:10px 0 18px;text-shadow:0 3px 20px #150b02}
+.match-scoreboard{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:stretch;
+  max-width:900px;
+  margin-inline:auto;
+  border:1px solid #56606b;
+  background:#11151ce8;
+}
+.match-scoreboard-team{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+  padding:14px 18px;
+  text-align:left;
+  border-inline-start:3px solid var(--accent);
+}
+.match-scoreboard-team:last-child{
+  flex-direction:row-reverse;
+  text-align:right;
+  border-inline-start:0;
+  border-inline-end:3px solid var(--blue);
+}
+.match-scoreboard-team strong{font-size:clamp(17px,3vw,32px);line-height:1.05;overflow-wrap:anywhere}
+.match-scoreboard-team.is-winner{background:#e8aa3026}
+.match-broadcast-score{
+  display:grid;
+  place-items:center;
+  min-width:80px;
+  padding:0 14px;
+  color:#f8ecce;
+  border-inline:1px solid #56606b;
+  font:700 clamp(20px,4vw,44px)/1 var(--mono);
+  white-space:nowrap;
+}
+.match-broadcast-connect:empty{display:none}
+.match-broadcast-connect .match-connect{
+  display:inline-flex;
+  justify-content:center;
+  width:auto;
+  min-width:180px;
+  margin:16px 0 0;
+  padding:11px 20px;
+  font-size:17px;
+}
+.single-match-squads .single-squad{border-top-color:var(--accent)}
+.single-match-squads .single-squad:nth-child(2){border-top-color:var(--blue)}
+.single-squad-heading h3{font-size:clamp(22px,3vw,28px)}
+.single-squad-players li{font-size:clamp(17px,2.2vw,21px);padding:9px 0}
+@media(max-width:600px){
+  .event-navigation{gap:5px;margin-bottom:16px}
+  .event-navigation>.page-tabs{gap:0}
+  .event-navigation>.page-tabs button{padding:10px 8px;font-size:11px}
+  .organiser-menu>summary{padding:10px 8px;font-size:11px}
+  .organiser-menu>summary::after{margin-left:4px}
+  .match-broadcast h3{font-size:clamp(32px,11vw,58px)}
+  .match-scoreboard-team,.match-scoreboard-team:last-child{
+    flex-direction:column;
+    justify-content:center;
+    gap:5px;
+    padding:9px 5px;
+    text-align:center;
+  }
+  .match-scoreboard-team .team-emblem{width:28px;height:32px}
+  .match-broadcast-score{min-width:44px;padding:0 6px}
+  .single-match-squads{grid-template-columns:1fr}
 }
