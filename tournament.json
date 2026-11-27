@@ -13,7 +13,7 @@
     "Part",
     "Sam"
   ],
-  "name": "5v5 game v2",
+  "name": "5v5 number 3",
   "teams": [
     {
       "id": "t1",
@@ -21,24 +21,24 @@
       "tag": "01",
       "players": [
         {
-          "id": "p8",
-          "name": "ECKS"
-        },
-        {
-          "id": "p5",
-          "name": "sAM"
-        },
-        {
           "id": "p1",
           "name": "cantlon"
         },
         {
-          "id": "p3",
-          "name": "goro"
+          "id": "p9",
+          "name": "Spatistics"
+        },
+        {
+          "id": "p8",
+          "name": "Grayzee"
         },
         {
           "id": "p7",
-          "name": "Grayzee"
+          "name": "LilRibe"
+        },
+        {
+          "id": "p2",
+          "name": "sAM"
         }
       ]
     },
@@ -48,24 +48,24 @@
       "tag": "02",
       "players": [
         {
-          "id": "p2",
-          "name": "Sam's anus"
-        },
-        {
-          "id": "p10",
-          "name": "Mootmanden"
+          "id": "p3",
+          "name": "ECKS"
         },
         {
           "id": "p4",
-          "name": "finesse"
+          "name": "Dan"
         },
         {
-          "id": "p9",
-          "name": "LilRibe"
+          "id": "p10",
+          "name": "pengu"
         },
         {
           "id": "p6",
-          "name": "</theFOUR>"
+          "name": "ping goro"
+        },
+        {
+          "id": "p5",
+          "name": "Immigration agent beneficiary"
         }
       ]
     }
@@ -85,13 +85,13 @@
       ],
       "result": null,
       "label": "Single Game · 5v5",
-      "map": "Nuke"
+      "map": "Mirage"
     }
   ],
   "history": [],
   "headers": {
     "brand": "Pull up gang",
-    "banner": "5v5 game v2",
+    "banner": "5v5 number 3",
     "registrationTitle": "Register to play",
     "registrationDescription": "Enter your player name to register for the next 1v1 tournament.\n\nDate: Thursday 29th October \nTime: 7pm GMT"
   },
@@ -100,7 +100,7 @@
   "qualifiersPerGroup": 2,
   "teamSize": 5,
   "mode": "squads",
-  "serverAddress": "89.187.167.137:25428",
+  "serverAddress": "",
   "gameProvider": "manual",
   "leetifyProfiles": {
     "cantlon": "https://leetify.com/app/profile/76561198169191946",
@@ -135,14 +135,10 @@
   "mapPool": [
     "Mirage",
     "Dust2",
-    "Inferno",
-    "Nuke",
     "Ancient",
-    "Anubis",
-    "Vertigo"
+    "Anubis"
   ],
   "mapMethod": "wheel",
   "mapVeto": [],
-  "discordEventId": "398c35e8-b097-4aa1-9cff-085608a064c3",
-  "serverPassword": ""
+  "discordEventId": "f298b368-29c0-4ce7-9fe0-4e0082af0e76"
 }
