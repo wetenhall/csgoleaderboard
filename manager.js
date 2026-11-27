@@ -375,7 +375,7 @@ if (typeof document !== 'undefined') (() => {
     const selectingMap=draw?.format==='single' && !remaining.length;
     const mapSelected=!!(selectingMap && drawnMap);
     $('draw-stage').classList.toggle('map-result-selected',mapSelected);
-    $('player-reveal').hidden=!!selectingMap && $('case-reel-wrap').hidden && !drawnMap;
+    $('player-reveal').hidden=!!selectingMap && !mapSelected;
     document.querySelector('.wheel-panel').hidden=(captains && (!draw || draw.format!=='single')) || (selectingMap && !mapSelected && !mapCandidates.length);
     $('draw-animation').closest('label').hidden=selectingMap || (captains && !draw);
     $('draw-stage').classList.toggle('captain-style',captains);

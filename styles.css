@@ -948,10 +948,10 @@ body:has(>.topbar~footer){
   overflow:hidden;
   clip-path:inset(50%);
 }
-.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])){
+.draw-stage.fullscreen-fallback:not(.map-result-selected) .wheel-panel:has(.case-reel-wrap:not([hidden])){
   display:block;
 }
-.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) .case-reel-wrap{
+.draw-stage.fullscreen-fallback:not(.map-result-selected) .wheel-panel:has(.case-reel-wrap:not([hidden])) .case-reel-wrap{
   width:100%;
   max-width:none;
   margin:0 0 var(--stage-gap);
@@ -961,7 +961,7 @@ body:has(>.topbar~footer){
   width:min(100%,var(--reel-width,1100px));
   margin-inline:auto;
 }
-.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) :is(.player-reveal,.draw-progress,#draw-announcement[data-draw-error]){
+.draw-stage.fullscreen-fallback:not(.map-result-selected) .wheel-panel:has(.case-reel-wrap:not([hidden])) :is(.player-reveal,.draw-progress,#draw-announcement[data-draw-error]){
   width:100%;
   max-width:none;
   margin:0;
@@ -970,15 +970,15 @@ body:has(>.topbar~footer){
   border-inline:1px solid var(--border);
   text-align:left;
 }
-.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) .player-reveal{
+.draw-stage.fullscreen-fallback:not(.map-result-selected) .wheel-panel:has(.case-reel-wrap:not([hidden])) .player-reveal{
   padding-block:var(--panel-block);
   border-bottom:0;
 }
-.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) .draw-progress{
+.draw-stage.fullscreen-fallback:not(.map-result-selected) .wheel-panel:has(.case-reel-wrap:not([hidden])) .draw-progress{
   padding-block:14px 12px;
   border-bottom:1px solid var(--border);
 }
-.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) #draw-announcement[data-draw-error]{
+.draw-stage.fullscreen-fallback:not(.map-result-selected) .wheel-panel:has(.case-reel-wrap:not([hidden])) #draw-announcement[data-draw-error]{
   padding-block:4px 8px;
   border-bottom:1px solid var(--border);
 }
@@ -1059,7 +1059,7 @@ body:has(>.topbar~footer){
 .fullscreen-fallback .veto-reset-actions{margin:var(--stage-gap) 0 0;padding:var(--stage-gap) 0 0}
 .fullscreen-fallback.map-veto .draw-progress{display:none}
 .fullscreen-fallback.map-selection-stage .wheel-wrap{max-width:min(460px,34dvh)}
-.map-selection-stage .wheel-panel:has(.case-reel-wrap[hidden]) .draw-progress{display:none}
+.map-selection-stage .draw-progress{display:none}
 #draw-stage.map-result-selected .wheel-panel{display:block}
 #draw-stage.map-result-selected :is(.wheel-wrap,.case-reel-wrap,.draw-progress,.reveal-avatar),
 .map-result-selected.map-veto .map-draw-options .single-match-map{display:none}
@@ -1168,7 +1168,6 @@ body:has(>.topbar~footer){
   .fullscreen-fallback .draw-roster p,
   .fullscreen-fallback .map-method-control p{font-size:12px;line-height:1.3}
   .fullscreen-fallback.map-selection-stage{--map-reel-width:36dvh}
-  .fullscreen-fallback.map-selection-stage .draw-progress{line-height:1.2}
   .fullscreen-fallback .captain-case-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
   .fullscreen-fallback .single-match-map h3{font-size:clamp(20px,3dvh,30px)}
   .fullscreen-fallback .single-match-map .rules{font-size:12px;line-height:1.3}
