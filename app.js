@@ -190,6 +190,12 @@ function renderPlayerComparison(root,rows,columns,{title,empty}){
   update();
 }
 
+const rosterSkins=[['professional','masked','miami','sally','osiris'],['ava','sas','bio-haz','ricksaw','farlow']];
+function rosterPortraitPath(side,index){
+  const skin=rosterSkins[side]?.[index];
+  return skin?'assets/images/agents/'+skin+'.png':null;
+}
+
 function factionLogo(index,action='Join'){
   const logo=element('img','published-faction-logo');
   logo.src='assets/images/faction-'+(index===0?'t':'ct')+'.png';
@@ -563,13 +569,13 @@ function renderTournament(data) {
       heading.append(logo.cloneNode(),element('h3','',team.name),element('span','eyebrow',match.winner===id?'Winners':team.players.length+' player'+(team.players.length===1?'':'s')));
       card.append(heading);
       const roster=element('ol','single-squad-players');
-      const skins=i===0?['professional','masked','miami','sally','osiris']:['ava','sas','bio-haz','ricksaw','farlow'];
       team.players.forEach((player,index)=>{
         const row=element('li','',player.name);
-        if(skins[index]){
+        const portraitPath=rosterPortraitPath(i,index);
+        if(portraitPath){
           const portrait=element('img','roster-portrait');
           if(i===1 || index>=3)portrait.classList.add('roster-portrait-bust');
-          portrait.src='assets/images/agents/'+skins[index]+'.png';
+          portrait.src=portraitPath;
           portrait.alt='';
           row.prepend(portrait);
         }
@@ -635,4 +641,4 @@ if (typeof document !== 'undefined') {
     alert.textContent = 'Tournament results could not be loaded. Please check back shortly.'; console.error(error);
   }
 }
-if (typeof module !== 'undefined') module.exports = { resolveTournament, teamDisplayName, teamDisplayLabel, bracketLayout, tournamentPodium, podiumRecord, mapImageUrl };
+if (typeof module !== 'undefined') module.exports = { resolveTournament, teamDisplayName, teamDisplayLabel, bracketLayout, tournamentPodium, podiumRecord, mapImageUrl, rosterPortraitPath };

@@ -1,10 +1,11 @@
 const path=require('node:path');
-const {mapImageUrl}=require('../app.js');
+const {mapImageUrl,rosterPortraitPath}=require('../app.js');
 
 const width=1600;
-const accent='#ff9b01';
-const blue='#67afd3';
-const border='#51606d';
+const accent='#ffaa1d';
+const gold='#debd68';
+const blue='#79b8df';
+const border='#343c47';
 let fontLoaded=false;
 
 async function renderTeamAnnouncementImages(data,request=fetch){
@@ -39,6 +40,11 @@ async function renderTeamImages(data,backdrop=null){
     const ordered=data.matches[0].sources.map(source=>teams.find(team=>team.id===source.team));
     if(ordered.length===2 && ordered.every(Boolean))teams=ordered;
   }
+  const portraits=single?await Promise.all(teams.map((team,side)=>Promise.all((team.players || []).map((_,index)=>{
+    const file=rosterPortraitPath(side,index);
+    return file?loadImage(path.join(__dirname,'..',file)):null;
+  })))):null;
+  const match=single?data.matches?.[0]:null;
   const map=single?data.matches?.[0]?.map:null;
   const title=data.headers?.banner || data.name || 'Teams';
   const format=data.teamSize+'V'+data.teamSize;
@@ -50,14 +56,14 @@ async function renderTeamImages(data,backdrop=null){
     const cardHeight=105+Math.max(1,...page.map(team=>team.players?.length || 0))*70;
     const height=rosterTop+rows*cardHeight+(rows-1)*20+30;
     const canvas=createCanvas(width,height),ctx=canvas.getContext('2d');
-    const text=(value,x,y,size,colour='#f4f4f4',maxWidth=670,align='left')=>{
+    const text=(value,x,y,size,colour='#f2f4f7',maxWidth=670,align='left')=>{
       const label=String(value);
       ctx.fillStyle=colour;ctx.textAlign=align;ctx.font='700 '+size+'px Rajdhani, sans-serif';
       const measured=ctx.measureText(label).width;
       if(measured>maxWidth)ctx.font='700 '+Math.max(16,Math.floor(size*maxWidth/measured))+'px Rajdhani, sans-serif';
       ctx.fillText(label,x,y,maxWidth);
     };
-    ctx.fillStyle='#101318';ctx.fillRect(0,0,width,height);
+    ctx.fillStyle='#0d1014';ctx.fillRect(0,0,width,height);
     const gradient=ctx.createLinearGradient(30,30,1570,30+headerHeight);
     gradient.addColorStop(0,'#352b1d');gradient.addColorStop(1,'#171b23');
     ctx.fillStyle=gradient;ctx.fillRect(30,30,1540,headerHeight);
@@ -66,24 +72,24 @@ async function renderTeamImages(data,backdrop=null){
       const cropWidth=1540/scale,cropHeight=headerHeight/scale;
       ctx.drawImage(backdrop,(backdrop.width-cropWidth)/2,(backdrop.height-cropHeight)/2,cropWidth,cropHeight,30,30,1540,headerHeight);
       const tint=ctx.createLinearGradient(0,30,0,30+headerHeight);
-      tint.addColorStop(0,'#15171bd9');tint.addColorStop(.4,'#412b0d55');tint.addColorStop(1,'#101318f5');
+      tint.addColorStop(0,'#15171bd9');tint.addColorStop(.4,'#11172244');tint.addColorStop(1,'#10151c99');
       ctx.fillStyle=tint;ctx.fillRect(30,30,1540,headerHeight);
     }
     ctx.fillStyle=accent;ctx.fillRect(30,30,1540,4);
     if(single){
       text('CUSTOM '+format,58,69,23,'#ffd28a',250);
-      text('TEAMS READY',1540,69,23,'#ffd28a',250,'right');
-      text((map || 'Map pending').toUpperCase(),800,160,82,accent,1390,'center');
+      text(match?.result?'FINAL':match?.id && data.activeMatchId===match.id?'PLAYING NOW':'UPCOMING',1540,69,23,'#ffd28a',250,'right');
+      text((map || 'Map pending').toUpperCase(),800,160,82,'#f2f4f7',1390,'center');
       ctx.fillStyle='#11151ce8';ctx.fillRect(115,195,1370,78);
       ctx.strokeStyle=border;ctx.strokeRect(115,195,1370,78);
-      ctx.fillStyle=accent;ctx.fillRect(115,195,4,78);
+      ctx.fillStyle=gold;ctx.fillRect(115,195,4,78);
       ctx.fillStyle=blue;ctx.fillRect(1481,195,4,78);
       ctx.strokeStyle=border;ctx.beginPath();ctx.moveTo(738,195);ctx.lineTo(738,273);ctx.moveTo(862,195);ctx.lineTo(862,273);ctx.stroke();
       ctx.drawImage(logos[0],134,203,62,62);
       ctx.drawImage(logos[1],1404,203,62,62);
-      text(teams[0].name,207,250,42,'#f4f4f4',506);
-      text('VS',800,249,38,'#f8ecce',108,'center');
-      text(teams[1].name,1393,250,42,'#f4f4f4',506,'right');
+      text(teams[0].name,207,250,42,'#f2f4f7',506);
+      text(match?.result?.scores?.join(' : ') || 'VS',800,249,38,'#f8ecce',108,'center');
+      text(teams[1].name,1393,250,42,'#f2f4f7',506,'right');
     }else{
       text('PUBLISHED TEAMS / '+format,800,78,26,'#ffd28a',1400,'center');
       text(title.toUpperCase(),800,146,54,accent,1400,'center');
@@ -91,19 +97,21 @@ async function renderTeamImages(data,backdrop=null){
 
     page.forEach((team,i)=>{
       const x=30+(i%2)*780,y=rosterTop+Math.floor(i/2)*(cardHeight+20);
-      const players=team.players || [],colour=i%2===0?accent:blue;
-      ctx.fillStyle='#22262e';ctx.fillRect(x,y,760,cardHeight);
-      ctx.strokeStyle='#424b55';ctx.strokeRect(x,y,760,cardHeight);
+      const players=team.players || [],colour=i%2===0?gold:blue;
+      ctx.fillStyle='#181d24';ctx.fillRect(x,y,760,cardHeight);
+      ctx.strokeStyle='#343c47';ctx.strokeRect(x,y,760,cardHeight);
       ctx.fillStyle=colour;ctx.fillRect(x,y,760,3);
       const headingX=single?94:26;
       if(single)ctx.drawImage(logos[i],x+22,y+20,60,60);
-      text(team.name+(single?' roster':''),x+headingX,y+47,39,'#f4f4f4',734-headingX);
+      text(team.name,x+headingX,y+47,39,'#f2f4f7',734-headingX);
       text(players.length+' PLAYER'+(players.length===1?'':'S'),x+headingX,y+79,21,colour);
       players.forEach((player,j)=>{
         const line=y+99+j*70;
-        ctx.strokeStyle='#424b55';ctx.beginPath();ctx.moveTo(x+26,line);ctx.lineTo(x+734,line);ctx.stroke();
-        text(String(j+1).padStart(2,'0'),x+26,line+47,23,'#b8bcbf',35);
-        text(player.name+(team.captainId && team.captainId===player.id?' (C)':''),x+72,line+47,39,'#f4f4f4',662);
+        ctx.strokeStyle='#343c47';ctx.beginPath();ctx.moveTo(x+26,line);ctx.lineTo(x+734,line);ctx.stroke();
+        const portrait=portraits?.[i]?.[j];
+        if(portrait)ctx.drawImage(portrait,x+22,line+6,58,58);
+        else if(!single)text(String(j+1).padStart(2,'0'),x+26,line+47,23,'#aab4c0',35);
+        text(player.name+(team.captainId && team.captainId===player.id?' (C)':''),x+88,line+47,39,'#f2f4f7',646);
       });
     });
     images.push({name:'teams-'+(images.length+1)+'.png',attachment:canvas.toBuffer('image/png')});

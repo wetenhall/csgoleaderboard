@@ -26,7 +26,7 @@ function card(event){
   if(event.publishedAt)rows.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('ops:wait:'+event.id).setLabel('Join waiting list').setStyle(ButtonStyle.Secondary),new ButtonBuilder().setCustomId('ops:leavewait:'+event.id).setLabel('Leave waiting list').setStyle(ButtonStyle.Secondary)));
   if(event.publishedAt && event.waitingList?.length)rows.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('ops:publishwait:'+event.id).setLabel('Publish waiting player').setStyle(ButtonStyle.Success)));
   if(event.publishedAt)rows.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel('View tournament').setStyle(ButtonStyle.Link).setURL(process.env.SITE_URL)));
-  return {embeds:[new EmbedBuilder().setTitle(event.title).setColor(0xf5a623).setDescription(event.players.length?event.players.map((p,i)=>(i+1)+'. '+escapeMarkdown(p.name)).join('\n'):'No players registered yet.').setFooter({text:event.players.length+'/'+event.capacity+' players · '+(event.waitingList?.length||0)+' waiting · '+(event.publishedAt?'Published · roster locked':'Submit your gaming name to register. Names become public when published.')})],components:rows,allowedMentions:{parse:[]}};
+  return {embeds:[new EmbedBuilder().setTitle(event.title).setColor(0xffaa1d).setDescription(event.players.length?event.players.map((p,i)=>(i+1)+'. '+escapeMarkdown(p.name)).join('\n'):'No players registered yet.').setFooter({text:event.players.length+'/'+event.capacity+' players · '+(event.waitingList?.length||0)+' waiting · '+(event.publishedAt?'Published · roster locked':'Submit your gaming name to register. Names become public when published.')})],components:rows,allowedMentions:{parse:[]}};
 }
 async function update(event){const channel=await client.channels.fetch(event.channelId);const message=await channel.messages.fetch(event.messageId);await message.edit(card(event));}
 client.once(Events.ClientReady,async()=>{
@@ -64,7 +64,7 @@ async function syncTeams(){
     const file=await response.json(),tournament=JSON.parse(Buffer.from(file.content,'base64').toString('utf8'));
     const event=data.events.find(event=>event.id===tournament.discordEventId && event.publishedAt && !event.cancelledAt);
     if(!event || !tournament.teams?.length)return;
-    const roster=teamAnnouncements(tournament,escapeMarkdown),signature='game-night-tools-v2:'+JSON.stringify([roster,tournament.serverAddress||'']);
+    const roster=teamAnnouncements(tournament,escapeMarkdown),signature='team-image-v3:'+JSON.stringify([roster,tournament.serverAddress||'',tournament.headers?.banner,tournament.name,tournament.format,tournament.teamSize,tournament.teams.map(team=>[team.id,team.name,team.captainId,team.players?.map(player=>[player.id,player.name])]),tournament.format==='single' && [tournament.matches?.[0]?.sources,tournament.matches?.[0]?.map,tournament.matches?.[0]?.result?.scores,tournament.activeMatchId]]);
     const map=tournament.format==='single'?tournament.matches?.[0]?.map:null;
     const descriptions=['Teams ready · '+tournament.teamSize+'v'+tournament.teamSize+(map?' · '+escapeMarkdown(map):'')];
     const channel=await client.channels.fetch(event.channelId),registration=await channel.messages.fetch(event.messageId);
