@@ -833,10 +833,37 @@ body:has(>.topbar~footer){
   .roster-rating-grid,.rivalry-builder{grid-template-columns:1fr}
 }
 
+.published-view-open{overflow:hidden}
+.published-view-open #panel-leaderboard{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  overflow:auto;
+  background:#111318;
+  padding:0 max(clamp(12px,3vw,36px),calc((100% - 1220px)/2)) 24px;
+}
+.published-view-toolbar{
+  position:sticky;
+  top:0;
+  z-index:2;
+  display:flex;
+  justify-content:flex-end;
+  padding:8px 0;
+  background:#111318;
+}
+.published-view-toolbar button{margin:0}
+
 /* Keep the reveal, rosters and stage actions within a single broadcast view. */
 #draw-stage.fullscreen-fallback{
   grid-template-columns:minmax(0,1fr);
   grid-template-rows:none;
+}
+#draw-stage.fullscreen-fallback>:not(.draw-stage-toolbar){
+  width:min(100%,var(--stage-content-width,1100px));
+  margin-inline:auto;
+}
+#draw-stage.fullscreen-fallback:not(.map-selection-stage):has(.wheel-panel:not([hidden]) .case-reel-wrap:not([hidden])){
+  --stage-content-width:var(--reel-width,min(1100px,120dvh));
 }
 .draw-stage.fullscreen-fallback{
   --stage-gap:clamp(6px,1.15dvh,16px);
@@ -881,16 +908,37 @@ body:has(>.topbar~footer){
   width:min(100%,760px);
   margin-inline:auto;
 }
-.fullscreen-fallback :is(.draw-roster,.draw-action-bar){
-  width:min(100%,1100px);
-  margin-inline:auto;
-}
 .draw-stage.fullscreen-fallback #case-reel{width:100%;margin:0}
 .draw-stage.fullscreen-fallback .player-reveal{min-height:0;padding:6px 10px;margin-top:6px}
 .fullscreen-fallback .reveal-avatar{width:38px;height:38px}
 .fullscreen-fallback .draw-progress{margin-top:6px}
 .fullscreen-fallback .draw-progress progress{margin-top:4px}
 .draw-stage.fullscreen-fallback #draw-announcement{margin:5px 0 0}
+.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])){
+  display:block;
+}
+.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) .case-reel-wrap{
+  width:100%;
+  margin:0 0 var(--stage-gap);
+}
+.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) :is(.player-reveal,.draw-progress,#draw-announcement){
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding-inline:clamp(12px,2vw,22px);
+  background:#1e2028;
+  border-inline:1px solid var(--border);
+  text-align:left;
+}
+.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) .player-reveal{
+  padding-block:clamp(6px,1.1dvh,14px);
+  border-bottom:0;
+}
+.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) .draw-progress{padding-block:3px}
+.draw-stage.fullscreen-fallback .wheel-panel:has(.case-reel-wrap:not([hidden])) #draw-announcement{
+  padding-block:4px 8px;
+  border-bottom:1px solid var(--border);
+}
 .draw-stage.fullscreen-fallback .draw-roster .teams{
   grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));
   max-height:none;
@@ -926,7 +974,6 @@ body:has(>.topbar~footer){
 
 .fullscreen-fallback.map-selection-stage>.captain-case-panel{display:none}
 .fullscreen-fallback.map-selection-stage>.draw-roster{
-  width:min(100%,920px);
   order:1;
 }
 .fullscreen-fallback.map-selection-stage>.map-method-control{
@@ -953,7 +1000,11 @@ body:has(>.topbar~footer){
 .fullscreen-fallback .veto-reset-actions{margin:6px 0 0;padding:4px 0 0}
 .fullscreen-fallback.map-veto .draw-progress{display:none}
 .fullscreen-fallback.map-selection-stage .wheel-wrap{max-width:min(460px,34dvh)}
-.fullscreen-fallback.map-selection-stage .case-reel-wrap{width:min(100%,72dvh)}
+.draw-stage.fullscreen-fallback.map-selection-stage #case-reel{
+  width:min(100%,var(--map-reel-width,72dvh));
+  margin-inline:auto;
+}
+.fullscreen-fallback.map-selection-stage .case-reel-wrap{background:#0f131a}
 
 @media(min-width:761px){
   .fullscreen-fallback.map-selection-stage .draw-team{
@@ -965,7 +1016,7 @@ body:has(>.topbar~footer){
 }
 @media(min-width:761px) and (max-height:950px){
   .draw-stage.fullscreen-fallback{--stage-gap:6px}
-  .draw-stage.fullscreen-fallback .case-reel-wrap{width:min(100%,105dvh)}
+  .draw-stage.fullscreen-fallback{--reel-width:88dvh}
   .draw-stage.fullscreen-fallback .wheel-wrap{max-width:min(580px,35dvh)}
   .fullscreen-fallback .wheel-panel:not([hidden]){
     display:grid;
@@ -986,8 +1037,17 @@ body:has(>.topbar~footer){
   }
   .fullscreen-fallback:not(.map-selection-stage) .draw-team>:is(label,p){grid-column:1/-1}
   .fullscreen-fallback .draft-slot{margin:0}
+  .fullscreen-fallback:has(.wheel-panel:not([hidden]) .case-reel-wrap:not([hidden])) .draft-slot{
+    font-size:12px;
+    gap:3px;
+  }
+  .fullscreen-fallback:has(.wheel-panel:not([hidden]) .case-reel-wrap:not([hidden])) .slot-avatar{
+    width:16px;
+    height:16px;
+    font-size:9px;
+  }
   .fullscreen-fallback.map-selection-stage .wheel-wrap{max-width:min(460px,28dvh)}
-  .fullscreen-fallback.map-selection-stage .case-reel-wrap{width:min(100%,65dvh)}
+  .fullscreen-fallback.map-selection-stage{--map-reel-width:56dvh}
   .fullscreen-fallback .draw-roster p{font-size:12px;line-height:1.3}
   .fullscreen-fallback.map-selection-stage .map-method-control p{flex:0 1 auto}
   .fullscreen-fallback .map-method-control label{min-width:0}
@@ -1014,7 +1074,7 @@ body:has(>.topbar~footer){
   .fullscreen-fallback .map-method-control p{font-size:12px;line-height:1.3}
   .fullscreen-fallback .draw-roster .draw-team{padding:4px 6px}
   .fullscreen-fallback.map-selection-stage .draft-slot{padding:2px 4px;margin:2px 0;line-height:1.2}
-  .fullscreen-fallback.map-selection-stage .case-reel-wrap{width:min(100%,36dvh)}
+  .fullscreen-fallback.map-selection-stage{--map-reel-width:36dvh}
   .fullscreen-fallback.map-selection-stage .player-reveal{padding:4px 8px}
   .fullscreen-fallback.map-selection-stage .draw-progress{line-height:1.2}
   .fullscreen-fallback .draw-publish-actions{font-size:12px}

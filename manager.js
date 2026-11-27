@@ -1262,7 +1262,7 @@ if (typeof document !== 'undefined') (() => {
   }
   $('group-count').onchange = $('qualifiers-per-group').onchange = ()=>{selectionCount();configureDraw();controls();};
   $('reset-draw').onclick=()=>{if(spinning || busy)return;if(selected.length && !confirm('Discard this unpublished draw?'))return;stopAutoSpin();captainDraft=null;$('captain-choices').replaceChildren();$('captain-case-grid').replaceChildren();manualAssignments=[];manualNames=[];$('manual-team-list').replaceChildren();rematchSource=null;drawnMap=null;selected=[];remaining=[];draw=null;gameNightUI?.renderDraft();lock(false);$('spin').disabled=true;$('draw-teams').replaceChildren();$('draw-fixtures').replaceChildren();$('wheel').style.transition='none';$('wheel').style.transform='none';paintWheel([]);selectionCount();controls();announce('Select your players to start a new draw.');};
-  $('publish-draw').onclick=async()=>{if($('publish-draw').disabled){announce($('publish-status').textContent);return;}try{const next=structuredClone(draw);next.gameProvider=$('game-provider').value;if(!rematchSource){next.serverAddress='';delete next.serverPassword;}if(loadedDiscordEvent){next.discordEventId=loadedDiscordEvent.id;next.name=loadedDiscordEvent.title;next.headers={...next.headers,banner:loadedDiscordEvent.title};}else if(rematchSource && current.discordEventId){next.discordEventId=current.discordEventId;}if(current.savedPlayers!==undefined)next.savedPlayers=structuredClone(current.savedPlayers);if(rematchSource && rematchSource!==JSON.stringify(current))throw Error('The saved match changed. Reload it and start the rematch again.');if(current.history)next.history=structuredClone(current.history);else delete next.history;if(rematchSource && completedCup(current,resolveTournament))next.history=archiveCup(current,resolveTournament,emptyTournament,((current.headers?.banner || current.name)+' · '+(current.matches[0].map || '5v5')).slice(0,120)).history;await publish(next,'Publish new player draw and tournament groups');stopAutoSpin();captainDraft=null;draw=null;selected=[];lock(false);$('captain-choices').replaceChildren();$('captain-case-grid').replaceChildren();manualAssignments=[];manualNames=[];rematchSource=null;gameNightUI?.renderDraft();$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();setExpandedDraw(false);selectTab($('tab-leaderboard'),true);$('panel-leaderboard').scrollIntoView({block:'start'});setupUI?.reset();say('Teams published. Your '+(current.format==='single'?'match is ready on the Match tab.':'tournament is ready on the Leader board.'));}catch(error){announce(error.message);}};
+  $('publish-draw').onclick=async()=>{if($('publish-draw').disabled){announce($('publish-status').textContent);return;}try{const next=structuredClone(draw);next.gameProvider=$('game-provider').value;if(!rematchSource){next.serverAddress='';delete next.serverPassword;}if(loadedDiscordEvent){next.discordEventId=loadedDiscordEvent.id;next.name=loadedDiscordEvent.title;next.headers={...next.headers,banner:loadedDiscordEvent.title};}else if(rematchSource && current.discordEventId){next.discordEventId=current.discordEventId;}if(current.savedPlayers!==undefined)next.savedPlayers=structuredClone(current.savedPlayers);if(rematchSource && rematchSource!==JSON.stringify(current))throw Error('The saved match changed. Reload it and start the rematch again.');if(current.history)next.history=structuredClone(current.history);else delete next.history;if(rematchSource && completedCup(current,resolveTournament))next.history=archiveCup(current,resolveTournament,emptyTournament,((current.headers?.banner || current.name)+' · '+(current.matches[0].map || '5v5')).slice(0,120)).history;await publish(next,'Publish new player draw and tournament groups');stopAutoSpin();captainDraft=null;draw=null;selected=[];lock(false);$('captain-choices').replaceChildren();$('captain-case-grid').replaceChildren();manualAssignments=[];manualNames=[];rematchSource=null;gameNightUI?.renderDraft();$('draw-teams').querySelectorAll('input').forEach(input=>{input.disabled=true;});controls();setExpandedDraw(false);selectTab($('tab-leaderboard'));setupUI?.reset();setExpandedPublished(true);say('Teams published. Your '+(current.format==='single'?'match is ready on the Match tab.':'tournament is ready on the Leader board.'));}catch(error){announce(error.message);}};
   $('reset-edit-draw').onclick=()=>{
     if(busy || spinning || skippingAnimation)return;
     $('reset-draw').onclick();
@@ -1271,7 +1271,20 @@ if (typeof document !== 'undefined') (() => {
   $('start-draw').addEventListener('click',()=>{if(locked && !$('draw-stage').hidden)$('draw-stage').scrollIntoView({block:'start'});});
   $('publish-expanded').onclick=()=>{if(!$('publish-draw').disabled)$('publish-draw').click();};
   const drawStage=$('draw-stage'),fullscreenButton=$('fullscreen-draw');
+  const publishedPanel=$('panel-leaderboard'),exitPublishedButton=$('exit-published-view');
   let expandedDraw=false;
+  function setExpandedPublished(active){
+    document.body.classList.toggle('published-view-open',active);
+    exitPublishedButton.parentElement.hidden=!active;
+    if(active){
+      publishedPanel.scrollTop=0;
+      exitPublishedButton.focus();
+    }
+  }
+  exitPublishedButton.onclick=()=>{
+    setExpandedPublished(false);
+    $('tab-leaderboard').focus();
+  };
   function setExpandedDraw(active) {
     expandedDraw=active;
     drawStage.classList.toggle('fullscreen-fallback',active);
@@ -1289,7 +1302,14 @@ if (typeof document !== 'undefined') (() => {
     $('setup-tab-3').focus();
     $('setup-stage-3').scrollIntoView({block:'start'});
   };
-  document.addEventListener('keydown',event=>{if(event.key==='Escape' && expandedDraw){event.preventDefault();setExpandedDraw(false);}});
+  document.addEventListener('keydown',event=>{
+    if(event.key!=='Escape' || event.defaultPrevented || document.querySelector('dialog[open]'))return;
+    if(expandedDraw){event.preventDefault();setExpandedDraw(false);}
+    else if(document.body.classList.contains('published-view-open')){
+      event.preventDefault();
+      exitPublishedButton.click();
+    }
+  });
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
   const tabs = Array.from(document.querySelectorAll('.page-tabs [role="tab"], .admin-tabs [role="tab"]'));
   const setupMusic=createSetupMusic();
@@ -1317,6 +1337,7 @@ if (typeof document !== 'undefined') (() => {
   });
   function selectTab(tab, focus = false, updateUrl = true) {
     if(!tab || tab.hidden)tab=defaultTab();
+    if(tab.id!=='tab-leaderboard')setExpandedPublished(false);
     document.body.classList.toggle('viewing-match',tab.id==='tab-leaderboard');
     tabs.forEach(item => {
       const active = item === tab;
