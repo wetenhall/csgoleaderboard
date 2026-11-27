@@ -96,6 +96,100 @@ function teamDisplayLabel(team) {
   const display = teamDisplayName(team);
   return display === team.name ? display : `${display} (${team.name})`;
 }
+function playerStatRatio(numerator,denominator){
+  return denominator ? numerator/denominator : numerator ? Infinity : null;
+}
+
+function renderMatchPlayerStats(root,totals,title){
+  const rows=totals.map(row=>({
+    ...row,
+    kills:row.games?row.kills:null, deaths:row.games?row.deaths:null, assists:row.games?row.assists:null,
+    ratio:row.games?playerStatRatio(row.kills,row.deaths):null,
+    killsPerGame:row.games?row.kills/row.games:null
+  }));
+  const columns=[
+    {key:'team',label:'Team'}, {key:'games',label:'Recorded games',sort:true},
+    {key:'kills',label:'Kills',sort:true}, {key:'deaths',label:'Deaths',sort:true},
+    {key:'assists',label:'Assists',sort:true}, {key:'ratio',label:'K/D',sort:true,format:value=>value.toFixed(2)},
+    {key:'killsPerGame',label:'Kills / game',sort:true,format:value=>value.toFixed(1)}
+  ];
+  renderPlayerComparison(root,rows,columns,{title,empty:'No player stats available yet.'});
+}
+
+function renderPlayerComparison(root,rows,columns,{title,empty}){
+  const previous=Object.fromEntries([...root.querySelectorAll('[data-stat-control]')].map(input=>[input.dataset.statControl,input.value]));
+  root.replaceChildren();
+  if(!rows.length){root.append(element('p','stats-empty',empty));return;}
+  const byId=new Map(rows.map(row=>[String(row.id ?? row.name),row]));
+  const controls=element('div','stats-controls');
+  const control=(label,key,input)=>{
+    const field=element('label','',label);
+    input.dataset.statControl=key;
+    input.setAttribute('aria-label',label);
+    field.append(input);controls.append(field);
+    return input;
+  };
+  const search=control('Find a player','search',element('input'));
+  search.type='search';search.placeholder='Player name';search.value=previous.search || '';
+  const select=(label,key,options)=>{
+    const input=control(label,key,element('select'));
+    options.forEach(([value,name])=>{const option=element('option','',name);option.value=value;input.append(option);});
+    if(options.some(([value])=>value===previous[key]))input.value=previous[key];
+    return input;
+  };
+  const order=select('Sort by','sort',[['','Default order'],...columns.filter(column=>column.sort).map(column=>[column.key,column.label])]);
+  const names=[...byId].sort(([,a],[,b])=>a.name.localeCompare(b.name)).map(([id,row])=>[id,row.name+(row.team?' · '+row.team:'')]);
+  const first=select('Compare player','first',[['','Select player'],...names]);
+  const second=select('With player','second',[['','Select player'],...names]);
+  const comparison=element('div','stats-comparison');
+  const results=element('div','table-scroll stats-table');
+  root.append(controls,comparison,results);
+  const display=(column,row)=>{
+    const value=row[column.key];
+    return value==null?'—':value===Infinity?'∞':String(column.format?column.format(value):value);
+  };
+  function tableFor(labels,label,body){
+    const table=element('table');table.setAttribute('aria-label',label);
+    const head=element('thead'),header=element('tr');
+    labels.forEach(text=>{const cell=element('th','',text);cell.scope='col';header.append(cell);});
+    head.append(header);table.append(head,body);return table;
+  }
+  function rowFor(name,values){
+    const row=element('tr'),heading=element('th','',name);
+    heading.scope='row';row.append(heading);
+    values.forEach(value=>row.append(element('td','',value)));
+    return row;
+  }
+  function update(){
+    comparison.replaceChildren();results.replaceChildren();
+    const selected=[byId.get(first.value),byId.get(second.value)];
+    for(const [input,other] of [[first,second],[second,first]]){
+      for(const option of input.options)option.disabled=Boolean(option.value && option.value===other.value);
+    }
+    if(selected.every(Boolean) && selected[0]!==selected[1]){
+      const body=element('tbody');
+      columns.forEach(column=>body.append(rowFor(column.label,selected.map(row=>display(column,row)))));
+      comparison.append(tableFor(['Stat',...selected.map(row=>row.name)],title+' head-to-head comparison',body));
+    }
+    const query=search.value.trim().toLowerCase();
+    const filtered=rows.filter(row=>row.name.toLowerCase().includes(query));
+    if(!filtered.length){results.append(element('p','stats-empty','No players match your search.'));return;}
+    if(order.value)filtered.sort((a,b)=>{
+      const left=a[order.value],right=b[order.value];
+      if(left===right)return a.name.localeCompare(b.name);
+      if(left==null)return 1;
+      if(right==null)return -1;
+      return right>left?1:-1;
+    });
+    const body=element('tbody');
+    filtered.forEach(row=>body.append(rowFor(row.name,columns.map(column=>display(column,row)))));
+    results.append(tableFor(['Player',...columns.map(column=>column.label)],title,body));
+  }
+  search.oninput=update;
+  order.onchange=first.onchange=second.onchange=update;
+  update();
+}
+
 function teamEmblem(team, symbol) {
   const numberLabel=team.tag || team.id.replace(/[^0-9]/g,'').padStart(2,'0');
   const badge=element('span','team-emblem',symbol ? '' : numberLabel);
@@ -222,7 +316,7 @@ function renderConnectedBracket(root,matches,teams) {
 }
 function mapImageUrl(map) {
   const thumbnails = {
-    ancient: 'de_ancient_1', anubis: 'de_anubis_1', cache: 'de_cache_1',
+    ancient: 'de_ancient_1', anubis: 'de_anubis_1', cache: 'de_cache_1', cobblestone: 'de_cbble',
     debris: 'de_debris_1', dust2: 'de_dust2_1', eldorado: 'de_eldorado_1',
     inferno: 'de_inferno_1', italy: 'cs_italy_1', mirage: 'de_mirage_1',
     nuke: 'de_nuke_1', office: 'cs_office_1', overpass: 'de_overpass_1',

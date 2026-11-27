@@ -2,9 +2,9 @@
 const MAP_POOLS = {
   1: ['Pool Day','AWP Lego 2','AWP Orange','AWP India','AIM Crash Dust 1on1','AIM Puma','AIM Map Classic','AIM Long Dust'],
   2: ['Inferno','Nuke','Vertigo','Overpass','Poseidon','Debris','Eldorado'],
-  3: ['Mirage','Dust2','Inferno','Nuke','Ancient','Anubis','Vertigo','Cache','Train','Overpass','Office','Italy'],
-  4: ['Mirage','Dust2','Inferno','Nuke','Ancient','Anubis','Vertigo','Cache','Train','Overpass','Office','Italy'],
-  5: ['Mirage','Dust2','Inferno','Nuke','Ancient','Anubis','Vertigo','Cache','Train','Overpass','Office','Italy']
+  3: ['Mirage','Dust2','Inferno','Nuke','Ancient','Anubis','Vertigo','Cache','Train','Overpass','Office','Italy','Cobblestone'],
+  4: ['Mirage','Dust2','Inferno','Nuke','Ancient','Anubis','Vertigo','Cache','Train','Overpass','Office','Italy','Cobblestone'],
+  5: ['Mirage','Dust2','Inferno','Nuke','Ancient','Anubis','Vertigo','Cache','Train','Overpass','Office','Italy','Cobblestone']
 };
 function assignMaps(data, maps) {
   if (data.teamSize === 1) {
@@ -724,11 +724,7 @@ if (typeof document !== 'undefined') (() => {
     }
   }
   function renderStats() {
-    $('player-stats').replaceChildren(); const rows = playerTotals(current);
-    if (!rows.length) { $('player-stats').append(element('p','rules','Draw and publish your teams to start tracking player stats.')); return; }
-    const table = element('table'); const head = element('thead'); const header = element('tr');
-    ['Player','Team','Recorded games','Kills','Deaths','Assists','K/D','Kills / game'].forEach(label=>{const th=element('th','',label);th.scope='col';header.append(th);});head.append(header);table.append(head);
-    const body=element('tbody'); rows.forEach(row=>{const tr=element('tr');[row.name,row.team,row.games,row.kills,row.deaths,row.assists,row.games ? (row.deaths ? (row.kills/row.deaths).toFixed(2) : row.kills ? '∞' : '—') : '—',row.games ? (row.kills/row.games).toFixed(1) : '—'].forEach(value=>tr.append(element('td','',String(value))));body.append(tr);});table.append(body);$('player-stats').append(table);
+    renderMatchPlayerStats($('player-stats'),playerTotals(current),'Current tournament player stats');
   }
   function renderTies() {
     const qualifiers=current.qualifiersPerGroup ?? 2;
@@ -811,8 +807,12 @@ if (typeof document !== 'undefined') (() => {
     document.querySelector('.draw-stage-toolbar>span').textContent=solo && $('tournament-format').value==='groups'?'LIVE GROUP DRAW':'LIVE TEAM DRAW';
     if (solo) return;
     for (const map of MAP_POOLS[Number($('team-size').value)]) {
-      const label=element('label'),input=element('input'); input.type='checkbox'; input.value=map; input.checked=true;
-      input.onchange=()=>{drawnMap=null;if(draw)draw.mapVeto=[];updateMapCount();configureDraw();controls();}; label.append(input,document.createTextNode(map)); $('map-options').append(label);
+      const label=element('label','map-picker-card'),input=element('input');
+      input.type='checkbox'; input.value=map; input.checked=true;
+      setMapBackdrop(label,map);
+      input.onchange=()=>{drawnMap=null;if(draw)draw.mapVeto=[];updateMapCount();configureDraw();controls();};
+      label.append(input,element('span','map-picker-name',map));
+      $('map-options').append(label);
     }
     updateMapCount();
   }
@@ -832,7 +832,15 @@ if (typeof document !== 'undefined') (() => {
     const names=loadedDiscordEvent ? [...loadedDiscordEvent.players] : $('pool-input').value.split(/\r?\n/).map(n=>n.trim()).filter(Boolean);
     if(!names.length || names.some(n=>n.length>40) || new Set(names.map(n=>n.toLowerCase())).size!==names.length){announce('Use distinct names, one per line, up to 40 characters each.');return;}
     pool=names.map((name,i)=>({id:`p${i+1}`,name}));$('pool-list').replaceChildren();
-    pool.forEach(p=>{const label=element('label');const box=element('input');box.type='checkbox';box.value=p.id;box.checked=true;box.onchange=selectionCount;label.append(box,document.createTextNode(p.name));$('pool-list').append(label);});selectionCount();announce('Select your players, then lock the pool.');
+    pool.forEach(player=>{
+      const label=element('label','player-picker-tile'),box=element('input');
+      const icon=element('span','player-picker-icon');
+      icon.ariaHidden='true';
+      box.type='checkbox';box.value=player.id;box.checked=true;box.onchange=selectionCount;
+      label.append(box,icon,element('span','player-picker-name',player.name));
+      $('pool-list').append(label);
+    });
+    selectionCount();announce('Select your players, then lock the pool.');
   };
   $('load-pool').onclick=loadPlayerPool;
   const teamColours=['#ff9b01','#67afd3','#b6a0ee','#73d1a9','#f18e97','#e1cf80'];
