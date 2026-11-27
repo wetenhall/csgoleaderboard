@@ -202,7 +202,7 @@ function renderRosterReveal(root,mode,players,commit){
   setup();
 }
 
-function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,setMap,getMaps,setMapMethod,beginRematch,notify,getVoteEvent,startMapVote,readMapVote}) {
+function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,setMap,getMaps,setMapMethod,beginRematch,randomiseMatch,notify,getVoteEvent,startMapVote,readMapVote}) {
   const $=id=>document.getElementById(id);
   const draftRoot=element('section','map-draw-options'),methodRoot=element('div','map-method-control'),publicRoot=element('section','match-tools');
   let pendingMethod='',serverEditorOpen=false;
@@ -226,7 +226,7 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
     return button;
   }
   async function copy(text){try{await navigator.clipboard.writeText(text);return true;}catch{const dialog=element('dialog','options-dialog'),field=element('textarea');field.value=text;field.rows=12;field.readOnly=true;dialog.append(element('h2','','Copy match details'),field,makeButton('Close',()=>{dialog.close();dialog.remove();}));document.body.append(dialog);dialog.showModal();field.select();}}
-  function controls(){$('panel-leaderboard').querySelectorAll('[data-server-toggle]').forEach(button=>{button.hidden=!isOrganiser();button.disabled=isBusy();button.setAttribute('aria-expanded',String(serverEditorOpen && isOrganiser()));});publicRoot.querySelectorAll('[data-server-editor]').forEach(form=>{form.hidden=!isOrganiser() || !serverEditorOpen;form.querySelectorAll('input,button').forEach(el=>el.disabled=isBusy());});publicRoot.hidden=![...publicRoot.children].some(child=>!child.hidden);[draftRoot,methodRoot].forEach(root=>root.querySelectorAll('input,select,button').forEach(el=>el.disabled=isBusy() || !isOrganiser() || (el.hasAttribute('data-map-vote-action') && fetchingVote)));const confirm=$('confirm-map-method');if(confirm)confirm.disabled=isBusy() || !isOrganiser() || !$('map-selection-method').value || !!getDraft()?.mapMethod;$('panel-leaderboard').querySelectorAll('[data-rematch]').forEach(el=>{el.hidden=!isOrganiser();el.disabled=isBusy();});}
+  function controls(){$('panel-leaderboard').querySelectorAll('[data-server-toggle]').forEach(button=>{button.hidden=!isOrganiser();button.disabled=isBusy();button.setAttribute('aria-expanded',String(serverEditorOpen && isOrganiser()));});publicRoot.querySelectorAll('[data-server-editor]').forEach(form=>{form.hidden=!isOrganiser() || !serverEditorOpen;form.querySelectorAll('input,button').forEach(el=>el.disabled=isBusy());});publicRoot.hidden=![...publicRoot.children].some(child=>!child.hidden);[draftRoot,methodRoot].forEach(root=>root.querySelectorAll('input,select,button').forEach(el=>el.disabled=isBusy() || !isOrganiser() || (el.hasAttribute('data-map-vote-action') && fetchingVote)));const confirm=$('confirm-map-method');if(confirm)confirm.disabled=isBusy() || !isOrganiser() || !$('map-selection-method').value || !!getDraft()?.mapMethod;$('panel-leaderboard').querySelectorAll('[data-rematch],[data-randomise-match]').forEach(el=>{el.hidden=!isOrganiser();el.disabled=isBusy();});}
   function voteKey(){
     const method=getDraft()?.mapMethod,eventId=getVoteEvent?.();
     return eventId && ['duel','player-vote'].includes(method)?eventId+':'+method:'';
@@ -420,6 +420,11 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
       actions.append(copyButton('Copy server connection',()=>serverConnectionCommand(getData())));
     }
     if(data.format==='single' && data.teamSize>=2){const rematch=makeButton('Rematch · Same teams, new map',beginRematch);rematch.dataset.rematch='';actions.append(rematch);}
+    if(data.format==='single' && data.teamSize>=2 && data.teams.length===2 && !data.activeMatchId && !data.matches[0]?.result){
+      const button=makeButton('Randomise teams & map',randomiseMatch);
+      button.dataset.randomiseMatch='';
+      actions.append(button);
+    }
     const matchActions=document.querySelector('.match-published-actions');
     if(matchActions){actions.classList.add('match-extra-actions');matchActions.querySelector('.match-extra-actions')?.remove();matchActions.append(actions);}
     else publicRoot.append(actions);

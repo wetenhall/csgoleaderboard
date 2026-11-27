@@ -516,6 +516,7 @@ function renderTournament(data) {
       const roster=element('ol','single-squad-players');
       team.players.forEach(player=>{
         const row=element('li','',player.name);
+        row.dataset.playerId=player.id;
         if(team.captainId===player.id)row.append(element('small','roster-captain','Captain'));
         roster.append(row);
       });

@@ -1500,7 +1500,80 @@ if (typeof document !== 'undefined') (() => {
     $('pool-input').value=mergePlayerNames($('pool-input').value,names);
     $('load-pool').click();
   },save:publish,resetDraw:resetDrawState,notify:say,goToFixtures:()=>selectTab($('tab-fixtures'),true)});
-  gameNightUI=createGameNightTools({saveServer:async address=>{if(locked || spinning)throw Error('Finish or reset the current draw before updating the match server.');const next=structuredClone(current);Object.assign(next,parseServerConnection(address));await publish(next,'Update published match server');},getData:()=>current,getDraft:()=>draw,isOrganiser:()=>isOrganiser(),isBusy:()=>busy || spinning,refreshDraft:configureDraw,getMaps:selectedMaps,getVoteEvent:()=>loadedDiscordEvent?.id || (rematchSource?current.discordEventId:null),startMapVote:(id,method,maps)=>requestDiscordMapVote(discordEventConfig(),id,method,maps),readMapVote:async id=>(await readPublishedDiscordEvents(discordEventConfig())).data.events.find(event=>event.id===id)?.mapVoteRequest,setMapMethod:method=>{if(!draw || busy || spinning)return;drawnMap=null;draw.mapVeto=[];if(method)draw.mapMethod=method;else delete draw.mapMethod;if(['wheel','case','player-vote'].includes(method)){$('draw-animation').value=method==='player-vote'?'case':method;$('draw-animation').onchange();}configureDraw();controls();},setMap:map=>{drawnMap=map;configureDraw();controls();},notify:say,beginRematch:()=>{
+  async function revealRandomisedMap(hero,maps,finalMap){
+    const reel=element('div','match-map-reel');
+    reel.setAttribute('aria-hidden','true');
+    const track=element('div','match-map-track');
+    const order=shuffle(maps.filter(map=>map!==finalMap));
+    order.splice(randomIndex(order.length),0,finalMap);
+    const leadIn=8,landing=leadIn+14;
+    const start=order.indexOf(finalMap)-landing;
+    for(let i=0;i<=landing+leadIn;i++){
+      const map=order[((start+i)%order.length+order.length)%order.length];
+      const card=element('div','match-map-tile');
+      card.style.setProperty('--tile-art','url("'+mapImageUrl(map)+'")');
+      card.append(element('strong','',map));
+      track.append(card);
+    }
+    reel.append(track,element('div','match-map-pointer'));
+    hero.append(reel);
+    const position=index=>'translateX(calc(var(--tile-pitch) * '+(-index-.5)+'))';
+    try{
+      await track.animate([{transform:position(leadIn)},{transform:position(landing)}],
+        {duration:2700,easing:'cubic-bezier(.12,.64,.16,1)',fill:'forwards'}).finished;
+      track.children[landing].classList.add('landed');
+      await reel.animate([{opacity:1},{opacity:0}],{delay:500,duration:350,fill:'forwards'}).finished;
+    }finally{reel.remove();}
+  }
+  async function randomiseMatch(){
+    if(!isOrganiser() || busy || spinning || current.format!=='single' || current.activeMatchId || current.matches[0].result)return;
+    if(locked)throw Error('Finish or reset your current draft before randomising this match.');
+    const next=structuredClone(current);
+    const movable=next.teams.map(team=>team.players.filter(player=>player.id!==team.captainId));
+    const mixed=shuffle(movable.flat());
+    const split=movable[0].length;
+    const originalIds=new Set(movable[0].map(player=>player.id));
+    if(mixed.slice(0,split).every(player=>originalIds.has(player.id))){
+      const left=randomIndex(split),right=split+randomIndex(movable[1].length);
+      [mixed[left],mixed[right]]=[mixed[right],mixed[left]];
+    }
+    let index=0;
+    next.teams.forEach(team=>{
+      team.players=team.players.map(player=>player.id===team.captainId?player:mixed[index++]);
+    });
+    const maps=next.mapPool || MAP_POOLS[next.teamSize];
+    const alternatives=maps.filter(map=>map!==next.matches[0].map);
+    const finalMap=alternatives.length?alternatives[randomIndex(alternatives.length)]:maps[0];
+    next.mapPool=[...maps];
+    next.matches[0].map=finalMap;
+    delete next.mapVeto;
+    delete next.mapMethod;
+    const rows=()=>document.querySelectorAll('.single-squad-players li[data-player-id]');
+    const before=new Map(Array.from(rows(),row=>[row.dataset.playerId,row.getBoundingClientRect()]));
+    spinning=true;
+    try{
+      await publish(next,'Randomise published match teams and map');
+      if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+        for(const row of rows()){
+          const from=before.get(row.dataset.playerId),to=row.getBoundingClientRect();
+          if(!from || !to.width)continue;
+          const dx=from.left-to.left,dy=from.top-to.top;
+          row.animate([
+            {transform:'translate('+dx+'px,'+dy+'px)'},
+            {transform:'translate('+dx*.45+'px,'+(dy*.45-24)+'px)',offset:.45},
+            {transform:'translateY(4px)',offset:.84},
+            {transform:'none'}
+          ],{duration:900,easing:'ease-in-out'});
+        }
+        const hero=document.querySelector('.match-broadcast'),heading=hero?.querySelector('h3');
+        if(heading && maps.length>1){
+          await revealRandomisedMap(hero,maps,finalMap);
+        }
+      }
+      say('Teams randomised. Match map: '+finalMap+'.');
+    }finally{spinning=false;controls();}
+  }
+  gameNightUI=createGameNightTools({randomiseMatch,saveServer:async address=>{if(locked || spinning)throw Error('Finish or reset the current draw before updating the match server.');const next=structuredClone(current);Object.assign(next,parseServerConnection(address));await publish(next,'Update published match server');},getData:()=>current,getDraft:()=>draw,isOrganiser:()=>isOrganiser(),isBusy:()=>busy || spinning,refreshDraft:configureDraw,getMaps:selectedMaps,getVoteEvent:()=>loadedDiscordEvent?.id || (rematchSource?current.discordEventId:null),startMapVote:(id,method,maps)=>requestDiscordMapVote(discordEventConfig(),id,method,maps),readMapVote:async id=>(await readPublishedDiscordEvents(discordEventConfig())).data.events.find(event=>event.id===id)?.mapVoteRequest,setMapMethod:method=>{if(!draw || busy || spinning)return;drawnMap=null;draw.mapVeto=[];if(method)draw.mapMethod=method;else delete draw.mapMethod;if(['wheel','case','player-vote'].includes(method)){$('draw-animation').value=method==='player-vote'?'case':method;$('draw-animation').onchange();}configureDraw();controls();},setMap:map=>{drawnMap=map;configureDraw();controls();},notify:say,beginRematch:()=>{
     if(!isOrganiser() || busy || spinning || current.format!=='single')return;
     if((draw || remaining.length) && !confirm('Replace the unpublished draw with a rematch?'))return;
     const source=structuredClone(current);discordEventUI?.resetChoice();loadedDiscordEvent=null;resetDrawState();rematchSource=JSON.stringify(current);

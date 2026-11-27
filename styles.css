@@ -1454,3 +1454,23 @@ button.secondary:not(.danger, .map-veto-options button):enabled:focus-visible {
   padding-left:calc(var(--draft-logo-size) + 19px);
 }
 .draft-team-caption{grid-column:1 / -1}
+
+.match-broadcast{position:relative}
+.match-map-reel{
+  --tile-pitch:clamp(100px,13vw,168px);
+  position:absolute;inset:0;z-index:2;overflow:hidden;
+  display:flex;align-items:center;background:radial-gradient(ellipse at center,#292c31,#0d1117 80%);
+  pointer-events:none;
+}
+.match-map-track{position:absolute;inset-block:0;left:50%;display:flex;align-items:stretch}
+.match-map-tile{
+  box-sizing:border-box;flex:none;width:calc(var(--tile-pitch) - 8px);margin-inline:4px;
+  display:grid;align-items:end;padding:clamp(5px,1vw,12px);padding-bottom:clamp(14px,2vw,28px);
+  border:1px solid #58606a;background:linear-gradient(0deg,#0d1118ed,transparent 80%),var(--tile-art) center/cover,#262c33;
+  color:#f6f7fa;text-shadow:0 1px 4px #000;font-size:clamp(16px,1.8vw,25px);line-height:1.1;
+}
+.match-map-tile.landed{outline:3px solid var(--accent);outline-offset:-3px;color:#ffd187}
+.match-map-pointer{
+  position:absolute;left:50%;top:0;
+  transform:translateX(-50%);border-inline:10px solid transparent;border-top:14px solid var(--accent);
+}
