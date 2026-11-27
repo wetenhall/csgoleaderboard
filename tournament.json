@@ -21,24 +21,24 @@
       "tag": "01",
       "players": [
         {
+          "id": "p4",
+          "name": "Dan"
+        },
+        {
           "id": "p6",
-          "name": "sAM"
-        },
-        {
-          "id": "p10",
-          "name": "jpohan"
-        },
-        {
-          "id": "p5",
-          "name": "coach"
+          "name": "FAROESE BEAST"
         },
         {
           "id": "p7",
-          "name": "finesse"
+          "name": "Ramsten"
         },
         {
-          "id": "p4",
-          "name": "Ramsten"
+          "id": "p1",
+          "name": "Mootmanden"
+        },
+        {
+          "id": "p10",
+          "name": "Aatori"
         }
       ]
     },
@@ -48,24 +48,24 @@
       "tag": "02",
       "players": [
         {
-          "id": "p1",
-          "name": "cantlon"
+          "id": "p8",
+          "name": "finesse"
         },
         {
-          "id": "p8",
+          "id": "p9",
           "name": "little german boy"
         },
         {
           "id": "p3",
-          "name": "Spongoat"
+          "name": "cantlon"
         },
         {
           "id": "p2",
-          "name": "Mootmanden"
+          "name": "jpohan"
         },
         {
-          "id": "p9",
-          "name": "szns"
+          "id": "p5",
+          "name": "sAM]"
         }
       ]
     }
@@ -85,7 +85,7 @@
       ],
       "result": null,
       "label": "Single Game · 5v5",
-      "map": "Mirage"
+      "map": "Office"
     }
   ],
   "history": [],
@@ -147,56 +147,7 @@
     "Italy",
     "Cobblestone"
   ],
-  "mapMethod": "veto",
-  "mapVeto": [
-    {
-      "teamId": "t1",
-      "map": "Cobblestone"
-    },
-    {
-      "teamId": "t2",
-      "map": "Italy"
-    },
-    {
-      "teamId": "t1",
-      "map": "Cache"
-    },
-    {
-      "teamId": "t2",
-      "map": "Train"
-    },
-    {
-      "teamId": "t1",
-      "map": "Nuke"
-    },
-    {
-      "teamId": "t2",
-      "map": "Inferno"
-    },
-    {
-      "teamId": "t1",
-      "map": "Dust2"
-    },
-    {
-      "teamId": "t2",
-      "map": "Vertigo"
-    },
-    {
-      "teamId": "t1",
-      "map": "Overpass"
-    },
-    {
-      "teamId": "t2",
-      "map": "Ancient"
-    },
-    {
-      "teamId": "t1",
-      "map": "Office"
-    },
-    {
-      "teamId": "t2",
-      "map": "Anubis"
-    }
-  ],
-  "discordEventId": "e3c5ba92-b515-4371-85e4-3a095f63c52c"
+  "mapMethod": "wheel",
+  "mapVeto": [],
+  "discordEventId": "7dcc8ee3-dbda-4aed-ba9d-a980e551cb5e"
 }
