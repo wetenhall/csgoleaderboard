@@ -21,24 +21,24 @@
       "tag": "01",
       "players": [
         {
+          "id": "p6",
+          "name": "FAROESE BEAST"
+        },
+        {
           "id": "p5",
           "name": "sAM]"
-        },
-        {
-          "id": "p3",
-          "name": "cantlon"
-        },
-        {
-          "id": "p1",
-          "name": "Mootmanden"
         },
         {
           "id": "p4",
           "name": "Dan"
         },
         {
-          "id": "p8",
-          "name": "finesse"
+          "id": "p3",
+          "name": "cantlon"
+        },
+        {
+          "id": "p2",
+          "name": "jpohan"
         }
       ]
     },
@@ -48,24 +48,24 @@
       "tag": "02",
       "players": [
         {
-          "id": "p7",
-          "name": "Ramsten"
-        },
-        {
-          "id": "p6",
-          "name": "FAROESE BEAST"
+          "id": "p8",
+          "name": "finesse"
         },
         {
           "id": "p9",
           "name": "little german boy"
         },
         {
-          "id": "p10",
-          "name": "Aatori"
+          "id": "p7",
+          "name": "Ramsten"
         },
         {
-          "id": "p2",
-          "name": "jpohan"
+          "id": "p1",
+          "name": "Mootmanden"
+        },
+        {
+          "id": "p10",
+          "name": "Aatori"
         }
       ]
     }
@@ -85,7 +85,7 @@
       ],
       "result": null,
       "label": "Single Game · 5v5",
-      "map": "Italy"
+      "map": "Mirage"
     }
   ],
   "history": [],
@@ -140,7 +140,8 @@
     "Train",
     "Overpass",
     "Office",
-    "Italy"
+    "Italy",
+    "Cobblestone"
   ],
   "mapMethod": "veto",
   "mapVeto": [
@@ -150,23 +151,7 @@
     },
     {
       "teamId": "t2",
-      "map": "Mirage"
-    },
-    {
-      "teamId": "t1",
-      "map": "Train"
-    },
-    {
-      "teamId": "t2",
-      "map": "Overpass"
-    },
-    {
-      "teamId": "t1",
-      "map": "Cache"
-    },
-    {
-      "teamId": "t2",
-      "map": "Vertigo"
+      "map": "Ancient"
     },
     {
       "teamId": "t1",
@@ -174,19 +159,39 @@
     },
     {
       "teamId": "t2",
-      "map": "Ancient"
+      "map": "Vertigo"
     },
     {
       "teamId": "t1",
+      "map": "Cache"
+    },
+    {
+      "teamId": "t2",
+      "map": "Train"
+    },
+    {
+      "teamId": "t1",
+      "map": "Overpass"
+    },
+    {
+      "teamId": "t2",
+      "map": "Office"
+    },
+    {
+      "teamId": "t1",
+      "map": "Italy"
+    },
+    {
+      "teamId": "t2",
       "map": "Inferno"
+    },
+    {
+      "teamId": "t1",
+      "map": "Cobblestone"
     },
     {
       "teamId": "t2",
       "map": "Dust2"
-    },
-    {
-      "teamId": "t1",
-      "map": "Office"
     }
   ],
   "discordEventId": "7dcc8ee3-dbda-4aed-ba9d-a980e551cb5e"
