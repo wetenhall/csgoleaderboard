@@ -771,6 +771,7 @@ body:has(:is(#tab-stats,#tab-history,#tab-team-setup,#tab-fixture-import,#tab-ma
   margin:24px 0 0 auto;
   z-index:2;
 }
+.setup-navigation .setup-music{margin:0}
 .setup-music .setup-music-icon{
   display:grid;
   place-items:center;

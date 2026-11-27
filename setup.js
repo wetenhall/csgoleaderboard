@@ -69,6 +69,7 @@ function createSetupMusic(){
     if(event.target.closest('button[id^="setup-next-"],#start-draw'))void play();
   },true);
   return {moveControls(before){
+    if(musicBar.nextElementSibling===before)return;
     setPanel(false);
     before.before(musicBar);
   },setActive(visible){
@@ -79,7 +80,7 @@ function createSetupMusic(){
   }};
 }
 
-function createSetupStages({isBusy,isLocked,validateGame,validateOptions,validatePlayers,preparePlayers,signature,summary,resetDraw}) {
+function createSetupStages({isBusy,isLocked,validateGame,validateOptions,validatePlayers,preparePlayers,signature,summary,resetDraw,onRender}) {
   const $=id=>document.getElementById(id);
   let step=1,unlocked=1,confirmed=null;
   function render(){
@@ -95,6 +96,7 @@ function createSetupStages({isBusy,isLocked,validateGame,validateOptions,validat
     for(let i=1;i<=3;i++)$('setup-next-'+i).disabled=isBusy();
     for(let i=2;i<=4;i++)$('setup-back-'+i).disabled=isBusy();
     $('setup-summary').textContent=summary();
+    onRender?.();
   }
   function go(next){
     if(isBusy() || next>unlocked)return;

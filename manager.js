@@ -1406,7 +1406,7 @@ if (typeof document !== 'undefined') (() => {
     const actions=drawStage.querySelector(active?'.draw-toolbar-actions':'.draw-action-bar');
     actions.append(publishButton.parentElement);
     publishButton.setAttribute('aria-describedby','publish-expanded-status');
-    setupMusic.moveControls(active?fullscreenButton:$('setup-music-audio'));
+    positionSetupMusic();
     fullscreenButton.textContent=active?'Exit expanded view':'Expand draw';
     fullscreenButton.setAttribute('aria-pressed',String(active));
     fullscreenButton.focus();
@@ -1431,6 +1431,11 @@ if (typeof document !== 'undefined') (() => {
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
   const tabs = Array.from(document.querySelectorAll('.page-tabs [role="tab"], .admin-tabs [role="tab"]'));
   const setupMusic=createSetupMusic();
+  function positionSetupMusic(){
+    const anchor=expandedDraw?fullscreenButton:
+      $('setup-stage-1').hidden?$('setup-music-audio'):$('setup-next-1');
+    setupMusic.moveControls(anchor);
+  }
   function defaultTab(){return current.registrationEnabled!==false && !isOrganiser() ? $('tab-register') : $('tab-leaderboard');}
   let registrationSubmitting=false;
   $('registration-form').addEventListener('submit',async event=>{
@@ -1580,7 +1585,7 @@ if (typeof document !== 'undefined') (() => {
     $('map-options').querySelectorAll('input').forEach(input=>{input.checked=source.mapPool.includes(input.value);});updateMapCount();
     selected=Array.from({length:source.teamSize},(_,i)=>source.teams.map(team=>structuredClone(team.players[i]))).flat();remaining=[];draw=source;delete draw.activeMatchId;delete draw.mapVeto;delete draw.mapMethod;draw.matches.forEach(match=>{match.result=null;});drawOrder=source.teams.map(t=>t.id);drawnMap=null;lock(true);$('pool-count').textContent=(source.teamSize*2)+' players retained · Two teams of '+source.teamSize+' · Rematch';configureDraw();controls();setupUI?.showDraw();selectTab($('tab-team-setup'),true);$('draw-stage').scrollIntoView({block:'start'});announce('Same teams are ready. Spin for a new map or use map vetoes. A completed previous match is archived when you publish.');
   }});
-  setupUI=createSetupStages({validateGame:()=> $('game-source').value==='discord' && !discordEventUI?.getSelectedEvent()?'Select a published Discord event to continue.':'',preparePlayers:()=>{
+  setupUI=createSetupStages({onRender:positionSetupMusic,validateGame:()=> $('game-source').value==='discord' && !discordEventUI?.getSelectedEvent()?'Select a published Discord event to continue.':'',preparePlayers:()=>{
     loadedDiscordEvent=discordEventUI?.getSelectedEvent() || null;
     if(!loadedDiscordEvent || locked || busy){controls();return;}
     const names=loadedDiscordEvent.players;
