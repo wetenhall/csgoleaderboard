@@ -1268,7 +1268,9 @@ if (typeof document !== 'undefined') (() => {
     $('reset-draw').onclick();
     if(!locked){setExpandedDraw(false);$('setup-stage-4').scrollIntoView({block:'start'});$('team-creation').focus();}
   };
-  $('start-draw').addEventListener('click',()=>{if(locked && !$('draw-stage').hidden)$('draw-stage').scrollIntoView({block:'start'});});
+  $('start-draw').addEventListener('click',()=>{
+    if(locked && !$('draw-stage').hidden)setExpandedDraw(true);
+  });
   $('publish-expanded').onclick=()=>{if(!$('publish-draw').disabled)$('publish-draw').click();};
   const drawStage=$('draw-stage'),fullscreenButton=$('fullscreen-draw');
   const publishedPanel=$('panel-leaderboard'),exitPublishedButton=$('exit-published-view');
