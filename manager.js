@@ -889,7 +889,7 @@ if (typeof document !== 'undefined') (() => {
     if(!event.isTrusted || !control || control.disabled || !soundEnabled)return;
     if (!menuTap) {
       menuTap = new Audio('assets/audio/menu-tap.wav');
-      menuTap.volume = 0.45;
+      menuTap.volume = 0.12;
     }
     menuTap.currentTime=0;
     menuTap.play().catch(()=>{}); // Navigation still works when playback is blocked.

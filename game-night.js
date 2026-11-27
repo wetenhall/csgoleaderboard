@@ -405,7 +405,19 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
       form.append(element('h3','','Match server'),element('p','rules','Once your game server is ready, add its address here. Saving updates Connect to match in Discord. Paste the full connect command, including a password if required. These details are published for players on the website and in its public repository. Leave blank to remove them.'));
       const label=element('label','','Server connection details'),input=document.createElement('input');input.value=data.serverAddress?serverConnectionCommand(data):'';input.placeholder='server.example.com:27015';input.maxLength=450;input.autocomplete='off';label.append(input);
       const status=element('p','rules');status.setAttribute('role','status');const serverActions=element('div','setup-navigation'),save=element('button','','Save server details');save.type='submit';serverActions.append(save);form.append(label,status,serverActions);
-      form.onsubmit=async event=>{event.preventDefault();if(!isOrganiser() || isBusy())return;try{await saveServer(input.value);notify('Server details saved. Discord updates automatically within 30 seconds.');}catch(error){status.textContent=error.message;}};
+      form.onsubmit=async event=>{
+        event.preventDefault();
+        if(!isOrganiser() || isBusy())return;
+        try {
+          await saveServer(input.value);
+          serverEditorOpen=false;
+          controls();
+          $('panel-leaderboard').querySelector('[data-server-toggle]')?.focus();
+          notify('Server details saved. Discord updates automatically within 30 seconds.');
+        } catch(error) {
+          status.textContent=error.message;
+        }
+      };
       publicRoot.append(form);
     }
     const past=(data.history || []).filter(entry=>entry.tournament.format==='single').slice(-8).reverse();
