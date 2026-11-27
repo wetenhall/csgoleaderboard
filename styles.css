@@ -532,6 +532,23 @@ body:has(#tab-fixtures[aria-selected=true]) :is(.intro,.overview){display:none}
 .map-picker-card:has(input:disabled){cursor:default}
 .map-picker-card input{flex:none;width:16px;height:16px;margin:0 0 1px}
 .map-picker-name{min-width:0;font:700 17px/1.05 var(--ui);overflow-wrap:anywhere;text-shadow:0 1px 6px #000}
+.map-veto-options .map-picker-card{
+  justify-content:space-between;
+  gap:5px;
+  margin:0;
+  text-align:left;
+}
+.map-veto-card-action{
+  flex:none;
+  padding:3px 6px;
+  background:#161a20;
+  border:1px solid #a3712d;
+  color:#ffd28a;
+  font:700 12px/1.1 var(--ui);
+}
+.map-veto-options button.map-picker-card:not(:disabled):hover{border-color:var(--accent)}
+.map-veto-options .map-veto-banned{opacity:.65;cursor:default}
+.map-veto-banned .map-veto-card-action{border-color:var(--border);color:var(--muted)}
 @media(max-width:600px){.map-options:has(.map-picker-card){grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 /* Player comparison and archive cards. */

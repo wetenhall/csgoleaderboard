@@ -121,9 +121,31 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
           const hero=element('div','single-match-map');hero.setAttribute('role','status');
           hero.append(element('span','eyebrow','MAP VETO / CUSTOM '+draft.teamSize+'V'+draft.teamSize),element('h3','',team.name+' bans next'),element('p','rules','The organiser clicks on behalf of each team.'));section.append(hero);
         }else section.append(element('p','rules','Select at least one map.'));
-        const buttons=element('div','game-actions');if(left.length>1)left.forEach(map=>buttons.append(makeButton('Ban '+map,()=>{if(isBusy() || !isOrganiser())return;const result=advanceMapVeto(maps,draft.teams,bans,map);draft.mapVeto=result.bans;if(result.selected)setMap(result.selected);else renderDraft();})));
-        if(left.length===1 && draft.matches[0].map!==left[0])buttons.append(makeButton('Confirm '+left[0],()=>setMap(left[0])));
-        section.append(buttons);
+        if(left.length>1){
+          const cards=element('div','map-options map-veto-options');
+          maps.forEach(map=>{
+            const banned=bans.some(ban=>ban.map===map);
+            const card=banned?element('div','map-picker-card map-veto-banned'):makeButton('',()=>{
+              if(isBusy() || !isOrganiser())return;
+              const result=advanceMapVeto(maps,draft.teams,bans,map);
+              draft.mapVeto=result.bans;
+              if(result.selected)setMap(result.selected);
+              else {
+                renderDraft();
+                draftRoot.querySelector('.map-veto-options button:not(:disabled)')?.focus({preventScroll:true});
+              }
+            });
+            if(!banned){
+              card.classList.add('map-picker-card');
+              card.setAttribute('aria-label','Ban '+map);
+            }
+            setMapBackdrop(card,map);
+            card.append(element('span','map-picker-name',map),element('span','map-veto-card-action',banned?'Banned':'Ban'));
+            cards.append(card);
+          });
+          section.append(cards);
+        }
+        if(left.length===1 && draft.matches[0].map!==left[0])section.append(makeButton('Confirm '+left[0],()=>setMap(left[0])));
         const resetRow=element('div','veto-reset-actions'),reset=makeButton('Restart veto',()=>{draft.mapVeto=[];setMap(null);});
         reset.classList.add('danger');resetRow.append(reset);section.append(resetRow);
       }draftRoot.hidden=draft.mapMethod!=='veto';draftRoot.append(section);
