@@ -21,24 +21,24 @@
       "tag": "01",
       "players": [
         {
-          "id": "p3",
-          "name": "cantlon"
+          "id": "p7",
+          "name": "Ramsten"
         },
         {
-          "id": "p6",
-          "name": "FAROESE BEAST"
+          "id": "p8",
+          "name": "finesse"
         },
         {
-          "id": "p4",
-          "name": "Dan"
+          "id": "p10",
+          "name": "Aatori"
         },
         {
           "id": "p1",
           "name": "Mootmanden"
         },
         {
-          "id": "p7",
-          "name": "Ramsten"
+          "id": "p3",
+          "name": "cantlon"
         }
       ]
     },
@@ -48,20 +48,20 @@
       "tag": "02",
       "players": [
         {
-          "id": "p8",
-          "name": "finesse"
+          "id": "p9",
+          "name": "little german boy"
         },
         {
           "id": "p5",
           "name": "sAM]"
         },
         {
-          "id": "p10",
-          "name": "Aatori"
+          "id": "p4",
+          "name": "Dan"
         },
         {
-          "id": "p9",
-          "name": "little german boy"
+          "id": "p6",
+          "name": "FAROESE BEAST"
         },
         {
           "id": "p2",
@@ -85,7 +85,7 @@
       ],
       "result": null,
       "label": "Single Game · 5v5",
-      "map": "Cache"
+      "map": "Vertigo"
     }
   ],
   "history": [],
@@ -147,7 +147,7 @@
     "Italy",
     "Cobblestone"
   ],
-  "mapMethod": "wheel",
+  "mapMethod": "case",
   "mapVeto": [],
   "discordEventId": "7dcc8ee3-dbda-4aed-ba9d-a980e551cb5e"
 }
