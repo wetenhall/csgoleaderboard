@@ -21,20 +21,20 @@
       "tag": "01",
       "players": [
         {
-          "id": "p5",
-          "name": "sAM]"
+          "id": "p8",
+          "name": "finesse"
+        },
+        {
+          "id": "p4",
+          "name": "Dan"
         },
         {
           "id": "p9",
           "name": "little german boy"
         },
         {
-          "id": "p7",
-          "name": "Ramsten"
-        },
-        {
-          "id": "p8",
-          "name": "finesse"
+          "id": "p3",
+          "name": "cantlon"
         },
         {
           "id": "p6",
@@ -48,24 +48,24 @@
       "tag": "02",
       "players": [
         {
+          "id": "p5",
+          "name": "sAM]"
+        },
+        {
           "id": "p1",
           "name": "Mootmanden"
         },
         {
-          "id": "p4",
-          "name": "Dan"
-        },
-        {
-          "id": "p10",
-          "name": "Aatori"
-        },
-        {
-          "id": "p3",
-          "name": "cantlon"
+          "id": "p7",
+          "name": "Ramsten"
         },
         {
           "id": "p2",
           "name": "jpohan"
+        },
+        {
+          "id": "p10",
+          "name": "Aatori"
         }
       ]
     }
@@ -85,7 +85,7 @@
       ],
       "result": null,
       "label": "Single Game · 5v5",
-      "map": "Inferno"
+      "map": "Train"
     }
   ],
   "history": [],
