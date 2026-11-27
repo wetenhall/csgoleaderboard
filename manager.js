@@ -864,17 +864,66 @@ if (typeof document !== 'undefined') (() => {
     soundEnabled=!soundEnabled;await prepareSound();
     if(soundEnabled)playTone(660,0.1);
   };
-  let wheelFrame = [[],0,-1];
+  let wheelFrame = [[],0,-1,false];
+  const wheelMapImages=new Map();
   document.fonts?.ready.then(()=>{if(!spinning)paintWheel(...wheelFrame);});
-  function paintWheel(names,angle=0,highlight=-1) {
-    wheelFrame = [names,angle,highlight];
+  function mapWheelImage(name){
+    const url=mapImageUrl(name);
+    if(!url)return null;
+    if(!wheelMapImages.has(url)){
+      const image=new Image();
+      wheelMapImages.set(url,image);
+      image.onload=()=>{if(!spinning && wheelFrame[3])paintWheel(...wheelFrame);};
+      image.src=url;
+    }
+    const image=wheelMapImages.get(url);
+    return image.complete && image.naturalWidth && image.naturalHeight ? image : null;
+  }
+  function paintMapWheelSlice(ctx,name,mid,angle,count,active){
+    ctx.save();
+    ctx.clip();
+    ctx.rotate(mid);
+    const image=mapWheelImage(name);
+    ctx.fillStyle='#292d37';ctx.fillRect(-302,-302,604,604);
+    if(image){
+      const left=count===1?-302:0,width=302-left;
+      const height=count<=2?604:604*Math.sin(Math.PI/count);
+      const scale=Math.max(width/image.naturalWidth,height/image.naturalHeight);
+      const sourceWidth=width/scale,sourceHeight=height/scale;
+      ctx.drawImage(image,(image.naturalWidth-sourceWidth)/2,(image.naturalHeight-sourceHeight)/2,
+        sourceWidth,sourceHeight,left,-height/2,width,height);
+    }
+    const tint=ctx.createLinearGradient(55,0,302,0);
+    tint.addColorStop(0,'#121620ee');
+    tint.addColorStop(1,active?'#493215a8':'#11141b88');
+    ctx.fillStyle=tint;ctx.fillRect(-302,-302,604,604);
+    ctx.translate(204,0);
+    if(Math.cos(mid+angle*Math.PI/180)<0)ctx.rotate(Math.PI);
+    ctx.font='700 26px Rajdhani, Arial';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.shadowColor='#101316';
+    ctx.shadowBlur=5;
+    ctx.fillStyle=active?'#ffe275':'#ffc33f';
+    ctx.fillText(name,0,1,154);
+    ctx.restore();
+  }
+  function paintWheel(names,angle=0,highlight=-1,mapWheel=false) {
+    wheelFrame = [names,angle,highlight,mapWheel];
     if($('draw-animation').value==='case'){paintCaseReel(names,angle,highlight);return;}
-    const ctx=$('wheel').getContext('2d'),n=names.length;ctx.clearRect(0,0,640,640);
+    const wheel=$('wheel'),ctx=wheel.getContext('2d'),n=names.length;
+    const label=mapWheel?'Map selection wheel':'Player selection wheel';
+    if(wheel.getAttribute('aria-label')!==label)wheel.setAttribute('aria-label',label);
+    ctx.clearRect(0,0,640,640);
     ctx.save();ctx.translate(320,320);ctx.rotate(angle*Math.PI/180);
     if(!n){ctx.fillStyle='#23262e';ctx.beginPath();ctx.arc(0,0,302,0,2*Math.PI);ctx.fill();}
     names.forEach((p,i)=>{
       const start=-Math.PI/2+i*2*Math.PI/n,active=i===highlight;
       ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,302,start,start+2*Math.PI/n);ctx.closePath();
+      if(mapWheel){
+        paintMapWheelSlice(ctx,p.name,start+Math.PI/n,angle,n,active);
+        ctx.strokeStyle=active?'#ffe4ad':'#101316';ctx.lineWidth=active?5:2;ctx.stroke();
+        return;
+      }
       ctx.fillStyle=active?'#ffe4ad':teamColours[i%teamColours.length];ctx.globalAlpha=active?1:0.78;ctx.fill();ctx.globalAlpha=1;
       ctx.strokeStyle=active?'#fff5df':'#101316';ctx.lineWidth=active?5:2;ctx.stroke();
       ctx.save();ctx.rotate(start+Math.PI/n);ctx.fillStyle='#101820';ctx.font='bold '+(n>24?12:18)+'px Rajdhani, Arial';ctx.textAlign='right';
@@ -884,7 +933,7 @@ if (typeof document !== 'undefined') (() => {
     });ctx.restore();
     ctx.beginPath();ctx.arc(320,320,302,0,2*Math.PI);ctx.strokeStyle='#ff9b01';ctx.lineWidth=5;ctx.stroke();
     ctx.beginPath();ctx.arc(320,320,64,0,2*Math.PI);ctx.fillStyle='#1e202f';ctx.fill();ctx.strokeStyle='#65717b';ctx.lineWidth=2;ctx.stroke();
-    ctx.fillStyle='#ff9b01';ctx.textAlign='center';ctx.font='bold 19px Rajdhani, Arial';ctx.fillText(n?'DRAFT':'PLAYER',320,316);ctx.font='500 12px Rajdhani, Arial';ctx.fillText(n?n+' LEFT':'DRAW',320,338);
+    ctx.fillStyle='#ff9b01';ctx.textAlign='center';ctx.font='bold 19px Rajdhani, Arial';ctx.fillText(mapWheel?'MAP DRAW':n?'DRAFT':'PLAYER',320,316);ctx.font='500 12px Rajdhani, Arial';ctx.fillText(mapWheel?n+(n===1?' MAP':' MAPS'):n?n+' LEFT':'DRAW',320,338);
   }
   function paintCaseReel(names,angle,highlight){
     const ctx=$('case-reel').getContext('2d'),width=1100,height=360,pitch=210,n=names.length;
@@ -1144,8 +1193,8 @@ if (typeof document !== 'undefined') (() => {
     try{
       await prepareSound();$('reveal-label').textContent='MAP DRAW IN PROGRESS';$('reveal-name').textContent='Selecting a map…';
       const duration=skippingAnimation || matchMedia('(prefers-reduced-motion: reduce)').matches?0:6800;
-      if(duration)await new Promise(resolve=>{const start=performance.now();let previous=-1;function frame(now){const fraction=Math.min(1,(now-start)/duration),angle=target*(1-Math.pow(1-fraction,4)),active=Math.floor(((360-angle%360)%360)/360*names.length)%names.length;paintWheel(names,angle,active);if(active!==previous)playTone(850);previous=active;if(fraction<1)requestAnimationFrame(frame);else resolve();}requestAnimationFrame(frame);});
-      drawnMap=names[index].name;configureDraw();paintWheel(names,target,index);$('player-reveal').classList.add('revealed');playTone(1046,0.24);announce(drawnMap+' selected. Publish your teams and map to show the custom match on the leaderboard.');
+      if(duration)await new Promise(resolve=>{const start=performance.now();let previous=-1;function frame(now){const fraction=Math.min(1,(now-start)/duration),angle=target*(1-Math.pow(1-fraction,4)),active=Math.floor(((360-angle%360)%360)/360*names.length)%names.length;paintWheel(names,angle,active,true);if(active!==previous)playTone(850);previous=active;if(fraction<1)requestAnimationFrame(frame);else resolve();}requestAnimationFrame(frame);});
+      drawnMap=names[index].name;configureDraw();paintWheel(names,target,index,true);$('player-reveal').classList.add('revealed');playTone(1046,0.24);announce(drawnMap+' selected. Publish your teams and map to show the custom match on the leaderboard.');
     }finally{spinning=false;$('reset-draw').disabled=false;controls();}
   }
   function configureDraw() {
@@ -1155,7 +1204,7 @@ if (typeof document !== 'undefined') (() => {
       const next = makeTournament(selected,draw.teamSize,current,order,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value),$('tournament-format').value);
       next.teams=structuredClone(draw.teams);if(draw.mapMethod)next.mapMethod=draw.mapMethod;if(draw.mapVeto)next.mapVeto=structuredClone(draw.mapVeto); draw=next;
       setMapBackdrop($('player-reveal'),draw.format==='single' ? drawnMap : undefined);
-      if(draw.format==='single'){if(drawnMap)draw.matches[0].map=drawnMap;else delete draw.matches[0].map;paintWheel(selectedMaps().map(name=>({name})));$('reveal-label').textContent=drawnMap?'SELECTED MAP':'MAP DRAW';$('reveal-name').textContent=drawnMap || 'Spin to choose your map';$('reveal-avatar').textContent='MAP';}
+      if(draw.format==='single'){if(drawnMap)draw.matches[0].map=drawnMap;else delete draw.matches[0].map;paintWheel(selectedMaps().map(name=>({name})),0,-1,true);$('reveal-label').textContent=drawnMap?'SELECTED MAP':'MAP DRAW';$('reveal-name').textContent=drawnMap || 'Spin to choose your map';$('reveal-avatar').textContent='MAP';}
       $('format-preview').textContent = draw.groups.length ? draw.groups.map(g=>'Group '+g.id+': '+g.teams.length+' teams').join(' · ') + ' · Top '+draw.qualifiersPerGroup+' advance from each group.' + (draw.groups.length === 3 ? ' Byes fill the knockout bracket automatically.' : '') : (draw.format==='single'?'Single Game · Two squads of five · ':draw.format==='double'?'Double elimination · Best-of-three grand final · ':'Straight knockout · ')+draw.matches.length+' game'+(draw.matches.length === 1 ? '' : 's')+(draw.format==='single'?' · Ready for your custom game.':' · Byes advance automatically.');
       showDrawTeams();
       $('draw-fixtures').replaceChildren(element('h3','fixture-heading',draw.teamSize===1?'Fixtures · choose maps in server':'Fixture map preview'));
