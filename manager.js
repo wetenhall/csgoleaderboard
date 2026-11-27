@@ -331,6 +331,7 @@ if (typeof document !== 'undefined') (() => {
   $('game-provider').value=current.gameProvider || 'manual';
   let setupUI=null,featureUI=null,gameNightUI=null,discordEventUI=null,loadedDiscordEvent=null,customPlayerNames='',rematchSource=null;
   let skippingAnimation=false;
+  let lastPick=null;
   let drawnMap=null,manualAssignments=[],manualNames=[],autoSpinTimer=null,captainDraft=null,rosterPlan=null;
   let pool = [], remaining = [], selected = [], draw = null, spinning = false, locked = false, drawOrder = [];
   const tokenStorageKey = 'friends-cup.organiser-token.'+(repository?repository.owner+'/'+repository.repo:'unconfigured');
@@ -393,6 +394,8 @@ if (typeof document !== 'undefined') (() => {
     $('draw-stage').hidden=!locked || planning || (manual && (!draw || draw.format!=='single'));
     $('draw-panel').classList.toggle('live-draw',locked && !$('draw-stage').hidden);
     $('reset-edit-draw').disabled=busy || spinning || skippingAnimation;
+    $('undo-player-pick').hidden=!locked || !lastPick || !!draw?.mapMethod;
+    $('undo-player-pick').disabled=!token || busy || spinning || skippingAnimation;
     $('back-live-draw').disabled=$('reset-edit-draw').disabled;
     $('draw-stage').classList.toggle('manual-map',manual);
     document.querySelector('.draw-roster').hidden=manual && !selectingMap;
@@ -1181,6 +1184,7 @@ if (typeof document !== 'undefined') (() => {
         if(!token || busy || spinning || captainDraft.cases[i].opened)return;
         spinning=true;stopAutoSpin();controls();$('reset-draw').disabled=true;button.classList.add('case-opening');$('captain-case-status').textContent='Opening case '+(i+1)+' for '+captain.name+'…';
         try{await prepareSound();playTone(440,.15);if(!matchMedia('(prefers-reduced-motion: reduce)').matches)await new Promise(resolve=>setTimeout(resolve,900));
+          lastPick={remaining:[...remaining],captainDraft};
           captainDraft=openCaptainCase(captainDraft,i);const player=captainDraft.cases[i].player;remaining=remaining.filter(p=>p.id!==player.id);selected.push(player);playTone(1046,.24);
           if(!remaining.length){draw=makeTournament(selected,Number($('team-size').value),current,undefined,Number($('group-count').value),selectedMaps(),Number($('qualifiers-per-group').value),$('tournament-format').value);draw.teams=structuredClone(captainDraft.teams);drawOrder=draw.teams.map(team=>team.id);configureDraw();}
           renderCaptainCases();showDrawTeams(player.id);$('captain-case-status').textContent=player.name+' joins '+team.name+'. '+$('captain-case-status').textContent;
@@ -1188,7 +1192,7 @@ if (typeof document !== 'undefined') (() => {
       };root.append(button);
     });
   }
-  function lock(value){locked=value;if(!value){rosterPlan=null;$('roster-reveal').replaceChildren();}['team-creation','team-size','pool-input','load-pool','start-draw'].forEach(id=>{$(id).disabled=value;});$('pool-list').querySelectorAll('input').forEach(i=>{i.disabled=value;});}
+  function lock(value){lastPick=null;locked=value;if(!value){rosterPlan=null;$('roster-reveal').replaceChildren();}['team-creation','team-size','pool-input','load-pool','start-draw'].forEach(id=>{$(id).disabled=value;});$('pool-list').querySelectorAll('input').forEach(i=>{i.disabled=value;});}
   $('start-draw').onclick=async()=>{
     if(busy)return;
     const ids=[...$('pool-list').querySelectorAll('input:checked')].map(i=>i.value),size=Number($('team-size').value);
@@ -1222,6 +1226,24 @@ if (typeof document !== 'undefined') (() => {
     announce(size===1 && $('tournament-format').value==='groups' && Number($('group-count').value)>0?'Drawing Group A. Spin to select its first player.':'Drawing Team 01. Spin to select its first player.');
     if(mode==='random')await $('skip-animation').onclick();
   };
+  $('undo-player-pick').onclick=()=>{
+    if(!lastPick || !locked || !token || busy || spinning || skippingAnimation || draw?.mapMethod)return;
+    stopAutoSpin();
+    const player=selected.pop();
+    remaining=lastPick.remaining;
+    captainDraft=lastPick.captainDraft;
+    lastPick=null;
+    draw=null;
+    drawnMap=null;
+    resetReveal();
+    gameNightUI?.renderDraft();
+    if(captainDraft)renderCaptainCases();
+    else paintWheel(remaining);
+    showDrawTeams();
+    controls();
+    announce(player.name+' returned to the pool.');
+    (captainDraft?$('captain-case-grid').querySelector('button:enabled'):$('spin'))?.focus();
+  };
   $('skip-animation').onclick=async()=>{
     if($('skip-animation').disabled)return;
     stopAutoSpin();skippingAnimation=true;controls();
@@ -1253,6 +1275,7 @@ if (typeof document !== 'undefined') (() => {
         }requestAnimationFrame(frame);
       });
       paintWheel(names,target,index);
+      lastPick={remaining:[...remaining],captainDraft:null};
       remaining.splice(index,1);selected.push(picked);const size=Number($('team-size').value),team=size===5?(selected.length-1)%((selected.length+remaining.length)/size)+1:Math.ceil(selected.length/size);
       const destination=size===1 && $('tournament-format').value==='groups' && Number($('group-count').value)>0?'Group '+String.fromCharCode(65+(selected.length-1)%Number($('group-count').value)):'Team '+String(team).padStart(2,'0');
       $('reveal-avatar').textContent=initials(picked.name);$('reveal-name').textContent=picked.name;$('reveal-label').textContent='JOINING '+destination.toUpperCase();$('player-reveal').classList.add('revealed');
@@ -1323,6 +1346,17 @@ if (typeof document !== 'undefined') (() => {
     if(active){
       publishedPanel.scrollTop=0;
       exitPublishedButton.focus();
+      const banner=publishedPanel.querySelector('.match-broadcast');
+      if(banner && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+        const timing={duration:650,easing:'ease-out',fill:'backwards'};
+        banner.animate([{opacity:0,clipPath:'inset(0 7%)'},{opacity:1,clipPath:'inset(0)'}],timing);
+        banner.querySelectorAll('.match-scoreboard-team').forEach((side,index)=>{
+          side.animate([{opacity:0,transform:'translateX('+(index?40:-40)+'px)'},{opacity:1,transform:'none'}],{...timing,delay:220});
+        });
+        publishedPanel.querySelectorAll('.single-squad').forEach(card=>{
+          card.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{...timing,delay:800});
+        });
+      }
     }
   }
   exitPublishedButton.onclick=()=>{

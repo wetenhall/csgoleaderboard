@@ -210,7 +210,22 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
   methodRoot.hidden=true;$('draw-stage').querySelector('.draw-roster').after(methodRoot);
   draftRoot.hidden=true;draftRoot.id='map-draw-options';publicRoot.id='match-tools';methodRoot.after(draftRoot);$('panel-leaderboard').append(publicRoot);
   const makeButton=(label,action)=>{const b=element('button','secondary',label);b.type='button';b.onclick=async()=>{try{await action();}catch(e){notify(e.message);}};return b;};
-  async function copy(text){try{await navigator.clipboard.writeText(text);notify('Copied to clipboard.');}catch{const dialog=element('dialog','options-dialog'),field=element('textarea');field.value=text;field.rows=12;field.readOnly=true;dialog.append(element('h2','','Copy match details'),field,makeButton('Close',()=>{dialog.close();dialog.remove();}));document.body.append(dialog);dialog.showModal();field.select();}}
+  function copyButton(label,getText){
+    let timer;
+    const button=makeButton(label,async()=>{
+      if(!await copy(getText()))return;
+      button.style.width=button.getBoundingClientRect().width+'px';
+      button.textContent='✓ Copied';
+      clearTimeout(timer);
+      timer=setTimeout(()=>{
+        button.textContent=label;
+        button.style.removeProperty('width');
+      },1600);
+    });
+    button.setAttribute('aria-live','polite');
+    return button;
+  }
+  async function copy(text){try{await navigator.clipboard.writeText(text);return true;}catch{const dialog=element('dialog','options-dialog'),field=element('textarea');field.value=text;field.rows=12;field.readOnly=true;dialog.append(element('h2','','Copy match details'),field,makeButton('Close',()=>{dialog.close();dialog.remove();}));document.body.append(dialog);dialog.showModal();field.select();}}
   function controls(){$('panel-leaderboard').querySelectorAll('[data-server-toggle]').forEach(button=>{button.hidden=!isOrganiser();button.disabled=isBusy();button.setAttribute('aria-expanded',String(serverEditorOpen && isOrganiser()));});publicRoot.querySelectorAll('[data-server-editor]').forEach(form=>{form.hidden=!isOrganiser() || !serverEditorOpen;form.querySelectorAll('input,button').forEach(el=>el.disabled=isBusy());});publicRoot.hidden=![...publicRoot.children].some(child=>!child.hidden);[draftRoot,methodRoot].forEach(root=>root.querySelectorAll('input,select,button').forEach(el=>el.disabled=isBusy() || !isOrganiser() || (el.hasAttribute('data-map-vote-action') && fetchingVote)));const confirm=$('confirm-map-method');if(confirm)confirm.disabled=isBusy() || !isOrganiser() || !$('map-selection-method').value || !!getDraft()?.mapMethod;$('panel-leaderboard').querySelectorAll('[data-rematch]').forEach(el=>{el.hidden=!isOrganiser();el.disabled=isBusy();});}
   function voteKey(){
     const method=getDraft()?.mapMethod,eventId=getVoteEvent?.();
@@ -388,11 +403,11 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
   }
   function render(){
     publicRoot.replaceChildren();document.querySelector('[data-match-connect]')?.remove();let connectButton=null;const data=getData(),actions=element('div','game-actions');
-    if(data.teams.length)actions.append(makeButton('Copy match details for Discord',()=>copy(discordMatchText(getData(),resolveTournament))));
+    if(data.teams.length)actions.append(copyButton('Copy match details for Discord',()=>discordMatchText(getData(),resolveTournament)));
     if(data.serverAddress){
       const connection=parseServerConnection(serverConnectionCommand(data)),connect=element('a','connect-launch match-connect','Connect to match');connect.dataset.matchConnect='';connectButton=connect;
       connect.href='steam://connect/'+connection.serverAddress+(connection.serverPassword?'/'+encodeURIComponent(connection.serverPassword):'');
-      actions.append(makeButton('Copy server connection',()=>copy(serverConnectionCommand(getData()))));
+      actions.append(copyButton('Copy server connection',()=>serverConnectionCommand(getData())));
     }
     if(data.format==='single' && data.teamSize>=2){const rematch=makeButton('Rematch · Same teams, new map',beginRematch);rematch.dataset.rematch='';actions.append(rematch);}
     const matchActions=document.querySelector('.match-published-actions');
