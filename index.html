@@ -108,7 +108,8 @@ Another player"></textarea></label>
 </div>
 <div id="panel-register" class="tab-panel" role="tabpanel" aria-labelledby="tab-register" tabindex="0" hidden="">
   <section aria-labelledby="register-heading">
-    <div class="section-heading"><h2 id="register-heading">Register to play</h2><span>JOIN THE NEXT TOURNAMENT</span></div>
+    <div class="section-heading"><h2 id="register-heading">Register to play</h2></div>
+    <div class="registration-card">
     <p id="registration-description" class="registration-intro">Enter your player name to register for the next tournament.</p>
     <form id="registration-form" class="player-registration" action="https://api.web3forms.com/submit" method="POST">
       <input type="hidden" name="access_key" value="7ae62ed3-d493-4369-9038-1b573799dfa7">
@@ -119,6 +120,7 @@ Another player"></textarea></label>
       <button id="registration-submit" type="submit">Register to play</button>
       <p id="registration-status" role="status" aria-live="polite"></p>
     </form>
+    </div>
   </section>
 </div>
 <dialog id="archive-dialog" class="options-dialog" aria-labelledby="archive-heading"><div class="section-heading"><h2 id="archive-heading">Archive this cup</h2><button type="button" id="close-archive" class="options-close" aria-label="Close archive">×</button></div><form id="archive-form"><label>Cup name<input id="archive-title" required="" maxlength="120"></label><p class="rules">Save this completed tournament, its champion, fixtures and player stats to History, then clear the current teams and results for a new draw. Your headers and previous archives are kept. Any unfinished wheel draw will be discarded.</p><p id="archive-status" role="alert"></p><button id="confirm-archive" type="submit">Archive &amp; start new tournament</button></form></dialog>
