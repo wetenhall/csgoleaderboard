@@ -1434,3 +1434,10 @@ button.secondary:not(.danger, .map-veto-options button):enabled:focus-visible {
 .single-squad-players li:first-child{border:0}
 .single-squad-players li::before{content:none}
 .roster-captain{margin-left:auto;font:700 12px var(--mono);color:var(--side-colour)}
+
+.single-squads{--terrorist-yellow:#f2c451;--ct-blue:#78bde8}
+.match-scoreboard-team,.single-match-squads .single-squad{--side-colour:var(--terrorist-yellow);border-color:var(--side-colour)}
+.match-scoreboard-team:last-child,.single-match-squads .single-squad:nth-child(2){--side-colour:var(--ct-blue);border-color:var(--side-colour)}
+.match-scoreboard-team strong::after,.match-scoreboard-team:last-child strong::after{background:var(--side-colour)}
+.published-faction-logo{width:clamp(28px,4vw,50px);aspect-ratio:1;object-fit:contain;flex:none}
+.single-squad-heading .published-faction-logo{width:clamp(26px,3vw,36px)}

@@ -492,11 +492,16 @@ function renderTournament(data) {
       const side=element('div','match-scoreboard-team'+(match.winner===id?' is-winner':''));
       const name=element('strong');
       name.append(glitchLabel(team.name));
-      side.append(teamEmblem(team,i===0?'t':'ct'),name);
+      const faction=i===0?'Terrorists (T)':'Counter-Terrorists (CT)';
+      const logo=element('img','published-faction-logo');
+      logo.src='assets/images/faction-'+(i===0?'t':'ct')+'.png';
+      logo.alt=(match.result?'Started as ':'Join ')+faction;
+      logo.title=logo.alt;
+      side.append(logo,name);
       scoreboard.append(side);
       if(i===0)scoreboard.append(score);
       const heading=element('div','single-squad-heading');
-      heading.append(element('h3','',team.name),element('span','eyebrow',match.winner===id?'Winners':team.players.length+' player'+(team.players.length===1?'':'s')));
+      heading.append(logo.cloneNode(),element('h3','',team.name),element('span','eyebrow',match.winner===id?'Winners':team.players.length+' player'+(team.players.length===1?'':'s')));
       card.append(heading);
       const roster=element('ol','single-squad-players');
       team.players.forEach(player=>{
