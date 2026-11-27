@@ -4,16 +4,31 @@ function createSetupMusic(){
   const volume=document.getElementById('setup-music-volume');
   const status=document.getElementById('setup-music-status');
   const musicBar=audio.closest('.setup-music');
-  const resize=new ResizeObserver(()=>{
-    document.body.style.setProperty('--setup-music-height',musicBar.offsetHeight+'px');
-  });
-  resize.observe(musicBar);
+  const opener=document.getElementById('setup-music-open');
+  const panel=document.getElementById('setup-music-panel');
   let active=false;
   let manuallyPaused=false;
   let starting=false;
 
+  function setPanel(open){
+    panel.hidden=!open;
+    opener.setAttribute('aria-expanded',String(open));
+  }
+  opener.onclick=()=>setPanel(panel.hidden);
+  document.addEventListener('click',event=>{
+    if(!panel.hidden && !musicBar.contains(event.target))setPanel(false);
+  });
+  document.addEventListener('keydown',event=>{
+    if(event.key!=='Escape' || panel.hidden)return;
+    event.preventDefault();
+    event.stopPropagation();
+    setPanel(false);
+    opener.focus();
+  },true);
+
   function syncPlayback(){
     toggle.textContent=audio.paused?'Play music':'Pause music';
+    opener.classList.toggle('music-playing',!audio.paused && audio.volume>0);
   }
   async function play(){
     if(!active || manuallyPaused || starting || !audio.paused)return;
@@ -31,7 +46,7 @@ function createSetupMusic(){
     }
   }
   audio.onplay=audio.onpause=syncPlayback;
-  volume.oninput=()=>{audio.volume=Number(volume.value)/100;};
+  volume.oninput=()=>{audio.volume=Number(volume.value)/100;syncPlayback();};
   volume.oninput();
   toggle.onclick=()=>{
     manuallyPaused=!audio.paused;
@@ -45,7 +60,7 @@ function createSetupMusic(){
     if(visible===active)return;
     active=visible;
     if(active)void play();
-    else audio.pause();
+    else {setPanel(false);audio.pause();}
   }};
 }
 

@@ -605,40 +605,52 @@ body:has(:is(#tab-stats,#tab-history,#tab-team-setup,#tab-fixture-import,#tab-ma
 #draw-panel>.setup-steps button span{border-radius:0;font-size:13px}
 #draw-panel>.setup-steps + p + p{color:var(--muted);margin:8px 0 0}
 .setup-music{
-  display:flex;
-  flex-wrap:wrap;
-  align-items:center;
-  gap:12px;
-  margin-top:24px;
-  padding:10px 14px;
+  position:relative;
+  width:max-content;
+  margin:24px 0 0 auto;
+  z-index:2;
+}
+.setup-music .setup-music-icon{
+  display:grid;
+  place-items:center;
+  width:44px;
+  height:44px;
+  padding:0;
+  margin:0;
+  background:#191d25;
+  border-color:var(--border);
+}
+.setup-music-icon.music-playing,.setup-music-icon[aria-expanded=true]{
+  color:var(--accent);
+  border-color:#805720;
+}
+.setup-music-icon:not(.music-playing) .music-waves{opacity:.35}
+.setup-music-panel{
+  position:absolute;
+  inset:auto 0 calc(100% + 8px) auto;
+  width:min(264px,calc(100vw - 24px));
+  padding:12px;
   border:1px solid var(--border);
   background:#191d25;
+  box-shadow:0 8px 24px #0009;
 }
-.setup-music-track{font-weight:700;color:var(--accent);margin-inline-end:auto}
-.setup-music button{margin:0}
-.setup-music input{min-width:60px;width:min(125px,23vw);accent-color:var(--accent)}
-.setup-music [role=status]{flex-basis:100%;margin:0}
+.setup-music-heading,.setup-music-volume{display:flex;align-items:center;gap:8px;font-size:13px}
+.setup-music-heading{justify-content:space-between}
+.setup-music-heading strong{color:var(--accent)}
+.setup-music-heading button{margin:0;padding:5px 8px;min-height:34px;white-space:nowrap}
+.setup-music-volume{margin-top:8px}
+.setup-music-volume input{flex:1;min-width:0;margin:0;padding:0;background:transparent;accent-color:var(--accent)}
+.setup-music [role=status]{margin:8px 0 0;font-size:12px}
 .setup-music [role=status]:empty{display:none}
 .draw-fullscreen-open .setup-music{
   position:fixed;
-  inset:auto clamp(10px,2vw,28px) 0 auto;
+  inset:auto clamp(10px,2vw,28px) 6px auto;
   z-index:1001;
   margin:0;
-  padding:2px 8px;
-  gap:8px;
-  max-width:calc(100% - 20px);
-  background:#111318;
 }
-.draw-fullscreen-open .setup-music-track{display:none}
-.draw-fullscreen-open .setup-music :is(button,label){font-size:12px}
-.draw-fullscreen-open .setup-music button{min-height:30px;padding:4px 8px}
-.draw-fullscreen-open .setup-music input{width:72px;margin:0;padding:0;background:transparent}
 .draw-fullscreen-open .draw-stage.fullscreen-fallback{
   height:100dvh;
-  padding-block-end:calc(var(--setup-music-height,36px) + var(--stage-gap));
-}
-@media(max-width:480px){
-  .setup-music{gap:8px}
+  padding-block-end:calc(50px + var(--stage-gap));
 }
 #panel-team-setup .setup-stage .setup-card,
 #fixture-import-centre>.import-centre,
