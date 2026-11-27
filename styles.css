@@ -608,10 +608,12 @@ body:has(:is(#tab-stats,#tab-history,#tab-team-setup,#tab-fixture-import,#tab-ma
   margin:0;
   padding:8px 14px;
 }
-.draw-fullscreen-open .draw-stage.fullscreen-fallback{bottom:62px}
+.draw-fullscreen-open .draw-stage.fullscreen-fallback{
+  bottom:var(--setup-music-height,62px);
+  height:auto;
+}
 @media(max-width:480px){
   .setup-music{gap:8px}
-  .draw-fullscreen-open .draw-stage.fullscreen-fallback{bottom:104px}
 }
 #panel-team-setup .setup-stage .setup-card,
 #fixture-import-centre>.import-centre,

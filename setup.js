@@ -3,6 +3,11 @@ function createSetupMusic(){
   const toggle=document.getElementById('setup-music-toggle');
   const volume=document.getElementById('setup-music-volume');
   const status=document.getElementById('setup-music-status');
+  const musicBar=audio.closest('.setup-music');
+  const resize=new ResizeObserver(()=>{
+    document.body.style.setProperty('--setup-music-height',musicBar.offsetHeight+'px');
+  });
+  resize.observe(musicBar);
   let active=false;
   let manuallyPaused=false;
   let starting=false;
