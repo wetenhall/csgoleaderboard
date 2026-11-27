@@ -539,28 +539,17 @@ function renderTournament(data) {
     const meta=element('div','match-broadcast-meta');
     const statusBadge=element('span','match-broadcast-status',status);
     statusBadge.dataset.status=status.toLowerCase().replaceAll(' ','-');
-    meta.append(element('span','eyebrow','Custom '+data.teamSize+'v'+data.teamSize),statusBadge);
-    const scoreboard=element('div','match-scoreboard');
-    const scoreLabel=match.result?match.result.scores.join(' to '):'No score recorded';
-    const score=element('div','match-broadcast-score',match.result?match.result.scores.join(' : '):'VS');
-    score.classList.toggle('match-pending-score',!match.result);
-    score.setAttribute('aria-label',scoreLabel);
+    meta.append(statusBadge,element('div','match-broadcast-connect'));
     const mapHeading=element('h3');
     mapHeading.append(mapImageUrl(match.map)?glitchLabel(match.map):match.map || 'Map pending');
-    hero.append(meta,mapHeading,scoreboard,element('div','match-broadcast-connect'));
+    hero.append(meta,mapHeading);
     bracketRoot.append(hero);
     const squads=element('div','single-match-squads');
     match.ids.forEach((id,i)=>{
       const team=teams.get(id),card=element('article','single-squad'+(match.winner===id?' is-winner':''));
-      const side=element('div','match-scoreboard-team'+(match.winner===id?' is-winner':''));
-      const name=element('strong');
-      name.append(glitchLabel(team.name));
-      const logo=factionLogo(i,match.result?'Started as':'Join');
-      side.append(logo,name);
-      scoreboard.append(side);
-      if(i===0)scoreboard.append(score);
       const heading=element('div','single-squad-heading');
-      heading.append(logo.cloneNode(),element('h3','',team.name),element('span','eyebrow',match.winner===id?'Winners':team.players.length+' player'+(team.players.length===1?'':'s')));
+      heading.append(factionLogo(i,match.result?'Started as':'Join'),element('h3','',team.name),element('span','eyebrow',match.winner===id?'Winners':team.players.length+' player'+(team.players.length===1?'':'s')));
+      if(match.result)heading.append(element('strong','single-squad-score',String(match.result.scores[i])));
       card.append(heading);
       const roster=element('ol','single-squad-players');
       const skins=i===0?['professional','masked','miami','sally','osiris']:['ava','sas','bio-haz','ricksaw','farlow'];
@@ -582,7 +571,12 @@ function renderTournament(data) {
     bracketRoot.append(squads);
     const download=element('button','secondary match-image-download','Download match image');download.type='button';
     download.onclick=async()=>{download.disabled=true;try{await downloadMatchImage(data);}catch(error){download.textContent='Download failed · Try again';console.error(error);}finally{download.disabled=false;}};
-    const actions=element('div','match-published-actions');actions.append(download);bracketRoot.append(actions);
+    const actions=element('div','match-published-actions');
+    const share=element('details','match-share');
+    const shareOptions=element('div','match-share-options');
+    shareOptions.append(download);
+    share.append(element('summary','','Share match'),shareOptions);
+    actions.append(share);bracketRoot.append(actions);
   }
   else if(data.format==='double')renderConnectedBracket(bracketRoot,matches,teams);
   else [...new Set(matches.filter(match => !match.group).map(match => match.round))].sort((a,b)=>a-b).forEach(round => {

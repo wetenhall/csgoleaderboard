@@ -413,11 +413,15 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
   }
   function render(){
     publicRoot.replaceChildren();document.querySelector('[data-match-connect]')?.remove();let connectButton=null;const data=getData(),actions=element('div','game-actions');
-    if(data.teams.length)actions.append(copyButton('Copy match details for Discord',()=>discordMatchText(getData(),resolveTournament)));
+    const matchActions=document.querySelector('.match-published-actions');
+    const shareOptions=matchActions?.querySelector('.match-share-options') || actions;
+    shareOptions.querySelectorAll('[data-share-copy]').forEach(button=>button.remove());
+    function addCopy(label,getText){const button=copyButton(label,getText);button.dataset.shareCopy='';shareOptions.append(button);}
+    if(data.teams.length)addCopy('Copy match details for Discord',()=>discordMatchText(getData(),resolveTournament));
     if(data.serverAddress){
-      const connection=parseServerConnection(serverConnectionCommand(data)),connect=element('a','connect-launch match-connect','Connect to match');connect.dataset.matchConnect='';connectButton=connect;
+      const connection=parseServerConnection(serverConnectionCommand(data)),connect=element('a','connect-launch match-connect',matchActions?'Connect to server':'Connect to match');connect.dataset.matchConnect='';connectButton=connect;
       connect.href='steam://connect/'+connection.serverAddress+(connection.serverPassword?'/'+encodeURIComponent(connection.serverPassword):'');
-      actions.append(copyButton('Copy server connection',()=>serverConnectionCommand(getData())));
+      addCopy('Copy server connection',()=>serverConnectionCommand(getData()));
     }
     if(data.format==='single' && data.teamSize>=2){const rematch=makeButton('Rematch · Same teams, new map',beginRematch);rematch.dataset.rematch='';actions.append(rematch);}
     if(data.format==='single' && data.teamSize>=2 && data.teams.length===2 && !data.activeMatchId && !data.matches[0]?.result){
@@ -425,13 +429,13 @@ function createGameNightTools({saveServer,getData,getDraft,isOrganiser,isBusy,se
       button.dataset.randomiseMatch='';
       actions.append(button);
     }
-    const matchActions=document.querySelector('.match-published-actions');
     if(matchActions){actions.classList.add('match-extra-actions');matchActions.querySelector('.match-extra-actions')?.remove();matchActions.append(actions);}
     else publicRoot.append(actions);
+    document.querySelector('.match-broadcast-connect [data-server-toggle]')?.remove();
     if(connectButton)(document.querySelector('.match-broadcast-connect') || publicRoot).prepend(connectButton);
     if(data.format==='single' && data.teams.length){
       const form=element('form','setup-card');form.dataset.serverEditor='';form.id='match-server-editor';
-      const toggle=makeButton('Add server',()=>{serverEditorOpen=!serverEditorOpen;controls();if(serverEditorOpen)form.querySelector('input').focus();});toggle.dataset.serverToggle='';toggle.setAttribute('aria-controls',form.id);toggle.classList.remove('secondary');actions.append(toggle);
+      const toggle=makeButton(data.serverAddress?'Edit server':'Add server',()=>{serverEditorOpen=!serverEditorOpen;controls();if(serverEditorOpen)form.querySelector('input').focus();});toggle.dataset.serverToggle='';toggle.setAttribute('aria-controls',form.id);toggle.classList.remove('secondary');((!data.serverAddress && document.querySelector('.match-broadcast-connect')) || actions).append(toggle);
       form.append(element('h3','','Match server'),element('p','rules','Once your game server is ready, add its address here. Saving updates Connect to match in Discord. Paste the full connect command, including a password if required. These details are published for players on the website and in its public repository. Leave blank to remove them.'));
       const label=element('label','','Server connection details'),input=document.createElement('input');input.value=data.serverAddress?serverConnectionCommand(data):'';input.placeholder='server.example.com:27015';input.maxLength=450;input.autocomplete='off';label.append(input);
       const status=element('p','rules');status.setAttribute('role','status');const serverActions=element('div','setup-navigation'),save=element('button','','Save server details');save.type='submit';serverActions.append(save);form.append(label,status,serverActions);

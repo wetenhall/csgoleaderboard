@@ -1581,3 +1581,31 @@ body:has(#tab-register[aria-selected=true]) :is(.intro,.overview) { display:none
 .topbar .event-navigation{margin:0;border:0;align-items:center}
 .topbar #open-waiting-screen{flex-shrink:0}
 .topbar .header-actions{margin-inline-start:auto}
+
+/* Published match page */
+.has-match-broadcast.viewing-match .topbar,
+.has-match-broadcast.viewing-match > main{
+  padding-inline:max(clamp(16px,3vw,32px),calc((100% - 1536px)/2));
+}
+.has-match-broadcast.viewing-match > main{max-width:none}
+.single-squads .match-broadcast{
+  display:grid;
+  grid-template-rows:1fr auto 1fr;
+  min-height:clamp(215px,21vw,290px);
+  padding:clamp(14px,2vw,24px);
+  margin-bottom:12px;
+}
+.single-squads .match-broadcast.has-map-image{
+  background-image:linear-gradient(180deg,#0b101756,#0b101783 50%,#0b10174d),var(--map-image);
+  background-position:center,center 52%;
+}
+.single-squads .match-broadcast h3{margin:0;text-shadow:0 2px 6px #0008}
+.match-broadcast-meta{justify-content:flex-end;align-self:start;flex-wrap:wrap}
+.match-broadcast-connect :is(button,.match-connect){margin:0;min-width:0}
+.single-squad-players .roster-portrait{width:clamp(34px,3vw,42px)}
+.match-published-actions{align-items:flex-start;gap:24px}
+.match-share summary{
+  display:list-item;cursor:pointer;padding:10px 16px;border:1px solid var(--blue);
+  color:var(--text);background:var(--panel);font-weight:700;
+}
+.match-share-options{display:grid;gap:4px;margin-top:6px}
