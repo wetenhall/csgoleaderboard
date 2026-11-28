@@ -1430,6 +1430,30 @@ if (typeof document !== 'undefined') (() => {
   });
   window.addEventListener('beforeunload',event=>{if(busy || (selected.length && draw!==null) || (locked && remaining.length)){event.preventDefault();event.returnValue='';}});
   const tabs = Array.from(document.querySelectorAll('.page-tabs [role="tab"], .admin-tabs [role="tab"]'));
+  const navTriggers=Array.from(document.querySelectorAll('.nav-trigger'));
+  function closeNavigation(){
+    for(const trigger of navTriggers)trigger.setAttribute('aria-expanded','false');
+  }
+  for(const trigger of navTriggers){
+    trigger.addEventListener('click',()=>{
+      const opening=trigger.getAttribute('aria-expanded')==='false';
+      closeNavigation();
+      trigger.setAttribute('aria-expanded',String(opening));
+    });
+  }
+  document.addEventListener('click',event=>{
+    if(!event.target.closest('.nav-section'))closeNavigation();
+  });
+  document.addEventListener('focusin',event=>{
+    for(const trigger of navTriggers){
+      if(!trigger.parentElement.contains(event.target))trigger.setAttribute('aria-expanded','false');
+    }
+  });
+  document.addEventListener('keydown',event=>{
+    const trigger=navTriggers.find(button=>button.getAttribute('aria-expanded')==='true');
+    if(event.key==='Escape' && trigger){closeNavigation();trigger.focus();}
+  });
+  matchMedia('(max-width:960px)').addEventListener('change',closeNavigation);
   const setupMusic=createSetupMusic();
   function positionSetupMusic(){
     const stage=document.querySelector('.setup-stage:not([hidden])');
@@ -1472,7 +1496,12 @@ if (typeof document !== 'undefined') (() => {
     setupMusic.setActive(tab.id==='tab-team-setup' && isOrganiser());
     for(const menu of document.querySelectorAll('.page-tabs,.admin-tabs')){const items=tabs.filter(item=>item.parentElement===menu && !item.hidden);if(items.length && !items.some(item=>item.tabIndex===0))items[0].tabIndex=0;}
     if (updateUrl) history.replaceState(null,'','#'+tab.id.slice(4));
-    if (focus) tab.focus();
+    const trigger=tab.closest('.nav-section').querySelector('.nav-trigger');
+    const dropdown=trigger.getClientRects().length>0;
+    const restoreFocus=dropdown && tab.parentElement.contains(document.activeElement);
+    closeNavigation();
+    navTriggers[0].textContent=tab.parentElement.id==='tournament-tabs'?tab.textContent:'Tournament';
+    if (focus || restoreFocus) (dropdown?trigger:tab).focus();
   }
   function selectLinkedTab() {
     const tab=tabs.find(item=>'#'+item.id.slice(4)===location.hash && !item.hidden);
@@ -1482,6 +1511,14 @@ if (typeof document !== 'undefined') (() => {
   tabs.forEach(tab => {
     tab.addEventListener('click', () => selectTab(tab));
     tab.addEventListener('keydown', event => {
+      if(event.key==='Tab' && tab.closest('.nav-section').querySelector('[aria-expanded=true]')){
+        const siblings=tabs.filter(item=>!item.hidden && item.parentElement===tab.parentElement);
+        const next=siblings[siblings.indexOf(tab)+(event.shiftKey?-1:1)];
+        if(next){event.preventDefault();next.focus();}
+        else if(event.shiftKey){event.preventDefault();tab.closest('.nav-section').querySelector('.nav-trigger').focus();}
+        else{const trigger=tab.closest('.nav-section').querySelector('.nav-trigger');trigger.focus();closeNavigation();}
+        return;
+      }
       const visibleTabs = tabs.filter(item => !item.hidden && item.parentElement===tab.parentElement), index = visibleTabs.indexOf(tab);
       const target = event.key === 'ArrowRight' ? (index+1)%visibleTabs.length : event.key === 'ArrowLeft' ? (index+visibleTabs.length-1)%visibleTabs.length : event.key === 'Home' ? 0 : event.key === 'End' ? visibleTabs.length-1 : null;
       if (target !== null) { event.preventDefault(); selectTab(visibleTabs[target],true); }

@@ -20,18 +20,24 @@
 <body>
   <header class="topbar"><div class="header-brand"><a class="brand" href="./"><span class="mark" aria-hidden="true">⌖</span><span id="brand-title">Friends Cup</span></a><span class="game">COUNTER-STRIKE <b> // </b> PRIVATE TOURNAMENT</span></div><div class="header-actions">
     <nav class="event-navigation" aria-label="Event navigation">
-    <div class="page-tabs" role="tablist" aria-label="Tournament sections">
+    <div class="nav-section tournament-nav">
+    <button type="button" class="nav-trigger" aria-controls="tournament-tabs" aria-expanded="false">Tournament</button>
+    <div id="tournament-tabs" class="page-tabs" role="tablist" aria-label="Tournament sections">
 <button type="button" id="tab-leaderboard" aria-label="Leader board" role="tab" aria-controls="panel-leaderboard" aria-selected="true" tabindex="0">Leader board</button>
 <button type="button" id="tab-fixtures" aria-label="Fixtures" role="tab" aria-controls="panel-fixtures" aria-selected="false" tabindex="-1">Fixtures</button>
 <button type="button" id="tab-stats" aria-label="Stats" role="tab" aria-controls="panel-stats" aria-selected="false" tabindex="-1">Stats</button>
 <button type="button" id="tab-history" aria-label="History" role="tab" aria-controls="panel-history" aria-selected="false" tabindex="-1">History</button>
 <button type="button" id="tab-register" hidden="" aria-label="Register" role="tab" aria-controls="panel-register" aria-selected="false" tabindex="-1">Register</button>
 </div>
+    </div>
       <div class="organiser-navigation" role="group" aria-label="Organiser">
-<div id="admin-menu" hidden class="page-tabs admin-tabs" role="tablist" aria-label="Admin sections">
+<div id="admin-menu" hidden class="nav-section admin-nav">
+<button type="button" class="nav-trigger" aria-expanded="false" aria-controls="admin-tabs">Admin</button>
+<div id="admin-tabs" class="page-tabs admin-tabs" role="tablist" aria-label="Admin sections">
 <button type="button" id="tab-team-setup" aria-label="Team setup" hidden="" role="tab" aria-controls="panel-team-setup" aria-selected="false" tabindex="-1">Team setup</button>
 <button type="button" id="tab-fixture-import" hidden="" role="tab" aria-controls="panel-fixture-import" aria-selected="false" tabindex="-1">Fixture Import</button>
 <button type="button" id="tab-manage-players" hidden="" role="tab" aria-controls="panel-manage-players" aria-selected="false" tabindex="-1">Manage Players</button>
+      </div>
       </div>
 <button type="button" id="open-options" class="secondary organiser-settings" aria-label="Open settings" aria-haspopup="dialog" aria-controls="options-dialog" title="Open settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 3 .6-1h3.8l.6 2.5 2 .9L19 4.6l2 3.4-1.8 1.8.2 2.2L21 14l-2 3.5-2.5-.6-1.9 1.1-.7 2.5h-3.8L9.4 18l-2-1.1-2.4.6L3 14l1.7-2-.1-2.2L3 8l2-3.4 2.5.8 2-.9Z" transform="translate(0 1)"/><circle cx="12" cy="12" r="3"/></svg></button>
       </div>

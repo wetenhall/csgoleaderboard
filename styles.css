@@ -540,7 +540,42 @@ body.waiting-screen-open{overflow:hidden}
   gap:4px;
   margin-inline-start:auto;
 }
-.organiser-navigation .admin-tabs{justify-content:flex-end}
+.nav-section{position:relative}
+.admin-nav{border-inline-start:1px solid var(--border);padding-inline-start:8px}
+.nav-trigger{
+  margin:0;padding:12px;min-height:44px;background:transparent;color:var(--muted);
+  border:0;border-bottom:3px solid transparent;font:700 13.2px var(--mono);
+  letter-spacing:1.3px;text-transform:uppercase;
+}
+.nav-trigger::after{
+  content:'';display:inline-block;width:6px;height:6px;margin:0 1px 3px 9px;
+  border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(45deg);
+}
+.nav-trigger[aria-expanded=true]::after{transform:rotate(225deg);vertical-align:-3px}
+.nav-section:has([aria-selected=true])>.nav-trigger{color:var(--accent);border-bottom-color:currentColor}
+.tournament-nav>.nav-trigger{display:none}
+.nav-section:has(>.nav-trigger[aria-expanded=true])>.page-tabs{
+  display:flex;flex-direction:column;gap:2px;position:absolute;z-index:20;
+  top:calc(100% + 5px);right:0;width:max-content;min-width:180px;padding:5px;
+  background:var(--panel);border:1px solid var(--border);box-shadow:0 10px 24px #0006;
+}
+.nav-section>.nav-trigger[aria-expanded=true]+.page-tabs button{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  text-align:left;border:0;min-height:40px;letter-spacing:.5px;
+}
+.nav-section>.nav-trigger[aria-expanded=true]+.page-tabs button[aria-selected=true]::after{content:'✓'}
+.admin-nav>.nav-trigger[aria-expanded=false]+.page-tabs{display:none}
+@media(max-width:960px){
+  .tournament-nav>.nav-trigger{display:block}
+  .tournament-nav>.nav-trigger[aria-expanded=false]+.page-tabs{display:none}
+  .tournament-nav:has(>.nav-trigger[aria-expanded=true])>.page-tabs{left:0;right:auto}
+}
+@media(max-width:600px){
+  .topbar .header-actions{width:100%;gap:6px}
+  .topbar .event-navigation{flex:1}
+  .nav-trigger{padding-inline:6px;letter-spacing:.5px}
+  .admin-nav{padding-inline-start:4px}
+}
 .organiser-navigation .organiser-settings{
   margin:0;
   padding:8px 12px;
