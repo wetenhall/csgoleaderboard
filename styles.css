@@ -268,7 +268,16 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 
 .connect-launch{display:inline-block;background:var(--accent);color:#111;padding:12px 18px;font-weight:700;text-decoration:none}.connection-command{display:block;overflow-wrap:anywhere;white-space:pre-wrap;background:#101316;padding:16px;margin-top:16px}#connect-dialog .game-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}#connect-dialog .game-actions button{margin:0}
 
-.match-published-actions .match-extra-actions{flex:1}.game-actions [data-server-toggle]{margin-left:auto}
+.match-published-actions .match-extra-actions{display:contents}
+.game-actions [data-server-toggle]{margin-left:auto}
+@media (max-width:1200px){
+  .match-published-actions{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));
+    align-items:stretch;
+  }
+  .match-published-actions [data-server-toggle]{margin-left:0}
+}
 
 .match-connect{display:block;width:100%;box-sizing:border-box;text-align:center;padding:20px 24px;font-size:26.4px;margin-top:20px}
 
